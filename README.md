@@ -84,6 +84,12 @@ Until the above are complete, this repo should be considered **SPEC-COMPLETE, AR
 
 ---
 
+## Contributing
+
+See `CONTRIBUTING.md` for commit message standards and contribution guidelines.
+
+---
+
 ## Version Lineage
 
 - v1.0 — Core vocal + finishing bay system
