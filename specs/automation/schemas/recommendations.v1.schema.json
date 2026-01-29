@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hvlien.audio/specs/automation/schemas/recommendations.v1.schema.json",
+  "title": "HVLIEN Recommendations v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "name",
+    "applies_to",
+    "tags"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "name": {
+      "type": "string"
+    },
+    "applies_to": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "os",
+        "ableton",
+        "preferred_plugin_format"
+      ],
+      "properties": {
+        "os": {
+          "type": "string"
+        },
+        "ableton": {
+          "type": "string"
+        },
+        "preferred_plugin_format": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "tags": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/TagRec"
+      }
+    },
+    "meta": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "TagRec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "priority",
+        "why",
+        "suggestions"
+      ],
+      "properties": {
+        "priority": {
+          "type": "integer"
+        },
+        "why": {
+          "type": "string"
+        },
+        "suggestions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Suggestion"
+          }
+        }
+      }
+    },
+    "Suggestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "name"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "plugin",
+            "pack",
+            "builtin"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "vendor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

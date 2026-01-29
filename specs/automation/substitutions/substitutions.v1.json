@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "name": "HVLIEN macOS Ableton 12.3 Substitutions",
+  "applies_to": {
+    "os": "macos",
+    "ableton": "12.3",
+    "preferred_plugin_format": [
+      "au",
+      "vst3"
+    ]
+  },
+  "rules": [
+    {
+      "id": "eq_primary",
+      "when": {
+        "tags_any": [
+          "eq"
+        ]
+      },
+      "then": {
+        "candidates": [
+          {
+            "name": "EQ Eight",
+            "kind": "ableton_audio_effect",
+            "format": null,
+            "vendor": "Ableton",
+            "weight": 1.0,
+            "notes": null
+          },
+          {
+            "name": "Channel EQ",
+            "kind": "ableton_audio_effect",
+            "format": null,
+            "vendor": "Ableton",
+            "weight": 0.7,
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "comp_primary",
+      "when": {
+        "tags_any": [
+          "compressor"
+        ]
+      },
+      "then": {
+        "candidates": [
+          {
+            "name": "Compressor",
+            "kind": "ableton_audio_effect",
+            "format": null,
+            "vendor": "Ableton",
+            "weight": 1.0,
+            "notes": null
+          },
+          {
+            "name": "Glue Compressor",
+            "kind": "ableton_audio_effect",
+            "format": null,
+            "vendor": "Ableton",
+            "weight": 0.9,
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "limiter_primary",
+      "when": {
+        "tags_any": [
+          "limiter"
+        ]
+      },
+      "then": {
+        "candidates": [
+          {
+            "name": "Limiter",
+            "kind": "ableton_audio_effect",
+            "format": null,
+            "vendor": "Ableton",
+            "weight": 1.0,
+            "notes": "Safety limiter"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reverb_primary",
+      "when": {
+        "tags_any": [
+          "reverb"
+        ]
+      },
+      "then": {
+        "candidates": [
+          {
+            "name": "Reverb",
+            "kind": "ableton_audio_effect",
+            "format": null,
+            "vendor": "Ableton",
+            "weight": 1.0,
+            "notes": null
+          },
+          {
+            "name": "Hybrid Reverb",
+            "kind": "ableton_audio_effect",
+            "format": null,
+            "vendor": "Ableton",
+            "weight": 0.8,
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "delay_primary",
+      "when": {
+        "tags_any": [
+          "delay"
+        ]
+      },
+      "then": {
+        "candidates": [
+          {
+            "name": "Delay",
+            "kind": "ableton_audio_effect",
+            "format": null,
+            "vendor": "Ableton",
+            "weight": 1.0,
+            "notes": null
+          },
+          {
+            "name": "Echo",
+            "kind": "ableton_audio_effect",
+            "format": null,
+            "vendor": "Ableton",
+            "weight": 0.9,
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "saturator_primary",
+      "when": {
+        "tags_any": [
+          "saturator"
+        ]
+      },
+      "then": {
+        "candidates": [
+          {
+            "name": "Saturator",
+            "kind": "ableton_audio_effect",
+            "format": null,
+            "vendor": "Ableton",
+            "weight": 1.0,
+            "notes": null
+          },
+          {
+            "name": "Overdrive",
+            "kind": "ableton_audio_effect",
+            "format": null,
+            "vendor": "Ableton",
+            "weight": 0.8,
+            "notes": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "utility_primary",
+      "when": {
+        "tags_any": [
+          "utility"
+        ]
+      },
+      "then": {
+        "candidates": [
+          {
+            "name": "Utility",
+            "kind": "ableton_audio_effect",
+            "format": null,
+            "vendor": "Ableton",
+            "weight": 1.0,
+            "notes": "Gain/width/mono"
+          }
+        ]
+      }
+    }
+  ],
+  "meta": {}
+}

@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hvlien.audio/specs/automation/schemas/substitutions.v1.schema.json",
+  "title": "HVLIEN Substitution Map v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "name",
+    "applies_to",
+    "rules"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "applies_to": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "os",
+        "ableton",
+        "preferred_plugin_format"
+      ],
+      "properties": {
+        "os": {
+          "type": "string",
+          "enum": [
+            "macos"
+          ]
+        },
+        "ableton": {
+          "type": "string"
+        },
+        "preferred_plugin_format": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "au",
+              "vst3"
+            ]
+          }
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/SubRule"
+      }
+    },
+    "meta": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "Kind": {
+      "type": "string",
+      "enum": [
+        "ableton_audio_effect",
+        "ableton_midi_effect",
+        "ableton_instrument",
+        "ableton_max_for_live",
+        "plugin",
+        "rack",
+        "preset",
+        "sample",
+        "clip"
+      ]
+    },
+    "KindOrNull": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "ableton_audio_effect",
+        "ableton_midi_effect",
+        "ableton_instrument",
+        "ableton_max_for_live",
+        "plugin",
+        "rack",
+        "preset",
+        "sample",
+        "clip",
+        null
+      ]
+    },
+    "PluginFormat": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "au",
+        "vst3",
+        null
+      ]
+    },
+    "SubRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "when",
+        "then"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "when": {
+          "$ref": "#/$defs/WhenClause"
+        },
+        "then": {
+          "$ref": "#/$defs/ThenClause"
+        }
+      }
+    },
+    "WhenClause": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tags_any": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tags_all": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "kind_in": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Kind"
+          }
+        },
+        "track_type_in": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "audio",
+              "midi",
+              "group",
+              "return"
+            ]
+          }
+        },
+        "device_name_contains_any": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ThenClause": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidates"
+      ],
+      "properties": {
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/CandidateSpec"
+          }
+        },
+        "constraints": {
+          "$ref": "#/$defs/Constraints"
+        }
+      }
+    },
+    "CandidateSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "weight"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "$ref": "#/$defs/KindOrNull"
+        },
+        "format": {
+          "$ref": "#/$defs/PluginFormat"
+        },
+        "vendor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "Constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "must_match_kind": {
+          "type": "boolean",
+          "default": false
+        },
+        "max_latency_ms": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "prefer_stock_ableton": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    }
+  }
+}

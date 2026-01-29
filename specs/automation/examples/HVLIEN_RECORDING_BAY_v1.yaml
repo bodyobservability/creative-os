@@ -1,0 +1,20 @@
+version: 1
+controllers:
+  - id: "ctrl:mpk_mini_iv"
+    required: true
+    expected_name_contains: ["mpk", "mini", "iv"]
+    preferred_manufacturer: "Akai"
+    ableton_control_surface: "MPK mini IV"
+    require_input_contains: ["port", "2"]
+    require_output_contains: ["port", "2"]
+
+tracks:
+  - name: "Vox"
+    type: audio
+    chain:
+      - device:
+          primary: "Auto-Tune"
+          candidates: ["Antares Auto-Tune Pro", "Auto-Tune Artist", "Auto-Tune"]
+          tags: ["pitch", "vocal"]
+        required: true
+        match_mode: contains

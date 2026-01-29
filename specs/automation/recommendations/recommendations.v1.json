@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "name": "HVLIEN Recommendations v1 (Ableton 12.3 macOS, AU-first)",
+  "applies_to": {
+    "os": "macos",
+    "ableton": "12.3",
+    "preferred_plugin_format": [
+      "au",
+      "vst3"
+    ]
+  },
+  "tags": {
+    "pitch": {
+      "priority": 100,
+      "why": "Pitch correction / tuning for vocal chains.",
+      "suggestions": [
+        {
+          "type": "plugin",
+          "name": "Antares Auto-Tune (AU)",
+          "vendor": "Antares",
+          "notes": "Prefer AU on macOS."
+        },
+        {
+          "type": "plugin",
+          "name": "Celemony Melodyne (AU)",
+          "vendor": "Celemony",
+          "notes": "Detailed pitch/time editing."
+        },
+        {
+          "type": "builtin",
+          "name": "None (use manual monitoring)",
+          "vendor": "Ableton",
+          "notes": "Fallback; prompt install."
+        }
+      ]
+    },
+    "eq": {
+      "priority": 95,
+      "why": "EQ is mandatory; stock EQ is deterministic.",
+      "suggestions": [
+        {
+          "type": "builtin",
+          "name": "EQ Eight",
+          "vendor": "Ableton",
+          "notes": "Default bay EQ."
+        },
+        {
+          "type": "builtin",
+          "name": "Channel EQ",
+          "vendor": "Ableton",
+          "notes": "Fallback."
+        },
+        {
+          "type": "plugin",
+          "name": "FabFilter Pro-Q 3 (AU)",
+          "vendor": "FabFilter",
+          "notes": "If installed, advanced EQ."
+        }
+      ]
+    }
+  },
+  "meta": {
+    "notes": "Consult only after inventory+substitutions fail."
+  }
+}

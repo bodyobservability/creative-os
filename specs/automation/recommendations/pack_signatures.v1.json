@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "name": "HVLIEN Pack Signatures v1 (Ableton 12.3, macOS)",
+  "applies_to": {
+    "os": "macos",
+    "ableton": "12.3"
+  },
+  "packs": [
+    {
+      "pack_id": "max_for_live_essentials",
+      "pack_name": "Max for Live Essentials",
+      "included_with": [
+        "Live 12 Suite"
+      ],
+      "implied_by_tags_any": [
+        "m4l",
+        "max_for_live"
+      ],
+      "implied_by_tags_all": [],
+      "signature_tokens": [
+        {
+          "query": "Max for Live Essentials",
+          "expect_contains": "Max for Live Essentials",
+          "notes": "Pack name token."
+        }
+      ],
+      "min_hits": 1,
+      "confidence_threshold": 0.85,
+      "install_prompt": {
+        "title": "Max for Live Essentials pack missing",
+        "message": "Install Max for Live Essentials via Live’s Packs browser/manager, then re-run A0."
+      }
+    }
+  ],
+  "meta": {
+    "detection_method": "Inventory evidence samples scanned for expect_contains with confidence threshold; pack present if hits>=min_hits.",
+    "notes": "Detection is probabilistic; prompts should say 'not detected'."
+  }
+}

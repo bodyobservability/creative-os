@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "regions": {
+    "ableton.browser.results_list": {
+      "x": 40,
+      "y": 140,
+      "w": 560,
+      "h": 900
+    }
+  }
+}

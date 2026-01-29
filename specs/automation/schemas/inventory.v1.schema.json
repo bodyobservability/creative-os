@@ -1,0 +1,365 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hvlien.audio/specs/automation/schemas/inventory.v1.schema.json",
+  "title": "HVLIEN Ableton Inventory v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "environment",
+    "source",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "os",
+        "ableton",
+        "display"
+      ],
+      "properties": {
+        "os": {
+          "type": "string",
+          "enum": [
+            "macos"
+          ]
+        },
+        "ableton": {
+          "type": "string"
+        },
+        "serum": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "display": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "width",
+            "height",
+            "scale_percent"
+          ],
+          "properties": {
+            "width": {
+              "type": "integer",
+              "minimum": 800
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 600
+            },
+            "scale_percent": {
+              "type": "integer",
+              "minimum": 50,
+              "maximum": 200
+            }
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "capture",
+        "ocr"
+      ],
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "ableton_browser_search_ocr",
+            "ableton_browser_scroll_ocr",
+            "manual_import"
+          ]
+        },
+        "capture": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "backend",
+            "fps"
+          ],
+          "properties": {
+            "backend": {
+              "type": "string",
+              "enum": [
+                "ScreenCaptureKit",
+                "Quartz"
+              ]
+            },
+            "fps": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 30
+            }
+          }
+        },
+        "ocr": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "engine",
+            "language"
+          ],
+          "properties": {
+            "engine": {
+              "type": "string",
+              "enum": [
+                "AppleVision"
+              ]
+            },
+            "language": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/InventoryItem"
+      }
+    },
+    "indexes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "by_norm_name": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "by_kind": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "by_vendor": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "meta": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "Kind": {
+      "type": "string",
+      "enum": [
+        "ableton_audio_effect",
+        "ableton_midi_effect",
+        "ableton_instrument",
+        "ableton_max_for_live",
+        "plugin",
+        "rack",
+        "preset",
+        "sample",
+        "clip"
+      ]
+    },
+    "PluginFormat": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "au",
+        "vst3",
+        null
+      ]
+    },
+    "EvidenceSample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "frame_ts_ms",
+        "region_id",
+        "ocr_text",
+        "confidence"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "minLength": 4
+        },
+        "frame_ts_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "region_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ocr_text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "screenshot_relpath": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "Evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "samples"
+      ],
+      "properties": {
+        "seen_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "best_confidence": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "samples": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/EvidenceSample"
+          }
+        }
+      }
+    },
+    "InventoryItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "display_name",
+        "norm_name",
+        "kind",
+        "evidence"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 8
+        },
+        "stable_key": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "norm_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "$ref": "#/$defs/Kind"
+        },
+        "format": {
+          "$ref": "#/$defs/PluginFormat"
+        },
+        "vendor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "browser_path": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "evidence": {
+          "$ref": "#/$defs/Evidence"
+        },
+        "meta": {
+          "type": "object"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "plugin"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "format"
+            ],
+            "properties": {
+              "format": {
+                "enum": [
+                  "au",
+                  "vst3"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hvlien.audio/specs/automation/schemas/controllers.v1.schema.json",
+  "title": "HVLIEN Controllers Inventory v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "environment",
+    "source",
+    "devices"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "os"
+      ],
+      "properties": {
+        "os": {
+          "type": "string",
+          "enum": [
+            "macos"
+          ]
+        },
+        "ableton": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method"
+      ],
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "coremidi"
+          ]
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "devices": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ControllerDevice"
+      }
+    },
+    "indexes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "by_norm_name": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "by_transport": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "meta": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "MidiEndpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "display_name",
+        "norm_name",
+        "direction"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 6
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "norm_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "input",
+            "output"
+          ]
+        },
+        "coremidi": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "unique_id": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "endpoint_name": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "ControllerDevice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "display_name",
+        "norm_name",
+        "transport",
+        "endpoints"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 8
+        },
+        "stable_key": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "norm_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manufacturer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transport": {
+          "type": "string",
+          "enum": [
+            "usb",
+            "bluetooth",
+            "network",
+            "unknown"
+          ]
+        },
+        "coremidi": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "unique_id": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "entity_name": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "endpoints": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "inputs",
+            "outputs"
+          ],
+          "properties": {
+            "inputs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/MidiEndpoint"
+              }
+            },
+            "outputs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/MidiEndpoint"
+              }
+            }
+          }
+        },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "has_keys": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "has_pads": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "has_knobs": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "has_transport_controls": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          }
+        },
+        "meta": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}
