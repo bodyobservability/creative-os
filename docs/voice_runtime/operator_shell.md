@@ -1,15 +1,22 @@
-# v1.7.7 Operator Shell — Drift Plan Preview
+# v1.7.8 Operator Shell — Voice Mode + Studio Mode
 
-Adds:
-- `p` shortcut inside `hvlien ui` to preview:
-  - `hvlien drift plan --anchors-pack-hint <anchors-pack>`
-  - printed inline, then return to menu
+## Voice Mode
+Toggle with `v`.
+- Numbers each action prominently
+- Prints: “Say ‘press 3’”
+- Allows number key selection (1–9) to run actions with minimal letters
 
-This reduces cognitive load before running drift fix.
+## Studio Mode
+Toggle with `s`.
+- Hides risky commands by default (anything marked dangerous)
+- Reduces anxiety during sessions
+- You can still run risky ops by disabling Studio Mode temporarily
 
 Keys:
-- Space: run recommended
-- p: preview drift plan
-- a: toggle TOP/ALL
+- v: toggle Voice Mode
+- s: toggle Studio Mode
+- a: toggle All (only meaningful when Studio Mode is OFF)
+- Space: run recommended next action
+- p: drift plan preview
 - R: refresh
 - r/o/f/x/q unchanged

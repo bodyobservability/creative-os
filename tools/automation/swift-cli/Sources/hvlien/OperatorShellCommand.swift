@@ -5,7 +5,7 @@ import Darwin
 struct UI: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     commandName: "ui",
-    abstract: "Operator shell (TUI) for common workflows (v1.7.7)."
+    abstract: "Operator shell (TUI) for common workflows (v1.7.8)."
   )
 
   @Option(name: .long, help: "Anchors pack hint (stored in local config if provided).")
@@ -33,19 +33,14 @@ struct UI: AsyncParsableCommand {
     let hv = resolveHVLIENBinary(repoRoot: repoRoot) ?? "hvlien"
 
     let allItems: [MenuItem] = buildMenu(hv: hv, anchorsPack: ap)
-    let topKeys: [String] = [
-      "Doctor (modal guard sanity)",
-      "Assets: export ALL (repo completeness)",
-      "Index: build",
-      "Drift: check",
-      "Drift: plan",
-      "Drift: fix (guarded)",
-      "VRL validate",
-      "Station: certify"
-    ]
 
-    var showAll = false
+    // UI modes
+    var voiceMode = false           // minimizes letters/keys, emphasizes numbers
+    var studioMode = true           // hide risky commands by default
+    var showAll = false             // TOP/ALL view (when studioMode is off, this is the normal toggle)
     var selected = 0
+
+    // transient state
     var lastCommandExit: Int32? = nil
     var lastReceiptPath: String? = nil
     var lastRunDir: String? = nil
@@ -56,18 +51,21 @@ struct UI: AsyncParsableCommand {
     defer { stdinRaw.disable() }
 
     while true {
-      let items = showAll ? allItems : allItems.filter { topKeys.contains($0.title) }
+      // dynamic filtered view
+      let items = visibleItems(all: allItems, studioMode: studioMode, showAll: showAll)
       selected = min(selected, max(0, items.count - 1))
 
       lastRunDir = latestRunDir()
       lastFailuresDir = latestFailuresDir(inRunDir: lastRunDir)
 
       let state = DashboardState.load(lastRunDir: lastRunDir)
-      let rec = recommendedNextAction(cfgAnchorsPack: cfg.anchorsPack, state: state)
+      let rec = recommendedNextAction(cfgAnchorsPack: cfg.anchorsPack, state: state, hv: hv, anchorsPack: ap)
 
       printScreen(repoRoot: repoRoot,
                   hv: hv,
                   anchorsPack: ap,
+                  voiceMode: voiceMode,
+                  studioMode: studioMode,
                   showAll: showAll,
                   lastRun: lastRunDir,
                   failuresDir: lastFailuresDir,
@@ -82,13 +80,27 @@ struct UI: AsyncParsableCommand {
       switch key {
       case .quit:
         return
+
+      case .toggleVoiceMode:
+        voiceMode.toggle()
+        continue
+
+      case .toggleStudioMode:
+        studioMode.toggle()
+        selected = 0
+        continue
+
       case .toggleAll:
         showAll.toggle()
         selected = 0
+        continue
+
       case .refresh:
         continue
+
       case .up:
         selected = max(0, selected - 1)
+
       case .down:
         selected = min(items.count - 1, selected + 1)
 
@@ -101,78 +113,43 @@ struct UI: AsyncParsableCommand {
           let output = try await captureProcessOutput([hv, "drift", "plan", "--anchors-pack-hint", ap])
           print(output.isEmpty ? "(no output)" : output)
         }
-        print("\nPress Enter to return to menu…", terminator: "")
+        print("\nPress Enter to return…", terminator: "")
         _ = readLine()
         try stdinRaw.enable()
 
       case .runRecommended:
         if let action = rec.action {
-          let cmd = action.command
-          let danger = action.danger
-          if danger && !dryRun {
-            stdinRaw.disable()
-            print("\nRecommended action may click/type in Ableton or overwrite files.\nProceed? [y/N] ", terminator: "")
-            let ans = (readLine() ?? "").lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-            try stdinRaw.enable()
-            if ans != "y" && ans != "yes" { continue }
-          }
-          if dryRun { lastCommandExit = 0; continue }
-          stdinRaw.disable()
-          print("\n> Running recommended: \(cmd.joined(separator: " "))\n")
-          let code = try await runProcess(cmd)
-          lastCommandExit = code
-          lastRunDir = latestRunDir()
-          lastReceiptPath = discoverLatestReceipt(inRunDir: lastRunDir)
-          lastFailuresDir = latestFailuresDir(inRunDir: lastRunDir)
-          print("\nExit: \(code)")
-          if let rp = lastReceiptPath { print("Latest receipt: \(rp)") }
-          if let fd = lastFailuresDir { print("Failures folder: \(fd)") }
-          print("\nPress Enter to return to menu…", terminator: "")
-          _ = readLine()
-          try stdinRaw.enable()
+          try await runAction(action, stdinRaw: stdinRaw, dryRun: dryRun,
+                              lastExit: &lastCommandExit, lastReceipt: &lastReceiptPath,
+                              lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
         }
         continue
 
       case .enter:
         let item = items[selected]
-        if item.danger && !dryRun {
-          stdinRaw.disable()
-          print("\nThis action may click/type in Ableton or overwrite files.\nProceed? [y/N] ", terminator: "")
-          let ans = (readLine() ?? "").lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-          try stdinRaw.enable()
-          if ans != "y" && ans != "yes" { continue }
-        }
-        if dryRun { lastCommandExit = 0; lastReceiptPath = nil; continue }
-
-        stdinRaw.disable()
-        print("\n> Running: \(item.command.joined(separator: " "))\n")
-        let code = try await runProcess(item.command)
-        lastCommandExit = code
-        lastRunDir = latestRunDir()
-        lastReceiptPath = discoverLatestReceipt(inRunDir: lastRunDir)
-        lastFailuresDir = latestFailuresDir(inRunDir: lastRunDir)
-        print("\nExit: \(code)")
-        if let rp = lastReceiptPath { print("Latest receipt: \(rp)") }
-        if let fd = lastFailuresDir { print("Failures folder: \(fd)") }
-        print("\nPress Enter to return to menu…", terminator: "")
-        _ = readLine()
-        try stdinRaw.enable()
+        try await runAction(.init(command: item.command, danger: item.danger, label: item.title),
+                            stdinRaw: stdinRaw, dryRun: dryRun,
+                            lastExit: &lastCommandExit, lastReceipt: &lastReceiptPath,
+                            lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
 
       case .openReceipt:
-        if let rp = lastReceiptPath {
-          _ = try? await runProcess(["bash","-lc","open " + shellEscape(rp)])
-        }
+        if let rp = lastReceiptPath { _ = try? await runProcess(["bash","-lc","open " + shellEscape(rp)]) }
       case .openRun:
-        if let rd = lastRunDir {
-          _ = try? await runProcess(["bash","-lc","open " + shellEscape(rd)])
-        }
+        if let rd = lastRunDir { _ = try? await runProcess(["bash","-lc","open " + shellEscape(rd)]) }
       case .openReport:
-        if let rp = latestReportPath() {
-          _ = try? await runProcess(["bash","-lc","open " + shellEscape(rp)])
-        }
+        if let rp = latestReportPath() { _ = try? await runProcess(["bash","-lc","open " + shellEscape(rp)]) }
       case .openFailures:
-        if let fd = lastFailuresDir {
-          _ = try? await runProcess(["bash","-lc","open " + shellEscape(fd)])
+        if let fd = lastFailuresDir { _ = try? await runProcess(["bash","-lc","open " + shellEscape(fd)]) }
+
+      case .selectNumber(let n):
+        // Voice Mode: allow direct numeric selection ("press 3")
+        if n >= 1 && n <= items.count {
+          selected = n - 1
+          let item = items[selected]
+          try await runAction(.init(command: item.command, danger: item.danger, label: item.title),
+                              stdinRaw: stdinRaw, dryRun: dryRun,
+                              lastExit: &lastCommandExit, lastReceipt: &lastReceiptPath,
+                              lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
         }
       case .none:
         continue
@@ -180,58 +157,91 @@ struct UI: AsyncParsableCommand {
     }
   }
 
-  // MARK: menu
+  // MARK: Menu & modes
 
-  struct MenuItem { let title: String; let command: [String]; let danger: Bool }
+  struct MenuItem {
+    let title: String
+    let command: [String]
+    let danger: Bool
+    let category: String
+  }
 
   func buildMenu(hv: String, anchorsPack: String) -> [MenuItem] {
     [
-      .init(title: "Build CLI (release)", command: ["bash","-lc", "cd tools/automation/swift-cli && swift build -c release"], danger: false),
-      .init(title: "Doctor (modal guard sanity)", command: [hv, "doctor", "--modal-test", "detect", "--allow-ocr-fallback"], danger: false),
-      .init(title: "Calibrate regions", command: [hv, "calibrate-regions", "--regions-config", "tools/automation/swift-cli/config/regions.v1.json"], danger: true),
-      .init(title: "Validate anchors", command: [hv, "validate-anchors", "--regions-config", "tools/automation/swift-cli/config/regions.v1.json", "--pack", anchorsPack], danger: true),
-      .init(title: "MIDI list", command: [hv, "midi", "list"], danger: false),
-      .init(title: "VRL validate", command: [hv, "vrl", "validate", "--mapping", "specs/voice_runtime/v9_3_ableton_mapping.v1.yaml"], danger: false),
-      .init(title: "Assets: export ALL (repo completeness)", command: [hv, "assets", "export-all", "--anchors-pack", anchorsPack, "--overwrite"], danger: true),
-      .init(title: "Assets: export racks", command: [hv, "assets", "export-racks", "--anchors-pack", anchorsPack, "--overwrite", "ask"], danger: true),
-      .init(title: "Assets: export performance set", command: [hv, "assets", "export-performance-set", "--anchors-pack", anchorsPack, "--overwrite"], danger: true),
-      .init(title: "Assets: export finishing bays", command: [hv, "assets", "export-finishing-bays", "--anchors-pack", anchorsPack, "--overwrite"], danger: true),
-      .init(title: "Assets: export serum base", command: [hv, "assets", "export-serum-base", "--anchors-pack", anchorsPack, "--overwrite"], danger: true),
-      .init(title: "Assets: export extras", command: [hv, "assets", "export-extras", "--anchors-pack", anchorsPack, "--overwrite"], danger: true),
-      .init(title: "Index: build", command: [hv, "index", "build"], danger: false),
-      .init(title: "Index: status", command: [hv, "index", "status"], danger: false),
-      .init(title: "Drift: check", command: [hv, "drift", "check", "--anchors-pack-hint", anchorsPack], danger: false),
-      .init(title: "Drift: plan", command: [hv, "drift", "plan", "--anchors-pack-hint", anchorsPack], danger: false),
-      .init(title: "Drift: fix (guarded)", command: [hv, "drift", "fix", "--anchors-pack-hint", anchorsPack], danger: true),
-      .init(title: "Station: certify", command: [hv, "station", "certify"], danger: true),
-      .init(title: "Report: open last report", command: ["bash","-lc", "open " + (latestReportPath() ?? "runs")], danger: false),
-      .init(title: "Open last run folder", command: ["bash","-lc", "open " + (latestRunDir() ?? "runs")], danger: false),
+      .init(title: "Doctor (modal guard sanity)", command: [hv, "doctor", "--modal-test", "detect", "--allow-ocr-fallback"], danger: false, category: "Safety"),
+      .init(title: "MIDI list", command: [hv, "midi", "list"], danger: false, category: "Runtime"),
+      .init(title: "VRL validate", command: [hv, "vrl", "validate", "--mapping", "specs/voice_runtime/v9_3_ableton_mapping.v1.yaml"], danger: false, category: "Runtime"),
+
+      .init(title: "Assets: export ALL (repo completeness)", command: [hv, "assets", "export-all", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports"),
+      .init(title: "Assets: export racks", command: [hv, "assets", "export-racks", "--anchors-pack", anchorsPack, "--overwrite", "ask"], danger: true, category: "Exports"),
+      .init(title: "Assets: export performance set", command: [hv, "assets", "export-performance-set", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports"),
+      .init(title: "Assets: export finishing bays", command: [hv, "assets", "export-finishing-bays", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports"),
+      .init(title: "Assets: export serum base", command: [hv, "assets", "export-serum-base", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports"),
+      .init(title: "Assets: export extras", command: [hv, "assets", "export-extras", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports"),
+
+      .init(title: "Index: build", command: [hv, "index", "build"], danger: false, category: "Index"),
+      .init(title: "Index: status", command: [hv, "index", "status"], danger: false, category: "Index"),
+      .init(title: "Drift: check", command: [hv, "drift", "check", "--anchors-pack-hint", anchorsPack], danger: false, category: "Drift"),
+      .init(title: "Drift: plan", command: [hv, "drift", "plan", "--anchors-pack-hint", anchorsPack], danger: false, category: "Drift"),
+      .init(title: "Drift: fix (guarded)", command: [hv, "drift", "fix", "--anchors-pack-hint", anchorsPack], danger: true, category: "Drift"),
+
+      .init(title: "Station: certify", command: [hv, "station", "certify"], danger: true, category: "Governance"),
+      .init(title: "Open last report", command: ["bash","-lc", "open " + (latestReportPath() ?? "runs")], danger: false, category: "Open"),
+      .init(title: "Open last run folder", command: ["bash","-lc", "open " + (latestRunDir() ?? "runs")], danger: false, category: "Open"),
     ]
   }
+
+  func visibleItems(all: [MenuItem], studioMode: Bool, showAll: Bool) -> [MenuItem] {
+    if studioMode {
+      // Hide risky by default: safe-only view.
+      // Allow a few "safe but important" actions.
+      let safe = all.filter { !$0.danger }
+      // Keep top essentials even if dangerous? no: studio mode is strict.
+      return safe
+    } else {
+      // Non-studio mode: TOP vs ALL
+      if showAll { return all }
+      let topTitles: Set<String> = [
+        "Doctor (modal guard sanity)",
+        "Assets: export ALL (repo completeness)",
+        "Index: build",
+        "Drift: check",
+        "Drift: plan",
+        "Drift: fix (guarded)",
+        "VRL validate",
+        "Station: certify",
+        "Open last report",
+        "Open last run folder"
+      ]
+      return all.filter { topTitles.contains($0.title) }
+    }
+  }
+
+  // MARK: recommended next action
 
   struct RecommendedAction {
     let summary: String
     let action: Action?
-    struct Action { let command: [String]; let danger: Bool }
+    struct Action { let command: [String]; let danger: Bool; let label: String }
   }
 
-  func recommendedNextAction(cfgAnchorsPack: String?, state: DashboardState) -> RecommendedAction {
+  func recommendedNextAction(cfgAnchorsPack: String?, state: DashboardState, hv: String, anchorsPack: String) -> RecommendedAction {
     if cfgAnchorsPack == nil || cfgAnchorsPack == "" || (cfgAnchorsPack?.contains("<pack_id>") ?? false) {
-      return .init(summary: "No anchors pack configured/found → capture/validate anchors or pass --anchors-pack", action: nil)
+      return .init(summary: "No anchors pack configured/found → set anchors-pack", action: nil)
     }
     if !state.indexExists {
-      return .init(summary: "Run Index build (creates artifact/receipt indexes)", action: .init(command: ["hvlien","index","build"], danger: false))
+      return .init(summary: "Run Index build", action: .init(command: [hv,"index","build"], danger: false, label: "Index: build"))
     }
     if state.driftStatus == "fail" {
-      return .init(summary: "Drift FAIL → run Drift fix (guarded)", action: .init(command: ["hvlien","drift","fix","--anchors-pack-hint", cfgAnchorsPack!], danger: true))
+      return .init(summary: "Drift FAIL → run Drift fix (guarded)", action: .init(command: [hv,"drift","fix","--anchors-pack-hint", anchorsPack], danger: true, label: "Drift: fix (guarded)"))
     }
     if state.pendingArtifacts > 0 {
-      return .init(summary: "Artifacts pending (\(state.pendingArtifacts)) → run Assets export ALL", action: .init(command: ["hvlien","assets","export-all","--anchors-pack", cfgAnchorsPack!, "--overwrite"], danger: true))
+      return .init(summary: "Artifacts pending (\(state.pendingArtifacts)) → run Export ALL", action: .init(command: [hv,"assets","export-all","--anchors-pack", anchorsPack, "--overwrite"], danger: true, label: "Assets: export ALL (repo completeness)"))
     }
-    return .init(summary: "Healthy → run Drift check, then Station certify", action: .init(command: ["hvlien","drift","check","--anchors-pack-hint", cfgAnchorsPack!], danger: false))
+    return .init(summary: "Healthy → Drift check, then Station certify", action: .init(command: [hv,"drift","check","--anchors-pack-hint", anchorsPack], danger: false, label: "Drift: check"))
   }
 
-  // MARK: dashboard state
+  // MARK: Dashboard state
 
   struct DashboardState {
     let indexExists: Bool
@@ -281,11 +291,45 @@ struct UI: AsyncParsableCommand {
     }
   }
 
-  // MARK: rendering
+  // MARK: run action helper
+
+  func runAction(_ action: RecommendedAction.Action,
+                 stdinRaw: StdinRawMode,
+                 dryRun: Bool,
+                 lastExit: inout Int32?,
+                 lastReceipt: inout String?,
+                 lastRunDir: inout String?,
+                 lastFailuresDir: inout String?) async throws {
+    if action.danger && !dryRun {
+      stdinRaw.disable()
+      print("\nThis action may click/type or overwrite files.\nProceed? [y/N] ", terminator: "")
+      let ans = (readLine() ?? "").lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+      try stdinRaw.enable()
+      if ans != "y" && ans != "yes" { return }
+    }
+    if dryRun { lastExit = 0; return }
+    stdinRaw.disable()
+    print("\n> Running: \(action.command.joined(separator: " "))\n")
+    let code = try await runProcess(action.command)
+    lastExit = code
+    lastRunDir = latestRunDir()
+    lastReceipt = discoverLatestReceipt(inRunDir: lastRunDir)
+    lastFailuresDir = latestFailuresDir(inRunDir: lastRunDir)
+    print("\nExit: \(code)")
+    if let rp = lastReceipt { print("Latest receipt: \(rp)") }
+    if let fd = lastFailuresDir { print("Failures folder: \(fd)") }
+    print("\nPress Enter to return…", terminator: "")
+    _ = readLine()
+    try stdinRaw.enable()
+  }
+
+  // MARK: render
 
   func printScreen(repoRoot: String,
                    hv: String,
                    anchorsPack: String,
+                   voiceMode: Bool,
+                   studioMode: Bool,
                    showAll: Bool,
                    lastRun: String?,
                    failuresDir: String?,
@@ -296,9 +340,7 @@ struct UI: AsyncParsableCommand {
                    lastExit: Int32?,
                    lastReceipt: String?) {
     print("\u{001B}[2J\u{001B}[H", terminator: "")
-    print("HVLIEN Operator Shell v1.7.7")
-    print("repo: \(repoRoot)")
-    print("hvlien: \(hv)")
+    print("HVLIEN Operator Shell v1.7.8")
     print("anchors-pack: \(anchorsPack)")
     print("last run: \(lastRun ?? "(none)")")
     if let fd = failuresDir { print("last failures: \(fd)") }
@@ -306,21 +348,28 @@ struct UI: AsyncParsableCommand {
     print("badges: index=\(state.indexExists ? "✅" : "❌") pending=\(state.pendingArtifacts) drift=\(state.driftStatus ?? "-") exportAll=\(state.lastExportAllStatus ?? "-")")
     if let e = lastExit { print("last exit: \(e)") }
     if let r = lastReceipt { print("last receipt: \(r)") }
-    print(String(repeating: "-", count: 92))
-    print("↑/↓ j/k • Enter run • Space run recommended • p drift plan preview • a toggle all • R refresh")
-    print("r receipt • o report • f run • x failures • q quit")
-    print(String(repeating: "-", count: 92))
-    let mode = showAll ? "ALL" : "TOP"
-    print("menu mode: \(mode) (press 'a')\n")
+
+    print(String(repeating: "-", count: 88))
+    print("modes: voice=\(voiceMode ? "ON" : "OFF") (v)  studio=\(studioMode ? "ON" : "OFF") (s)  all=\(showAll ? "ON" : "OFF") (a)")
+    print("keys: ↑/↓ j/k • Enter run • Space recommended • p plan • R refresh • r/o/f/x • q quit")
+    if voiceMode { print("voice hint: Say \"press 3\" (then Enter) or use number keys 1-9.") }
+    print(String(repeating: "-", count: 88))
+
+    // In voice mode, show explicit numeric guidance
     for (i, it) in items.enumerated() {
+      let num = i + 1
       let flag = it.danger ? " *" : ""
       let cursor = (i == selected) ? "➜" : " "
-      print("\(cursor) \(String(format: "%2d", i+1)) \(it.title)\(flag)")
+      if voiceMode {
+        print("\(cursor) [\(num)] \(it.title)\(flag)   (Say: \"press \(num)\")")
+      } else {
+        print("\(cursor) \(String(format: "%2d", num)) \(it.title)\(flag)")
+      }
     }
-    print("\n(*) potentially destructive / clicky / overwriting")
+    print("\n(*) risky (hidden in Studio Mode)")
   }
 
-  // MARK: filesystem helpers
+  // MARK: FS helpers
 
   func latestRunDir() -> String? {
     let runs = URL(fileURLWithPath: "runs", isDirectory: true)
@@ -399,6 +448,8 @@ struct UI: AsyncParsableCommand {
     case up, down, enter, quit
     case openReceipt, openRun, openReport, openFailures
     case toggleAll, refresh, runRecommended, previewDriftPlan
+    case toggleVoiceMode, toggleStudioMode
+    case selectNumber(Int)
     case none
   }
 
@@ -412,8 +463,16 @@ struct UI: AsyncParsableCommand {
       return .none
     }
     let c = buf[0]
+
+    // number keys 1-9 -> select
+    if c >= asciiByte("1") && c <= asciiByte("9") {
+      return .selectNumber(Int(c - asciiByte("0")))
+    }
+
     if c == 0x20 { return .runRecommended }
     if c == asciiByte("p") { return .previewDriftPlan }
+    if c == asciiByte("v") { return .toggleVoiceMode }
+    if c == asciiByte("s") { return .toggleStudioMode }
     if c == 0x0D || c == 0x0A { return .enter }
     if c == asciiByte("q") { return .quit }
     if c == asciiByte("r") { return .openReceipt }
