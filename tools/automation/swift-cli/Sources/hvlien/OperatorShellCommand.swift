@@ -5,7 +5,7 @@ import Darwin
 struct UI: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     commandName: "ui",
-    abstract: "Operator shell (TUI) for common workflows (v1.7.8)."
+    abstract: "Operator shell (TUI) for common workflows (v1.7.9)."
   )
 
   @Option(name: .long, help: "Anchors pack hint (stored in local config if provided).")
@@ -31,6 +31,15 @@ struct UI: AsyncParsableCommand {
 
     let ap = cfg.anchorsPack ?? "specs/automation/anchors/<pack_id>"
     let hv = resolveHVLIENBinary(repoRoot: repoRoot) ?? "hvlien"
+
+    // First-run wizard (runs once; stored in notes/LOCAL_CONFIG.json)
+    if (cfg.firstRunCompleted ?? false) == false {
+      try await runFirstRunWizard(repoRoot: repoRoot,
+                                  hv: hv,
+                                  anchorsPack: cfg.anchorsPack ?? "specs/automation/anchors/<pack_id>",
+                                  cfg: &cfg)
+    }
+
 
     let allItems: [MenuItem] = buildMenu(hv: hv, anchorsPack: ap)
 
@@ -340,7 +349,7 @@ struct UI: AsyncParsableCommand {
                    lastExit: Int32?,
                    lastReceipt: String?) {
     print("\u{001B}[2J\u{001B}[H", terminator: "")
-    print("HVLIEN Operator Shell v1.7.8")
+    print("HVLIEN Operator Shell v1.7.9")
     print("anchors-pack: \(anchorsPack)")
     print("last run: \(lastRun ?? "(none)")")
     if let fd = failuresDir { print("last failures: \(fd)") }
@@ -492,6 +501,47 @@ struct UI: AsyncParsableCommand {
 
   func shellEscape(_ s: String) -> String {
     return "'" + s.replacingOccurrences(of: "'", with: "'\\''") + "'"
+  }
+
+  // MARK: First-run wizard
+  private func runFirstRunWizard(repoRoot: String,
+                                 hv: String,
+                                 anchorsPack: String,
+                                 cfg: inout LocalConfig) async throws {
+    // Wizard runs in cooked mode (outside raw-key loop).
+    print("\u{001B}[2J\u{001B}[H", terminator: "")
+    print("HVLIEN First-Run Wizard (v1.7.9)")
+    print(String(repeating: "=", count: 72))
+    print("Goal: establish a safe baseline with minimal friction.\n")
+    print("Anchors pack: \(anchorsPack)")
+    print("\nRecommended steps:")
+    print("  1) Build CLI")
+    print("  2) Doctor (permissions + modal safety)")
+    print("  3) Index build (v1.8)")
+    print("\nYou can skip any step. Nothing runs without confirmation.\n")
+
+    if await confirm("Run build now? (swift build -c release)") {
+      _ = try? await runProcess([ "bash","-lc","cd tools/automation/swift-cli && swift build -c release" ])
+    }
+    if await confirm("Run doctor now?") {
+      _ = try? await runProcess([ hv, "doctor", "--modal-test", "detect", "--allow-ocr-fallback" ])
+    }
+    if await confirm("Run index build now?") {
+      _ = try? await runProcess([ hv, "index", "build" ])
+    }
+
+    cfg.firstRunCompleted = true
+    try cfg.save(atRepoRoot: repoRoot)
+
+    print("\nWizard complete. Launching Operator Shell…")
+    print("Press Enter to continue…", terminator: "")
+    _ = readLine()
+  }
+
+  private func confirm(_ prompt: String) async -> Bool {
+    print(prompt + " [y/N] ", terminator: "")
+    let ans = (readLine() ?? "").lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+    return ans == "y" || ans == "yes"
   }
 }
 

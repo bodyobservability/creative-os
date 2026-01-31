@@ -215,6 +215,8 @@ All steps emit receipts into `runs/<run_id>/...` and can be opened from the shel
 - Operator shell stateful update: `docs/voice_runtime/README_v1_7_6.md`
 - Operator shell plan preview update: `docs/voice_runtime/README_v1_7_7.md`
 - Operator shell voice studio update: `docs/voice_runtime/README_v1_7_8.md`
+- Operator shell wizard update: `docs/voice_runtime/README_v1_7_9.md`
+- Operator shell wizard guide: `docs/voice_runtime/operator_shell_wizard.md`
 - Asset export runbooks: `docs/assets/`
 - Index + drift docs: `docs/index/`
 - OpenCV build + anchors: `tools/automation/swift-cli/docs/OPENCV_BUILD.md`
@@ -285,6 +287,7 @@ See `CONTRIBUTING.md` for commit message standards and contribution guidelines.
 - v1.7.6 — Operator shell stateful UI (badges, one-key flow)
 - v1.7.7 — Operator shell plan preview + drift UX
 - v1.7.8 — Operator shell voice/studio modes
+- v1.7.9 — Operator shell first-run wizard
 - v1.8 — Artifact/receipt index + drift detection + guarded fixes
 
 ---
