@@ -100,6 +100,14 @@ cd tools/automation/swift-cli && swift build -c release
 - Ableton UI: show Browser + Device View (Cmd+Opt+L), reveal track headers, keep theme/scale stable.
 - OpenCV anchors (optional): `tools/automation/swift-cli/docs/OPENCV_BUILD.md`.
 
+### Key docs
+- Voice runtime docs + artifacts: `docs/voice_runtime/`
+- OpenCV build + anchors: `tools/automation/swift-cli/docs/OPENCV_BUILD.md`
+- Automation bundle manifests: `MANIFEST_AUTOMATION_BUNDLE_v2.md`, `MANIFEST_AUTOMATION_BUNDLE_v3.md`
+- v4 consolidation status (historical): `V4_CONSOLIDATED_STATUS.md`
+- Versioning + artifact rules: `notes/VERSIONING_RULES.md`
+- Ableton build runbook: `notes/AGENTIC_ABLETON_BUILD.md`
+
 ### TODO (Required for artifact completeness)
 - [ ] Export real Ableton bass performance set  
   - Replace `ableton/performance-sets/HVLIEN_BASS_PERFORMANCE_SET_v1.0.als`
