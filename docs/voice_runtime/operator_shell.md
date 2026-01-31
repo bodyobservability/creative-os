@@ -1,14 +1,15 @@
-# v1.7.6 Operator Shell — One-Key Flow + State Badges
+# v1.7.7 Operator Shell — Drift Plan Preview
 
 Adds:
-- Space: run recommended next action (prompts for dangerous)
-- TOP/ALL menu toggle: `a`
-- Refresh: `R`
-- Badges: index/pending/drift/export-all
+- `p` shortcut inside `hvlien ui` to preview:
+  - `hvlien drift plan --anchors-pack-hint <anchors-pack>`
+  - printed inline, then return to menu
 
-Shortcuts:
-- r: open last receipt
-- o: open last report
-- f: open last run folder
-- x: open last failures folder
-- q: quit
+This reduces cognitive load before running drift fix.
+
+Keys:
+- Space: run recommended
+- p: preview drift plan
+- a: toggle TOP/ALL
+- R: refresh
+- r/o/f/x/q unchanged

@@ -5,7 +5,7 @@ import Darwin
 struct UI: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     commandName: "ui",
-    abstract: "Operator shell (TUI) for common workflows (v1.7.6)."
+    abstract: "Operator shell (TUI) for common workflows (v1.7.7)."
   )
 
   @Option(name: .long, help: "Anchors pack hint (stored in local config if provided).")
@@ -22,7 +22,6 @@ struct UI: AsyncParsableCommand {
       cfg.anchorsPack = ap
       try cfg.save(atRepoRoot: repoRoot)
     }
-
     if cfg.anchorsPack == nil || cfg.anchorsPack == "" || (cfg.anchorsPack?.contains("<pack_id>") ?? false) {
       if let detected = LocalConfig.autoDetectAnchorsPack(repoRoot: repoRoot) {
         cfg.anchorsPack = detected
@@ -93,6 +92,19 @@ struct UI: AsyncParsableCommand {
       case .down:
         selected = min(items.count - 1, selected + 1)
 
+      case .previewDriftPlan:
+        stdinRaw.disable()
+        print("\n# Drift remediation plan (preview)\n")
+        if dryRun {
+          print("(dry-run) would run: \(hv) drift plan --anchors-pack-hint \(ap)\n")
+        } else {
+          let output = try await captureProcessOutput([hv, "drift", "plan", "--anchors-pack-hint", ap])
+          print(output.isEmpty ? "(no output)" : output)
+        }
+        print("\nPress Enter to return to menu…", terminator: "")
+        _ = readLine()
+        try stdinRaw.enable()
+
       case .runRecommended:
         if let action = rec.action {
           let cmd = action.command
@@ -130,7 +142,6 @@ struct UI: AsyncParsableCommand {
           try stdinRaw.enable()
           if ans != "y" && ans != "yes" { continue }
         }
-
         if dryRun { lastCommandExit = 0; lastReceiptPath = nil; continue }
 
         stdinRaw.disable()
@@ -168,6 +179,8 @@ struct UI: AsyncParsableCommand {
       }
     }
   }
+
+  // MARK: menu
 
   struct MenuItem { let title: String; let command: [String]; let danger: Bool }
 
@@ -215,8 +228,10 @@ struct UI: AsyncParsableCommand {
     if state.pendingArtifacts > 0 {
       return .init(summary: "Artifacts pending (\(state.pendingArtifacts)) → run Assets export ALL", action: .init(command: ["hvlien","assets","export-all","--anchors-pack", cfgAnchorsPack!, "--overwrite"], danger: true))
     }
-    return .init(summary: "System looks healthy → run Drift check, then Station certify", action: .init(command: ["hvlien","drift","check","--anchors-pack-hint", cfgAnchorsPack!], danger: false))
+    return .init(summary: "Healthy → run Drift check, then Station certify", action: .init(command: ["hvlien","drift","check","--anchors-pack-hint", cfgAnchorsPack!], danger: false))
   }
+
+  // MARK: dashboard state
 
   struct DashboardState {
     let indexExists: Bool
@@ -248,8 +263,7 @@ struct UI: AsyncParsableCommand {
       guard let files = try? fm.contentsOfDirectory(atPath: dir) else { return nil }
       let candidates = files.filter { $0.hasPrefix(prefix) && $0.hasSuffix(".json") }.sorted()
       guard let chosen = candidates.last else { return nil }
-      let path = URL(fileURLWithPath: dir).appendingPathComponent(chosen).path
-      return readStatus(fromJSON: path)
+      return readStatus(fromJSON: URL(fileURLWithPath: dir).appendingPathComponent(chosen).path)
     }
 
     private static func readStatusContains(dir: String, contains: String) -> String? {
@@ -257,8 +271,7 @@ struct UI: AsyncParsableCommand {
       guard let files = try? fm.contentsOfDirectory(atPath: dir) else { return nil }
       let candidates = files.filter { $0.contains(contains) && $0.hasSuffix(".json") }.sorted()
       guard let chosen = candidates.last else { return nil }
-      let path = URL(fileURLWithPath: dir).appendingPathComponent(chosen).path
-      return readStatus(fromJSON: path)
+      return readStatus(fromJSON: URL(fileURLWithPath: dir).appendingPathComponent(chosen).path)
     }
 
     private static func readStatus(fromJSON path: String) -> String? {
@@ -267,6 +280,8 @@ struct UI: AsyncParsableCommand {
       return obj["status"] as? String
     }
   }
+
+  // MARK: rendering
 
   func printScreen(repoRoot: String,
                    hv: String,
@@ -281,22 +296,22 @@ struct UI: AsyncParsableCommand {
                    lastExit: Int32?,
                    lastReceipt: String?) {
     print("\u{001B}[2J\u{001B}[H", terminator: "")
-    print("HVLIEN Operator Shell v1.7.6")
+    print("HVLIEN Operator Shell v1.7.7")
     print("repo: \(repoRoot)")
     print("hvlien: \(hv)")
     print("anchors-pack: \(anchorsPack)")
     print("last run: \(lastRun ?? "(none)")")
     if let fd = failuresDir { print("last failures: \(fd)") }
     print("recommended: \(recommended)")
-    print("badges: index=\(state.indexExists ? "✅" : "❌")  pending=\(state.pendingArtifacts)  drift=\(state.driftStatus ?? "-")  exportAll=\(state.lastExportAllStatus ?? "-")")
+    print("badges: index=\(state.indexExists ? "✅" : "❌") pending=\(state.pendingArtifacts) drift=\(state.driftStatus ?? "-") exportAll=\(state.lastExportAllStatus ?? "-")")
     if let e = lastExit { print("last exit: \(e)") }
     if let r = lastReceipt { print("last receipt: \(r)") }
-    print(String(repeating: "-", count: 86))
-    print("↑/↓ j/k • Enter run • Space run recommended • a toggle all • R refresh")
+    print(String(repeating: "-", count: 92))
+    print("↑/↓ j/k • Enter run • Space run recommended • p drift plan preview • a toggle all • R refresh")
     print("r receipt • o report • f run • x failures • q quit")
-    print(String(repeating: "-", count: 86))
+    print(String(repeating: "-", count: 92))
     let mode = showAll ? "ALL" : "TOP"
-    print("menu mode: \(mode) (press 'a' to toggle)\n")
+    print("menu mode: \(mode) (press 'a')\n")
     for (i, it) in items.enumerated() {
       let flag = it.danger ? " *" : ""
       let cursor = (i == selected) ? "➜" : " "
@@ -304,6 +319,8 @@ struct UI: AsyncParsableCommand {
     }
     print("\n(*) potentially destructive / clicky / overwriting")
   }
+
+  // MARK: filesystem helpers
 
   func latestRunDir() -> String? {
     let runs = URL(fileURLWithPath: "runs", isDirectory: true)
@@ -321,8 +338,7 @@ struct UI: AsyncParsableCommand {
   func latestFailuresDir(inRunDir runDir: String?) -> String? {
     guard let rd = runDir else { return nil }
     let p = URL(fileURLWithPath: rd).appendingPathComponent("failures", isDirectory: true).path
-    guard FileManager.default.fileExists(atPath: p) else { return nil }
-    return p
+    return FileManager.default.fileExists(atPath: p) ? p : nil
   }
 
   func latestReportPath() -> String? {
@@ -343,8 +359,7 @@ struct UI: AsyncParsableCommand {
 
   func resolveHVLIENBinary(repoRoot: String) -> String? {
     let p1 = URL(fileURLWithPath: repoRoot).appendingPathComponent("tools/automation/swift-cli/.build/release/hvlien").path
-    if FileManager.default.isExecutableFile(atPath: p1) { return p1 }
-    return nil
+    return FileManager.default.isExecutableFile(atPath: p1) ? p1 : nil
   }
 
   func runProcess(_ args: [String]) async throws -> Int32 {
@@ -359,10 +374,31 @@ struct UI: AsyncParsableCommand {
     }
   }
 
+  func captureProcessOutput(_ args: [String]) async throws -> String {
+    return try await withCheckedThrowingContinuation { cont in
+      let p = Process()
+      p.executableURL = URL(fileURLWithPath: args[0])
+      p.arguments = Array(args.dropFirst())
+      let out = Pipe()
+      let err = Pipe()
+      p.standardOutput = out
+      p.standardError = err
+      p.terminationHandler = { _ in
+        let od = out.fileHandleForReading.readDataToEndOfFile()
+        let ed = err.fileHandleForReading.readDataToEndOfFile()
+        let s = (String(data: od, encoding: .utf8) ?? "") + (String(data: ed, encoding: .utf8) ?? "")
+        cont.resume(returning: s.trimmingCharacters(in: .whitespacesAndNewlines))
+      }
+      do { try p.run() } catch { cont.resume(throwing: error) }
+    }
+  }
+
+  // MARK: input
+
   enum Key {
     case up, down, enter, quit
     case openReceipt, openRun, openReport, openFailures
-    case toggleAll, refresh, runRecommended
+    case toggleAll, refresh, runRecommended, previewDriftPlan
     case none
   }
 
@@ -377,6 +413,7 @@ struct UI: AsyncParsableCommand {
     }
     let c = buf[0]
     if c == 0x20 { return .runRecommended }
+    if c == asciiByte("p") { return .previewDriftPlan }
     if c == 0x0D || c == 0x0A { return .enter }
     if c == asciiByte("q") { return .quit }
     if c == asciiByte("r") { return .openReceipt }
