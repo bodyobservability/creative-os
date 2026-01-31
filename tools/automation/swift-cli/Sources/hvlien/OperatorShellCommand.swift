@@ -1,3 +1,4 @@
+\
 import Foundation
 import ArgumentParser
 import Darwin
@@ -5,7 +6,7 @@ import Darwin
 struct UI: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     commandName: "ui",
-    abstract: "Operator shell (TUI) for common workflows (v1.7.4)."
+    abstract: "Operator shell (TUI) for common workflows (v1.7.6)."
   )
 
   @Option(name: .long, help: "Anchors pack hint (stored in local config if provided).")
@@ -33,53 +34,47 @@ struct UI: AsyncParsableCommand {
     let ap = cfg.anchorsPack ?? "specs/automation/anchors/<pack_id>"
     let hv = resolveHVLIENBinary(repoRoot: repoRoot) ?? "hvlien"
 
-    let items: [MenuItem] = [
-      .init("Build CLI (release)", ["bash","-lc", "cd tools/automation/swift-cli && swift build -c release"], danger: false),
-      .init("Doctor (modal guard sanity)", [hv, "doctor", "--modal-test", "detect", "--allow-ocr-fallback"], danger: false),
-      .init("Calibrate regions", [hv, "calibrate-regions", "--regions-config", "tools/automation/swift-cli/config/regions.v1.json"], danger: true),
-      .init("Validate anchors", [hv, "validate-anchors", "--regions-config", "tools/automation/swift-cli/config/regions.v1.json", "--pack", ap], danger: true),
-      .init("MIDI list", [hv, "midi", "list"], danger: false),
-      .init("VRL validate", [hv, "vrl", "validate", "--mapping", "specs/voice_runtime/v9_3_ableton_mapping.v1.yaml"], danger: false),
-
-      .init("Assets: export ALL (repo completeness)", [hv, "assets", "export-all", "--anchors-pack", ap, "--overwrite"], danger: true),
-      .init("Assets: export racks", [hv, "assets", "export-racks", "--anchors-pack", ap, "--overwrite", "ask"], danger: true),
-      .init("Assets: export performance set", [hv, "assets", "export-performance-set", "--anchors-pack", ap, "--overwrite"], danger: true),
-      .init("Assets: export finishing bays", [hv, "assets", "export-finishing-bays", "--anchors-pack", ap, "--overwrite"], danger: true),
-      .init("Assets: export serum base", [hv, "assets", "export-serum-base", "--anchors-pack", ap, "--overwrite"], danger: true),
-      .init("Assets: export extras", [hv, "assets", "export-extras", "--anchors-pack", ap, "--overwrite"], danger: true),
-
-      .init("Index: build", [hv, "index", "build"], danger: false),
-      .init("Index: status", [hv, "index", "status"], danger: false),
-      .init("Drift: check", [hv, "drift", "check", "--anchors-pack-hint", ap], danger: false),
-      .init("Drift: plan", [hv, "drift", "plan", "--anchors-pack-hint", ap], danger: false),
-      .init("Drift: fix (guarded)", [hv, "drift", "fix", "--anchors-pack-hint", ap], danger: true),
-
-      .init("Station: certify", [hv, "station", "certify"], danger: true),
-      .init("Report: open last report", ["bash","-lc", "open " + (latestReportPath() ?? "runs")], danger: false),
-      .init("Open last run folder", ["bash","-lc", "open " + (latestRunDir() ?? "runs")], danger: false),
+    let allItems: [MenuItem] = buildMenu(hv: hv, anchorsPack: ap)
+    let topKeys: [String] = [
+      "Doctor (modal guard sanity)",
+      "Assets: export ALL (repo completeness)",
+      "Index: build",
+      "Drift: check",
+      "Drift: plan",
+      "Drift: fix (guarded)",
+      "VRL validate",
+      "Station: certify"
     ]
 
+    var showAll = false
     var selected = 0
     var lastCommandExit: Int32? = nil
     var lastReceiptPath: String? = nil
     var lastRunDir: String? = nil
     var lastFailuresDir: String? = nil
 
-    let rec = recommendedNextAction(anchorsPack: cfg.anchorsPack)
     let stdinRaw = StdinRawMode()
     try stdinRaw.enable()
     defer { stdinRaw.disable() }
 
     while true {
+      let items = showAll ? allItems : allItems.filter { topKeys.contains($0.title) }
+      selected = min(selected, max(0, items.count - 1))
+
       lastRunDir = latestRunDir()
       lastFailuresDir = latestFailuresDir(inRunDir: lastRunDir)
+
+      let state = DashboardState.load(lastRunDir: lastRunDir)
+      let rec = recommendedNextAction(cfgAnchorsPack: cfg.anchorsPack, state: state)
 
       printScreen(repoRoot: repoRoot,
                   hv: hv,
                   anchorsPack: ap,
+                  showAll: showAll,
                   lastRun: lastRunDir,
                   failuresDir: lastFailuresDir,
-                  recommended: rec,
+                  state: state,
+                  recommended: rec.summary,
                   items: items,
                   selected: selected,
                   lastExit: lastCommandExit,
@@ -89,10 +84,44 @@ struct UI: AsyncParsableCommand {
       switch key {
       case .quit:
         return
+      case .toggleAll:
+        showAll.toggle()
+        selected = 0
+      case .refresh:
+        continue
       case .up:
         selected = max(0, selected - 1)
       case .down:
         selected = min(items.count - 1, selected + 1)
+
+      case .runRecommended:
+        if let action = rec.action {
+          let cmd = action.command
+          let danger = action.danger
+          if danger && !dryRun {
+            stdinRaw.disable()
+            print("\nRecommended action may click/type in Ableton or overwrite files.\nProceed? [y/N] ", terminator: "")
+            let ans = (readLine() ?? "").lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            try stdinRaw.enable()
+            if ans != "y" && ans != "yes" { continue }
+          }
+          if dryRun { lastCommandExit = 0; continue }
+          stdinRaw.disable()
+          print("\n> Running recommended: \(cmd.joined(separator: " "))\n")
+          let code = try await runProcess(cmd)
+          lastCommandExit = code
+          lastRunDir = latestRunDir()
+          lastReceiptPath = discoverLatestReceipt(inRunDir: lastRunDir)
+          lastFailuresDir = latestFailuresDir(inRunDir: lastRunDir)
+          print("\nExit: \(code)")
+          if let rp = lastReceiptPath { print("Latest receipt: \(rp)") }
+          if let fd = lastFailuresDir { print("Failures folder: \(fd)") }
+          print("\nPress Enter to return to menu…", terminator: "")
+          _ = readLine()
+          try stdinRaw.enable()
+        }
+        continue
+
       case .enter:
         let item = items[selected]
         if item.danger && !dryRun {
@@ -103,11 +132,7 @@ struct UI: AsyncParsableCommand {
           if ans != "y" && ans != "yes" { continue }
         }
 
-        if dryRun {
-          lastCommandExit = 0
-          lastReceiptPath = nil
-          continue
-        }
+        if dryRun { lastCommandExit = 0; lastReceiptPath = nil; continue }
 
         stdinRaw.disable()
         print("\n> Running: \(item.command.joined(separator: " "))\n")
@@ -145,65 +170,134 @@ struct UI: AsyncParsableCommand {
     }
   }
 
-  func recommendedNextAction(anchorsPack: String?) -> String {
-    if anchorsPack == nil || anchorsPack == "" || anchorsPack!.contains("<pack_id>") {
-      return "No anchors pack configured/found → capture/validate anchors or pass --anchors-pack"
-    }
-    if !FileManager.default.fileExists(atPath: "checksums/index/artifact_index.v1.json") {
-      return "Run: Index build (then Drift check)"
-    }
-    if let data = try? Data(contentsOf: URL(fileURLWithPath: "checksums/index/artifact_index.v1.json")),
-       let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-       let arts = obj["artifacts"] as? [[String: Any]] {
-      var missing = 0, placeholder = 0
-      for a in arts {
-        if let st = a["status"] as? [String: Any], let state = st["state"] as? String {
-          if state == "missing" { missing += 1 }
-          if state == "placeholder" { placeholder += 1 }
-        }
-      }
-      if missing + placeholder > 0 {
-        return "Artifacts pending (missing/placeholder: \(missing + placeholder)) → run: Assets export ALL"
-      }
-    }
-    return "Run: Drift check (then Station certify)"
+  struct MenuItem { let title: String; let command: [String]; let danger: Bool }
+
+  func buildMenu(hv: String, anchorsPack: String) -> [MenuItem] {
+    [
+      .init(title: "Build CLI (release)", command: ["bash","-lc", "cd tools/automation/swift-cli && swift build -c release"], danger: false),
+      .init(title: "Doctor (modal guard sanity)", command: [hv, "doctor", "--modal-test", "detect", "--allow-ocr-fallback"], danger: false),
+      .init(title: "Calibrate regions", command: [hv, "calibrate-regions", "--regions-config", "tools/automation/swift-cli/config/regions.v1.json"], danger: true),
+      .init(title: "Validate anchors", command: [hv, "validate-anchors", "--regions-config", "tools/automation/swift-cli/config/regions.v1.json", "--pack", anchorsPack], danger: true),
+      .init(title: "MIDI list", command: [hv, "midi", "list"], danger: false),
+      .init(title: "VRL validate", command: [hv, "vrl", "validate", "--mapping", "specs/voice_runtime/v9_3_ableton_mapping.v1.yaml"], danger: false),
+      .init(title: "Assets: export ALL (repo completeness)", command: [hv, "assets", "export-all", "--anchors-pack", anchorsPack, "--overwrite"], danger: true),
+      .init(title: "Assets: export racks", command: [hv, "assets", "export-racks", "--anchors-pack", anchorsPack, "--overwrite", "ask"], danger: true),
+      .init(title: "Assets: export performance set", command: [hv, "assets", "export-performance-set", "--anchors-pack", anchorsPack, "--overwrite"], danger: true),
+      .init(title: "Assets: export finishing bays", command: [hv, "assets", "export-finishing-bays", "--anchors-pack", anchorsPack, "--overwrite"], danger: true),
+      .init(title: "Assets: export serum base", command: [hv, "assets", "export-serum-base", "--anchors-pack", anchorsPack, "--overwrite"], danger: true),
+      .init(title: "Assets: export extras", command: [hv, "assets", "export-extras", "--anchors-pack", anchorsPack, "--overwrite"], danger: true),
+      .init(title: "Index: build", command: [hv, "index", "build"], danger: false),
+      .init(title: "Index: status", command: [hv, "index", "status"], danger: false),
+      .init(title: "Drift: check", command: [hv, "drift", "check", "--anchors-pack-hint", anchorsPack], danger: false),
+      .init(title: "Drift: plan", command: [hv, "drift", "plan", "--anchors-pack-hint", anchorsPack], danger: false),
+      .init(title: "Drift: fix (guarded)", command: [hv, "drift", "fix", "--anchors-pack-hint", anchorsPack], danger: true),
+      .init(title: "Station: certify", command: [hv, "station", "certify"], danger: true),
+      .init(title: "Report: open last report", command: ["bash","-lc", "open " + (latestReportPath() ?? "runs")], danger: false),
+      .init(title: "Open last run folder", command: ["bash","-lc", "open " + (latestRunDir() ?? "runs")], danger: false),
+    ]
   }
 
-  struct MenuItem {
-    let title: String
-    let command: [String]
-    let danger: Bool
-    init(_ title: String, _ command: [String], danger: Bool) {
-      self.title = title
-      self.command = command
-      self.danger = danger
+  struct RecommendedAction {
+    let summary: String
+    let action: Action?
+    struct Action { let command: [String]; let danger: Bool }
+  }
+
+  func recommendedNextAction(cfgAnchorsPack: String?, state: DashboardState) -> RecommendedAction {
+    if cfgAnchorsPack == nil || cfgAnchorsPack == "" || (cfgAnchorsPack?.contains("<pack_id>") ?? false) {
+      return .init(summary: "No anchors pack configured/found → capture/validate anchors or pass --anchors-pack", action: nil)
+    }
+    if !state.indexExists {
+      return .init(summary: "Run Index build (creates artifact/receipt indexes)", action: .init(command: ["hvlien","index","build"], danger: false))
+    }
+    if state.driftStatus == "fail" {
+      return .init(summary: "Drift FAIL → run Drift fix (guarded)", action: .init(command: ["hvlien","drift","fix","--anchors-pack-hint", cfgAnchorsPack!], danger: true))
+    }
+    if state.pendingArtifacts > 0 {
+      return .init(summary: "Artifacts pending (\(state.pendingArtifacts)) → run Assets export ALL", action: .init(command: ["hvlien","assets","export-all","--anchors-pack", cfgAnchorsPack!, "--overwrite"], danger: true))
+    }
+    return .init(summary: "System looks healthy → run Drift check, then Station certify", action: .init(command: ["hvlien","drift","check","--anchors-pack-hint", cfgAnchorsPack!], danger: false))
+  }
+
+  struct DashboardState {
+    let indexExists: Bool
+    let pendingArtifacts: Int
+    let driftStatus: String?
+    let lastExportAllStatus: String?
+
+    static func load(lastRunDir: String?) -> DashboardState {
+      let idxPath = "checksums/index/artifact_index.v1.json"
+      let indexExists = FileManager.default.fileExists(atPath: idxPath)
+      var pending = 0
+      if indexExists,
+         let data = try? Data(contentsOf: URL(fileURLWithPath: idxPath)),
+         let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+         let arts = obj["artifacts"] as? [[String: Any]] {
+        for a in arts {
+          if let st = a["status"] as? [String: Any], let state = st["state"] as? String {
+            if state == "missing" || state == "placeholder" { pending += 1 }
+          }
+        }
+      }
+      let driftStatus = lastRunDir.flatMap { readStatusInDir(dir: $0, prefix: "drift_report") }
+      let exportAllStatus = lastRunDir.flatMap { readStatusContains(dir: $0, contains: "assets_export_all_receipt") }
+      return .init(indexExists: indexExists, pendingArtifacts: pending, driftStatus: driftStatus, lastExportAllStatus: exportAllStatus)
+    }
+
+    private static func readStatusInDir(dir: String, prefix: String) -> String? {
+      let fm = FileManager.default
+      guard let files = try? fm.contentsOfDirectory(atPath: dir) else { return nil }
+      let candidates = files.filter { $0.hasPrefix(prefix) && $0.hasSuffix(".json") }.sorted()
+      guard let chosen = candidates.last else { return nil }
+      let path = URL(fileURLWithPath: dir).appendingPathComponent(chosen).path
+      return readStatus(fromJSON: path)
+    }
+
+    private static func readStatusContains(dir: String, contains: String) -> String? {
+      let fm = FileManager.default
+      guard let files = try? fm.contentsOfDirectory(atPath: dir) else { return nil }
+      let candidates = files.filter { $0.contains(contains) && $0.hasSuffix(".json") }.sorted()
+      guard let chosen = candidates.last else { return nil }
+      let path = URL(fileURLWithPath: dir).appendingPathComponent(chosen).path
+      return readStatus(fromJSON: path)
+    }
+
+    private static func readStatus(fromJSON path: String) -> String? {
+      guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
+            let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+      return obj["status"] as? String
     }
   }
 
   func printScreen(repoRoot: String,
                    hv: String,
                    anchorsPack: String,
+                   showAll: Bool,
                    lastRun: String?,
                    failuresDir: String?,
+                   state: DashboardState,
                    recommended: String,
                    items: [MenuItem],
                    selected: Int,
                    lastExit: Int32?,
                    lastReceipt: String?) {
     print("\u{001B}[2J\u{001B}[H", terminator: "")
-    print("HVLIEN Operator Shell v1.7.5")
+    print("HVLIEN Operator Shell v1.7.6")
     print("repo: \(repoRoot)")
     print("hvlien: \(hv)")
     print("anchors-pack: \(anchorsPack)")
     print("last run: \(lastRun ?? "(none)")")
     if let fd = failuresDir { print("last failures: \(fd)") }
     print("recommended: \(recommended)")
+    print("badges: index=\(state.indexExists ? "✅" : "❌")  pending=\(state.pendingArtifacts)  drift=\(state.driftStatus ?? "-")  exportAll=\(state.lastExportAllStatus ?? "-")")
     if let e = lastExit { print("last exit: \(e)") }
     if let r = lastReceipt { print("last receipt: \(r)") }
-    print(String(repeating: "-", count: 72))
-    print("↑/↓ j/k • Enter run • r receipt • o report • f run • x failures • q quit")
-    print(String(repeating: "-", count: 72))
-
+    print(String(repeating: "-", count: 86))
+    print("↑/↓ j/k • Enter run • Space run recommended • a toggle all • R refresh")
+    print("r receipt • o report • f run • x failures • q quit")
+    print(String(repeating: "-", count: 86))
+    let mode = showAll ? "ALL" : "TOP"
+    print("menu mode: \(mode) (press 'a' to toggle)\n")
     for (i, it) in items.enumerated() {
       let flag = it.danger ? " *" : ""
       let cursor = (i == selected) ? "➜" : " "
@@ -229,7 +323,6 @@ struct UI: AsyncParsableCommand {
     guard let rd = runDir else { return nil }
     let p = URL(fileURLWithPath: rd).appendingPathComponent("failures", isDirectory: true).path
     guard FileManager.default.fileExists(atPath: p) else { return nil }
-    // If failures contains subfolders, open the directory itself
     return p
   }
 
@@ -267,7 +360,12 @@ struct UI: AsyncParsableCommand {
     }
   }
 
-  enum Key { case up, down, enter, quit, openReceipt, openRun, openReport, openFailures, none }
+  enum Key {
+    case up, down, enter, quit
+    case openReceipt, openRun, openReport, openFailures
+    case toggleAll, refresh, runRecommended
+    case none
+  }
 
   func readKey() -> Key {
     var buf: [UInt8] = [0,0,0]
@@ -279,12 +377,15 @@ struct UI: AsyncParsableCommand {
       return .none
     }
     let c = buf[0]
+    if c == 0x20 { return .runRecommended }
     if c == 0x0D || c == 0x0A { return .enter }
     if c == asciiByte("q") { return .quit }
     if c == asciiByte("r") { return .openReceipt }
     if c == asciiByte("f") { return .openRun }
     if c == asciiByte("o") { return .openReport }
     if c == asciiByte("x") { return .openFailures }
+    if c == asciiByte("a") { return .toggleAll }
+    if c == asciiByte("R") { return .refresh }
     if c == asciiByte("k") { return .up }
     if c == asciiByte("j") { return .down }
     return .none
