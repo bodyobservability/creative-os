@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "run_id": "serum_base_export_v9_5_4",
+  "mode": "apply",
+  "targets": {
+    "os": "macos",
+    "ableton": "12.3"
+  },
+  "ops": [
+    {
+      "id": "open_serum_window",
+      "do": {
+        "type": "open_plugin_window",
+        "plugin_name": "Serum",
+        "device_chain_text": "Serum",
+        "open_method": "anchor_button"
+      },
+      "post": [
+        {
+          "type": "ui_anchor_present",
+          "anchor_id": "serum.window.signature",
+          "min_score": 0.88
+        }
+      ],
+      "retries": 2,
+      "timeout_ms": 15000
+    },
+    {
+      "id": "click_preset_menu",
+      "do": {
+        "type": "click_anchor",
+        "anchor_id": "serum.menu_preset",
+        "fallback_region": "plugin.window"
+      },
+      "retries": 2,
+      "timeout_ms": 8000,
+      "notes": "Requires Serum anchors: serum.menu_preset"
+    },
+    {
+      "id": "click_save_preset",
+      "do": {
+        "type": "click_anchor",
+        "anchor_id": "serum.menu_save_preset",
+        "fallback_region": "plugin.window"
+      },
+      "retries": 2,
+      "timeout_ms": 8000,
+      "notes": "Requires Serum anchors: serum.menu_save_preset (or save option token)."
+    },
+    {
+      "id": "wait_save_sheet",
+      "do": {
+        "type": "sleep",
+        "ms": 500
+      },
+      "retries": 0
+    },
+    {
+      "id": "goto_folder",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+SHIFT+G"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "type_folder",
+      "do": {
+        "type": "type_text",
+        "text": "library/serum"
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "confirm_folder",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "ENTER"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 3000
+    },
+    {
+      "id": "focus_filename",
+      "do": {
+        "type": "click_anchor",
+        "anchor_id": "macos.open_dialog.filename_field",
+        "fallback_region": "os.file_dialog.filename_field"
+      },
+      "retries": 2,
+      "timeout_ms": 8000
+    },
+    {
+      "id": "select_all",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+A"
+        ]
+      },
+      "retries": 1
+    },
+    {
+      "id": "type_filename",
+      "do": {
+        "type": "type_text",
+        "text": "HVLIEN_SERUM_BASE_v1.0.fxp"
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "confirm_save",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "ENTER"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 6000
+    },
+    {
+      "id": "no_modal",
+      "do": {
+        "type": "sleep",
+        "ms": 250
+      },
+      "post": [
+        {
+          "type": "no_modal_dialog"
+        }
+      ],
+      "retries": 1,
+      "timeout_ms": 6000
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+schema_version: 1
+layer: v9.5
+job: serum_base_export
+
+inputs:
+  plugin: Serum 2
+  format: preset
+  expected_name: HVLIEN_SERUM_BASE_v1.0
+  preferred_ext: ".fxp"
+  ableton:
+    version: "12.3"
+    theme: default
+  assumptions:
+    - Serum 2 window can be opened via v4.3 open_plugin_window handler
+    - Serum preset menu / save command is reachable by anchor or OCR in plugin window
+
+output:
+  path: library/serum/HVLIEN_SERUM_BASE_v1.0.fxp
+
+verification:
+  file_must_exist: true
+  min_bytes: 5000
+  warn_if_bytes_below: 20000
+
+notes:
+  - This export captures the canonical "macro-only" base patch for Serum.
+  - If you prefer .fst, adjust output.path accordingly and update save dialog expectations.

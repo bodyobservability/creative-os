@@ -1,4 +1,4 @@
-# HVLIEN Audio System v1.7
+# HVLIEN Audio System v1.7.1
 
 *A locked vocal + bass instrument with offline AI-assisted identity stabilization.*
 
@@ -51,6 +51,7 @@ performance, and long-term identity consistency.
 
 - `specs/` — system, controller, and intelligence specifications
 - `specs/automation/` — automation schemas, substitutions, and recommendations
+- `specs/assets/` — export pipeline specs + receipts
 - `controllers/` — macro taxonomy, MPK Mini + APC40 layouts
 - `ableton/`
   - `performance-sets/` — bass performance instruments (**placeholder until export**)
@@ -63,6 +64,7 @@ performance, and long-term identity consistency.
 - `tools/automation/` — automation bundle compiler + CLI tooling
 - `checksums/` — sha256 manifests per subsystem
 - `notes/` — operational rules, failure modes, rituals
+- `docs/assets/` — asset export runbooks and reference docs
 
 ---
 
@@ -114,6 +116,14 @@ cd tools/automation/swift-cli && swift build -c release
 .build/release/hvlien vrl validate --mapping specs/voice_runtime/v9_3_ableton_mapping.v1.yaml
 .build/release/hvlien midi list
 
+# Asset exports
+.build/release/hvlien assets export-racks --anchors-pack specs/automation/anchors/<pack_id>
+.build/release/hvlien assets export-performance-set --anchors-pack specs/automation/anchors/<pack_id>
+.build/release/hvlien assets export-finishing-bays --anchors-pack specs/automation/anchors/<pack_id>
+.build/release/hvlien assets export-serum-base --anchors-pack specs/automation/anchors/<pack_id>
+.build/release/hvlien assets export-extras --anchors-pack specs/automation/anchors/<pack_id>
+.build/release/hvlien assets export-all --anchors-pack specs/automation/anchors/<pack_id> --overwrite
+
 # Sonic + station
 .build/release/hvlien sonic calibrate
 .build/release/hvlien sonic sweep
@@ -132,6 +142,7 @@ cd tools/automation/swift-cli && swift build -c release
 
 ### Key docs
 - Voice runtime docs + artifacts: `docs/voice_runtime/`
+- Asset export runbooks: `docs/assets/`
 - OpenCV build + anchors: `tools/automation/swift-cli/docs/OPENCV_BUILD.md`
 - Versioning + artifact rules: `notes/VERSIONING_RULES.md`
 - Ableton build runbook: `notes/AGENTIC_ABLETON_BUILD.md`
@@ -157,6 +168,7 @@ Tooling that helps create the above:
 - Voice receipts: `voice verify`
 - VRL receipt: `vrl validate`
 - Rack receipts: `rack install`, `rack verify`
+- Asset exports: `assets export-all`
 - Sonic baselines: `sonic calibrate`, `sonic sweep`, `sonic tune`
 - Station report: `station certify`
 
@@ -180,6 +192,7 @@ See `CONTRIBUTING.md` for commit message standards and contribution guidelines.
 - v1.5 — Automation specs + tooling integrated
 - v1.6 — Expanded automation tooling (CLI, anchors/regions, voice/rack/sonic specs)
 - v1.7 — Voice runtime layer + VRL validator + MIDI utilities
+- v1.7.1 — Asset export pipeline (repo completeness)
 
 ---
 

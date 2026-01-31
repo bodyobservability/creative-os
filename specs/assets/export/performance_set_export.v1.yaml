@@ -1,0 +1,24 @@
+schema_version: 1
+layer: v9.5
+job: performance_set_export
+
+inputs:
+  ableton:
+    version: "12.3"
+    theme: default
+  set_role: bass_performance
+  expected_set_name: HVLIEN_BASS_PERFORMANCE_SET_v1.0
+
+output:
+  path: ableton/performance-sets/HVLIEN_BASS_PERFORMANCE_SET_v1.0.als
+  save_shortcut: "CMD+SHIFT+S"
+  confirm_key: "ENTER"
+
+verification:
+  file_must_exist: true
+  min_bytes: 200000
+  warn_if_bytes_below: 1000000
+
+notes:
+  - Exports the currently open Ableton set via Save As into the repo path.
+  - Use v6 session compile + v9.4 validate before export for correctness.

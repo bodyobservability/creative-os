@@ -29,6 +29,7 @@ struct HVLIENCli: AsyncParsableCommand {
       OCRDumpCmd.self,
       Rack.self,
       Session.self,
+      Assets.self,
 
       // Sonic + governance
       Sonic.self,

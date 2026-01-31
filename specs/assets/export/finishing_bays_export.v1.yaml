@@ -1,0 +1,29 @@
+schema_version: 1
+layer: v9.5
+job: finishing_bays_export
+
+inputs:
+  ableton:
+    version: "12.3"
+    theme: default
+
+bays:
+  - id: finishing_bay_a
+    name: HVLIEN_FINISHING_BAY_A_v1.0
+    output_path: ableton/finishing-bays/HVLIEN_FINISHING_BAY_A_v1.0.als
+  - id: finishing_bay_b
+    name: HVLIEN_FINISHING_BAY_B_v1.0
+    output_path: ableton/finishing-bays/HVLIEN_FINISHING_BAY_B_v1.0.als
+
+export_flow:
+  save_shortcut: "CMD+SHIFT+S"
+  confirm_key: "ENTER"
+
+verification:
+  file_must_exist: true
+  min_bytes: 200000
+  warn_if_bytes_below: 1000000
+
+notes:
+  - Each bay export assumes the correct bay set is currently open when exporting that bay.
+  - v9.5.3 automates Save As to the repo path, but does not open/switch sets (keep deterministic).
