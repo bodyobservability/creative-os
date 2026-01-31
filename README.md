@@ -354,6 +354,7 @@ See `CONTRIBUTING.md` for commit message standards and contribution guidelines.
 
 This roadmap uses the **same repo lineage** versioning (no parallel automation-only versions).
 Export-all makes artifacts deterministic; v1.8+ intelligence is ledger/graph-driven, not UI-driven.
+From v1.8 onward, intelligence operates over indexed artifacts and receipts, not live DAW state.
 
 ### v1.8 — Artifact & Receipt Index + Drift Detection
 - Build a unified `ArtifactIndex` + `ReceiptIndex` over:
@@ -367,6 +368,7 @@ Export-all makes artifacts deterministic; v1.8+ intelligence is ledger/graph-dri
   - “baseline missing or stale”
 - CLI targets (draft):
   - `hvlien index build`, `hvlien index status`, `hvlien drift check`
+  - Example: `hvlien index build && hvlien drift check`
 
 ### v1.9 — Cross-Rack Intelligence (bass-focused)
 - Analyze interactions between exported artifacts:
