@@ -91,6 +91,36 @@ cd tools/automation/swift-cli && swift build -c release
 .build/release/hvlien doctor --modal-test detect --allow-ocr-fallback
 ```
 
+### Automation CLI quick reference
+```bash
+# Display/profile setup
+.build/release/hvlien regions-select --display 2560x1440 --config-dir tools/automation/swift-cli/config
+
+# Regions + anchors
+.build/release/hvlien calibrate-regions --regions-config tools/automation/swift-cli/config/regions.v1.json
+.build/release/hvlien capture-anchor --regions-config tools/automation/swift-cli/config/regions.v1.json --region browser.search
+.build/release/hvlien validate-anchors --regions-config tools/automation/swift-cli/config/regions.v1.json --pack /path/to/anchor_pack
+
+# Plan/apply
+.build/release/hvlien plan --in /path/to/specs --out /tmp/plan.json
+.build/release/hvlien apply --plan /tmp/plan.json
+
+# Racks + voice
+.build/release/hvlien rack install --plan specs/voice/scripts/rack_pack_install.v1.yaml
+.build/release/hvlien rack verify --plan specs/library/racks/verify_rack_pack.plan.v1.json
+.build/release/hvlien voice verify --plan specs/voice/verify/verify_abi.plan.v1.json
+
+# Voice runtime layer
+.build/release/hvlien vrl validate --mapping specs/voice_runtime/v9_3_ableton_mapping.v1.yaml
+.build/release/hvlien midi list
+
+# Sonic + station
+.build/release/hvlien sonic calibrate
+.build/release/hvlien sonic sweep
+.build/release/hvlien sonic tune
+.build/release/hvlien station certify
+```
+
 ### Mac bootstrap (prereqs + UI)
 - Install Xcode (Command Line Tools included) and accept license.
 - Install Homebrew + OpenCV: `brew install opencv`.
