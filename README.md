@@ -1,4 +1,4 @@
-# HVLIEN Audio System v1.6
+# HVLIEN Audio System v1.7
 
 *A locked vocal + bass instrument with offline AI-assisted identity stabilization.*
 
@@ -47,7 +47,7 @@ performance, and long-term identity consistency.
 
 ---
 
-## Repository Structure (v1.6)
+## Repository Structure
 
 - `specs/` — system, controller, and intelligence specifications
 - `specs/automation/` — automation schemas, substitutions, and recommendations
@@ -68,18 +68,19 @@ performance, and long-term identity consistency.
 
 ## Status
 
-**Specs:** COMPLETE (including automation bundle v4–v8.7)  
+**Specs:** COMPLETE (including automation bundle v4–v9)  
 **Controller architecture:** SPECIFIED  
 **AI workloads:** SPECIFIED (offline, advisory)  
-**Automation tooling:** INCLUDED (Swift CLI, v4–v8.7 features applied)  
+**Automation tooling:** INCLUDED (Swift CLI, v4–v9 features applied)  
 **Ableton/Serum exports:** PENDING (tracked below)
 
-### Automation features (v4–v8.7)
+### Automation features (v4–v9)
 - v4: regions, anchors, plan/apply automation
 - v5: voice handshake + macro OCR verification
 - v6: rack manifest install + verify
 - v7: sonic probe/sweep calibration
 - v8: station certify + reporting
+- v9: voice runtime layer + VRL validation + MIDI utilities
 
 ### Automation Quickstart (repo already wired)
 ```bash
@@ -116,13 +117,15 @@ cd tools/automation/swift-cli && swift build -c release
 - [ ] Build anchor packs and validate them against live UI (if OpenCV enabled)
 - [ ] Run rack install + verify and commit receipts
 - [ ] Run voice template build/verify and commit receipts
+- [ ] Run voice runtime validation (VRL) and commit the receipt
 - [ ] Generate sonic baselines (calibrate/sweep/tune) and commit baselines + receipts
 - [ ] Run station certify and commit the run report
 - [ ] Regenerate checksums after audio artifacts are added
 
-v1.6 tooling that helps create the above:
+Tooling that helps create the above:
 - Regions + anchors: `calibrate-regions`, `capture-anchor`, `validate-anchors`
 - Voice receipts: `voice verify`
+- VRL receipt: `vrl validate`
 - Rack receipts: `rack install`, `rack verify`
 - Sonic baselines: `sonic calibrate`, `sonic sweep`, `sonic tune`
 - Station report: `station certify`
@@ -146,6 +149,7 @@ See `CONTRIBUTING.md` for commit message standards and contribution guidelines.
 - v1.4 — README truth + packaging alignment (no spec changes)
 - v1.5 — Automation bundle v3 specs + tooling integrated
 - v1.6 — Automation tooling v4–v8.7 (CLI, anchors/regions, voice/rack/sonic specs)
+- v1.7 — Voice runtime layer v9 + VRL validator + MIDI utilities
 
 ---
 
