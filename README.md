@@ -172,6 +172,8 @@ Tooling that helps create the above:
 - Sonic baselines: `sonic calibrate`, `sonic sweep`, `sonic tune`
 - Station report: `station certify`
 
+v1.7.1 milestone: every artifact in the repo can be generated, verified, and re-generated without UI clicking.
+
 Until the above are complete, this repo should be considered **SPEC-COMPLETE, ARTIFACT-PENDING**.
 
 ---
@@ -189,10 +191,51 @@ See `CONTRIBUTING.md` for commit message standards and contribution guidelines.
 - v1.2 — Controller-aware AI workloads
 - v1.3 — MPK Mini + APC40 instrument layer
 - v1.4 — README truth + packaging alignment (no spec changes)
-- v1.5 — Automation specs + tooling integrated
-- v1.6 — Expanded automation tooling (CLI, anchors/regions, voice/rack/sonic specs)
-- v1.7 — Voice runtime layer + VRL validator + MIDI utilities
+- v1.5 — Automation specs + tooling
+- v1.6 — Expanded automation + sonic + certification
+- v1.7 — Voice runtime layer (VRL) + MIDI utilities
 - v1.7.1 — Asset export pipeline (repo completeness)
+
+---
+
+## Roadmap
+
+This roadmap uses the **same repo lineage** versioning (no parallel automation-only versions).
+
+### v1.8 — Artifact & Receipt Index + Drift Detection
+- Build a unified `ArtifactIndex` + `ReceiptIndex` over:
+  - v9.5 export receipts (racks/sets/bays/Serum/extras)
+  - v7 sonic receipts (sweep/calibrate/sub-mono/transient)
+  - v8 certify/release receipts
+  - v9 VRL mapping receipts
+- Add drift checks:
+  - “artifact changed but not re-exported”
+  - “baseline missing or stale”
+- CLI targets (draft):
+  - `hvlien index build`, `hvlien index status`, `hvlien drift check`
+
+### v1.9 — Cross-Rack Intelligence (bass-focused)
+- Analyze interactions between exported artifacts:
+  - Sub ↔ BassLead mono/phase stability
+  - Return FX low-end smearing
+  - Transient collisions (kick/sub/bass)
+- Output ranked recommendations and proposed patches (never auto-applied):
+  - “tighten Motion high bound”
+  - “reduce Width max for sub safety”
+
+### v2.0 — Constrained Auto-Tuning Proposals
+- Generate *proposed* profile patches from measured receipts under strict constraints:
+  - calibrated sweeps, regression diffs, and release gates
+- Output PR-friendly patch artifacts; promotion remains gated by certify/release pipeline.
+
+### v2.1 — Set-Level Intelligence (optional, heavier)
+- Scene-to-scene energy / contrast analysis on exported performance sets
+- Suggested macro snapshots per scene (still discrete and bounded)
+
+### v2.2 — Performance Guarantees (optional)
+- Live-set safety certification across scenes:
+  - no clipping, no silence, no runaway macros
+- Emit a “tour-ready” style receipt
 
 ---
 
