@@ -53,7 +53,7 @@ final class MidiSend {
     let status = bytes.withUnsafeBufferPointer { buf -> OSStatus in
       guard let base = buf.baseAddress else { return -1 }
       let listPtr = withUnsafeMutablePointer(to: &packetList) { $0 }
-      var packet = MIDIPacketListInit(listPtr)
+      let packet = MIDIPacketListInit(listPtr)
       _ = MIDIPacketListAdd(listPtr, listSize, packet, 0, buf.count, base)
       return MIDISend(outPort, dest, listPtr)
     }
