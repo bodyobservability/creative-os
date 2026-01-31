@@ -1,4 +1,4 @@
-# HVLIEN Audio System v1.7.1
+# HVLIEN Audio System v1.7.5
 
 *A locked vocal + bass instrument with offline AI-assisted identity stabilization.*
 
@@ -202,7 +202,15 @@ Use Keyboard Maestro or Shortcuts to map phrases → shell commands.
 
 Voice is used as an operator interface, not parameter control.
 
-#### 8) Ready to export real assets (no mouse)
+#### 8) Operator shell (recommended)
+
+The operator shell provides a safe, menu-driven interface with confirmations for clicky/overwrite actions.
+It also auto-detects your newest anchor pack if you don’t pass one.
+```bash
+.build/release/hvlien ui --anchors-pack specs/automation/anchors/<pack_id>
+```
+
+#### 9) Ready to export real assets (no mouse)
 
 Once Ableton is open and the correct sets are loaded:
 ```bash
