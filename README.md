@@ -256,6 +256,7 @@ This setup:
 .build/release/hvlien vrl validate --mapping specs/voice_runtime/v9_3_ableton_mapping.v1.yaml
 .build/release/hvlien midi list
 .build/release/hvlien ui --anchors-pack specs/automation/anchors/<pack_id>
+# Anchor pack is auto-detected if not provided (v1.7.5)
 
 # Asset exports
 .build/release/hvlien assets export-racks --anchors-pack specs/automation/anchors/<pack_id>
@@ -284,6 +285,7 @@ This setup:
 ### Key docs
 - Voice runtime docs + artifacts: `docs/voice_runtime/`
 - Operator shell docs: `docs/voice_runtime/operator_shell.md`
+- Operator shell auto-detect update: `docs/voice_runtime/README_v1_7_5.md`
 - Asset export runbooks: `docs/assets/`
 - OpenCV build + anchors: `tools/automation/swift-cli/docs/OPENCV_BUILD.md`
 - Versioning + artifact rules: `notes/VERSIONING_RULES.md`
@@ -349,6 +351,7 @@ See `CONTRIBUTING.md` for commit message standards and contribution guidelines.
 - v1.6 — Expanded automation + sonic + certification
 - v1.7 — Voice runtime layer (VRL) + MIDI utilities
 - v1.7.1 — Asset export pipeline (repo completeness)
+- v1.7.5 — Operator shell + anchor auto-detect
 
 ---
 
