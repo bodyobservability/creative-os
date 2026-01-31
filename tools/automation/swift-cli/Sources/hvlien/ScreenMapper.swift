@@ -3,10 +3,9 @@ import CoreGraphics
 
 enum ScreenMapper {
   static func cropTopLeft(img: CGImage, rectTopLeft: CGRect) -> CGImage {
-    let imgH = CGFloat(img.height)
     let cgRect = CGRect(
       x: rectTopLeft.origin.x,
-      y: imgH - rectTopLeft.origin.y - rectTopLeft.size.height,
+      y: rectTopLeft.origin.y,
       width: rectTopLeft.size.width,
       height: rectTopLeft.size.height
     ).integral

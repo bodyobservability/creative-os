@@ -8,73 +8,73 @@
   "regions": {
     "browser.search": {
       "x": 20,
-      "y": 90,
+      "y": 50,
       "w": 420,
       "h": 70
     },
     "browser.results": {
       "x": 20,
-      "y": 160,
+      "y": 120,
       "w": 420,
       "h": 920
     },
     "tracks.list": {
       "x": 460,
-      "y": 90,
+      "y": 50,
       "w": 320,
       "h": 980
     },
     "device.chain": {
       "x": 460,
-      "y": 1100,
+      "y": 1060,
       "w": 2080,
       "h": 320
     },
     "device.chain.controls": {
       "x": 460,
-      "y": 1100,
+      "y": 1060,
       "w": 2080,
       "h": 80
     },
     "plugin.window": {
       "x": 520,
-      "y": 140,
+      "y": 100,
       "w": 1520,
       "h": 860
     },
     "os.file_dialog": {
       "x": 420,
-      "y": 220,
+      "y": 180,
       "w": 1720,
       "h": 980
     },
     "os.file_dialog.filename_field": {
       "x": 900,
-      "y": 1120,
+      "y": 1080,
       "w": 1200,
       "h": 110
     },
     "os.file_dialog.cancel_button": {
       "x": 1540,
-      "y": 1120,
+      "y": 1080,
       "w": 250,
       "h": 120
     },
     "os.file_dialog.open_button": {
       "x": 1800,
-      "y": 1120,
+      "y": 1080,
       "w": 250,
       "h": 120
     },
     "os.sheet_title_bar": {
       "x": 420,
-      "y": 180,
+      "y": 140,
       "w": 1720,
       "h": 120
     },
     "os.sheet_buttons": {
       "x": 1320,
-      "y": 1120,
+      "y": 1080,
       "w": 820,
       "h": 140
     }

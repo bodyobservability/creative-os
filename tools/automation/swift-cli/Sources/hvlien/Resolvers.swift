@@ -199,11 +199,9 @@ enum CapturePhase {
 
   /// Crop using a rect specified in *top-left* coordinates.
   private static func cropTopLeft(img: CGImage, rectTopLeft: CGRect) -> CGImage {
-    // Convert top-left rect to CoreGraphics bottom-left rect
-    let imgH = CGFloat(img.height)
     let cgRect = CGRect(
       x: rectTopLeft.origin.x,
-      y: imgH - rectTopLeft.origin.y - rectTopLeft.size.height,
+      y: rectTopLeft.origin.y,
       width: rectTopLeft.size.width,
       height: rectTopLeft.size.height
     ).integral
