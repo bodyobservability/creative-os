@@ -1,4 +1,4 @@
-# HVLIEN Audio System v1.5
+# HVLIEN Audio System v1.6
 
 *A locked vocal + bass instrument with offline AI-assisted identity stabilization.*
 
@@ -47,7 +47,7 @@ performance, and long-term identity consistency.
 
 ---
 
-## Repository Structure (v1.5)
+## Repository Structure (v1.6)
 
 - `specs/` — system, controller, and intelligence specifications
 - `specs/automation/` — automation schemas, substitutions, and recommendations
@@ -127,6 +127,7 @@ See `CONTRIBUTING.md` for commit message standards and contribution guidelines.
 - v1.3 — MPK Mini + APC40 instrument layer
 - v1.4 — README truth + packaging alignment (no spec changes)
 - v1.5 — Automation bundle v3 specs + tooling integrated
+- v1.6 — Automation tooling v4–v8.7 (CLI, anchors/regions, voice/rack/sonic specs)
 
 ---
 
