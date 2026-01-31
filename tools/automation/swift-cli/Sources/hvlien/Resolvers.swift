@@ -162,7 +162,7 @@ enum CapturePhase {
     let path = "tools/automation/swift-cli/config/regions.v1.json"
     if fm.fileExists(atPath: path) {
       let cfg = try JSONDecoder().decode(RegionsConfig.self, from: Data(contentsOf: URL(fileURLWithPath: path)))
-      if let r = cfg.regions["ableton.browser.results_list"] {
+      if let r = cfg.regions["ableton.browser.results"] ?? cfg.regions["ableton.browser.results_list"] {
         return CGRect(x: r.x, y: r.y, width: r.w, height: r.h)
       }
     }
