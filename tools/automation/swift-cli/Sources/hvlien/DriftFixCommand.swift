@@ -10,7 +10,7 @@ extension Drift {
 
     @Option(name: .long) var artifactIndex: String = "checksums/index/artifact_index.v1.json"
     @Option(name: .long) var receiptIndex: String = "checksums/index/receipt_index.v1.json"
-    @Option(name: .long) var anchorsPackHint: String? = "specs/automation/anchors/<pack_id>"
+    @Option(name: .long) var anchorsPackHint: String = "specs/automation/anchors/<pack_id>"
 
     @Flag(name: .long, help: "Skip per-command prompts; still requires one final confirmation.")
     var yes: Bool = false
@@ -74,7 +74,6 @@ extension Drift {
       }
 
       // Execute sequentially
-      let exe = CommandLine.arguments.first ?? "hvlien"
       var steps: [DriftFixStepV1] = []
       var reasons: [String] = []
       var overallStatus = "pass"

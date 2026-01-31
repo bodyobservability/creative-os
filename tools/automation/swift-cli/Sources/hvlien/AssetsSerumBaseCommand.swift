@@ -54,7 +54,7 @@ extension Assets {
         let receipt = SerumBaseExportReceiptV1(schemaVersion: 1, runId: runId, timestamp: ISO8601DateFormatter().string(from: Date()),
           job: "serum_base_export", status: "fail", targetPath: out, bytes: nil, reasons: ["apply_exit=\(code)"])
         try JSONIO.save(receipt, to: runDir.appendingPathComponent("serum_base_export_receipt.v1.json"))
-        throw ExitCode(Int(code))
+        throw ExitCode(code)
       }
 
       var reasons: [String] = []

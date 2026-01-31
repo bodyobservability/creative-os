@@ -38,25 +38,26 @@ final class MidiSend {
   func sendCC(cc: Int, value: Int, channel: Int) throws {
     let ch = max(1, min(channel, 16)) - 1
     let statusByte = UInt8(0xB0 | UInt8(ch))
-    send(bytes: [statusByte, UInt8(clamp7(cc)), UInt8(clamp7(value))])
+    try send(bytes: [statusByte, UInt8(clamp7(cc)), UInt8(clamp7(value))])
   }
 
   func sendNoteOn(note: Int, velocity: Int, channel: Int) throws {
     let ch = max(1, min(channel, 16)) - 1
     let statusByte = UInt8(0x90 | UInt8(ch))
-    send(bytes: [statusByte, UInt8(clamp7(note)), UInt8(clamp7(velocity))])
+    try send(bytes: [statusByte, UInt8(clamp7(note)), UInt8(clamp7(velocity))])
   }
 
   private func send(bytes: [UInt8]) throws {
-    // Build a 64-byte tuple for MIDIPacket. We only use first 3 bytes.
-    let b0 = bytes.count > 0 ? bytes[0] : 0
-    let b1 = bytes.count > 1 ? bytes[1] : 0
-    let b2 = bytes.count > 2 ? bytes[2] : 0
-
-    var pkt = MIDIPacketList(numPackets: 1,
-      packet: MIDIPacket(timeStamp: 0, length: UInt16(bytes.count),
-        data: (b0,b1,b2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
-    let st = MIDISend(outPort, dest, &pkt)
+    var packetList = MIDIPacketList()
+    let listSize = 1024
+    let status = bytes.withUnsafeBufferPointer { buf -> OSStatus in
+      guard let base = buf.baseAddress else { return -1 }
+      let listPtr = withUnsafeMutablePointer(to: &packetList) { $0 }
+      var packet = MIDIPacketListInit(listPtr)
+      _ = MIDIPacketListAdd(listPtr, listSize, packet, 0, buf.count, base)
+      return MIDISend(outPort, dest, listPtr)
+    }
+    let st = status
     guard st == noErr else { throw NSError(domain: "MidiSend", code: Int(st), userInfo: [NSLocalizedDescriptionKey:"MIDISend failed"]) }
   }
 

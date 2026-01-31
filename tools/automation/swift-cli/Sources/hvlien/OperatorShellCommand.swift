@@ -280,14 +280,18 @@ struct UI: AsyncParsableCommand {
     }
     let c = buf[0]
     if c == 0x0D || c == 0x0A { return .enter }
-    if c == UInt8(ascii: "q") { return .quit }
-    if c == UInt8(ascii: "r") { return .openReceipt }
-    if c == UInt8(ascii: "f") { return .openRun }
-    if c == UInt8(ascii: "o") { return .openReport }
-    if c == UInt8(ascii: "x") { return .openFailures }
-    if c == UInt8(ascii: "k") { return .up }
-    if c == UInt8(ascii: "j") { return .down }
+    if c == asciiByte("q") { return .quit }
+    if c == asciiByte("r") { return .openReceipt }
+    if c == asciiByte("f") { return .openRun }
+    if c == asciiByte("o") { return .openReport }
+    if c == asciiByte("x") { return .openFailures }
+    if c == asciiByte("k") { return .up }
+    if c == asciiByte("j") { return .down }
     return .none
+  }
+
+  private func asciiByte(_ s: String) -> UInt8 {
+    return s.utf8.first ?? 0
   }
 
   func shellEscape(_ s: String) -> String {
@@ -316,11 +320,5 @@ final class StdinRawMode {
       var t = original
       tcsetattr(STDIN_FILENO, TCSANOW, &t)
     }
-  }
-}
-
-extension UInt8 {
-  init(ascii: Character) {
-    self = Character(String(ascii)).asciiValue ?? 0
   }
 }

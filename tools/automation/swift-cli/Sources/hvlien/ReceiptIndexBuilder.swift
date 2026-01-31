@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(CryptoKit)
+import CryptoKit
+#endif
 
 enum ReceiptIndexBuilder {
   static func build(runsDir: String = "runs") -> ReceiptIndexV1 {
@@ -42,7 +45,6 @@ enum ReceiptIndexBuilder {
     // Use SHA256 and truncate for simplicity
     if let data = s.data(using: .utf8) {
       #if canImport(CryptoKit)
-      import CryptoKit
       let digest = SHA256.hash(data: data)
       return digest.map { String(format: "%02x", $0) }.joined().prefix(40).description
       #else

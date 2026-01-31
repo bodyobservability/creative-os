@@ -68,7 +68,7 @@ extension Assets {
         let receipt = PerformanceSetExportReceiptV1(schemaVersion: 1, runId: runId, timestamp: ISO8601DateFormatter().string(from: Date()),
           job: "performance_set_export", status: "fail", targetPath: out, bytes: nil, reasons: ["apply_exit=\(code)"])
         try JSONIO.save(receipt, to: runDir.appendingPathComponent("performance_set_export_receipt.v1.json"))
-        throw ExitCode(Int(code))
+        throw ExitCode(code)
       }
 
       var reasons: [String] = []
