@@ -2,6 +2,17 @@
 
 *A locked vocal + bass instrument with offline AI-assisted identity stabilization.*
 
+> **OPERATION NOTE**  
+> This system is operated via the **Operator Shell**:
+>
+> ```bash
+> make studio
+> # or: tools/automation/swift-cli/.build/release/hvlien ui
+> ```
+>
+> Studio workflow lives in **README_STUDIO.md**. This README is the technical source of truth (architecture/specs/integrity).
+
+
 This repository defines **Hvlien’s production system as an instrument**, not a DAW template.
 It is designed to preserve emotional capture velocity while scaling sound design, bass
 performance, and long-term identity consistency.
@@ -87,161 +98,59 @@ performance, and long-term identity consistency.
 
 ### Automation Quickstart (First-Time Setup on macOS)
 
-This section gets you from a fresh clone to a fully operational automation + voice + export pipeline in ~20 minutes.
-
-Goal: build the CLI, verify UI automation safety, and be ready to export real Ableton assets without mouse-heavy setup.
+This repo is designed to be operated via the **Operator Shell** (`hvlien ui`) so you don’t have to memorize commands.
 
 #### 0) Prerequisites (one-time)
 
-macOS
 - macOS Sonoma or later (Tahoe recommended for Voice Control improvements)
-
-Install tooling
+- Ableton Live 12.3 (+ Serum 2 AU if used)
+- Xcode Command Line Tools:
 ```bash
-# Xcode CLI tools
 xcode-select --install
-
-# Homebrew (if not installed)
+```
+- Homebrew (if needed) + optional OpenCV (for anchor robustness):
+```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# OpenCV (optional but recommended for anchor robustness)
 brew install opencv
 ```
 
-Install apps
-- Ableton Live 12.3
-- Serum 2 AU (if used)
-- Keyboard Maestro (recommended for voice → command binding)
+#### 1) Build the CLI
 
-#### 1) Clone and build the CLI
 ```bash
-git clone <repo-url>
-cd hvlien-audio-system-main
-
 cd tools/automation/swift-cli
 swift build -c release
-
-.build/release/hvlien --help
 ```
 
 #### 2) Grant macOS permissions (required)
 
-Open System Settings → Privacy & Security and grant:
-- Screen Recording
-- Accessibility
+System Settings → Privacy & Security → grant **Screen Recording** + **Accessibility** to the app you run `hvlien` from (Terminal / iTerm / Xcode).
 
-to:
-- Terminal (or iTerm)
-- Xcode (if running from Xcode)
-- Keyboard Maestro (if using voice triggers)
+#### 3) Launch the Operator Shell
 
-⚠️ Automation will not work without these.
-
-#### 3) Basic UI sanity check (safe)
-
-This ensures the automation stack can see the screen and won’t brick anything.
+From repo root:
 ```bash
-.build/release/hvlien doctor --modal-test detect --allow-ocr-fallback
+make studio
 ```
 
-Expected:
-- Modal detection passes
-- No crashes
-- No clicks performed
+Inside the shell:
+- **Studio Mode** (`s`) hides risky actions by default
+- **Voice Mode** (`v`) shows “Say ‘press 3’” prompts and allows number-only selection (1–9)
+- **Space** runs the recommended next action
+- Shortcuts: `r` receipt, `o` report, `f` run folder, `x` failures
 
-#### 4) Select display profile + calibrate regions (required once per display)
-```bash
-.build/release/hvlien regions-select \
-  --display 2560x1440 \
-  --config-dir tools/automation/swift-cli/config
+#### 4) Recommended first loop
 
-.build/release/hvlien calibrate-regions \
-  --regions-config tools/automation/swift-cli/config/regions.v1.json
-```
+In the Operator Shell, run in order (or just press **Space** repeatedly):
 
-This step is critical for OCR accuracy.
+1. **Doctor** (sanity check)
+2. **Regions calibrate** (if needed)
+3. **Validate anchors** (recommended)
+4. **Assets → Export ALL** (when Ableton is open and ready)
+5. **Index build** → **Drift check** (v1.8)
 
-#### 5) Capture and validate anchors (recommended)
+All steps emit receipts into `runs/<run_id>/...` and can be opened from the shell.
 
-Anchors improve robustness (especially for Serum and save dialogs).
-```bash
-.build/release/hvlien capture-anchor \
-  --regions-config tools/automation/swift-cli/config/regions.v1.json \
-  --region browser.search
 
-.build/release/hvlien validate-anchors \
-  --regions-config tools/automation/swift-cli/config/regions.v1.json \
-  --pack /path/to/anchor_pack
-```
-
-You can skip anchors initially, but they are strongly recommended for v1.7.1+ exports and drift checks.
-
-#### 6) Verify voice runtime layer (optional but recommended)
-
-Enable IAC Driver (Audio MIDI Setup → MIDI Studio → IAC Driver → “Device is online”).
-
-Then verify:
-```bash
-.build/release/hvlien midi list
-.build/release/hvlien vrl validate \
-  --mapping specs/voice_runtime/v9_3_ableton_mapping.v1.yaml
-```
-
-This confirms:
-- MIDI bus visibility
-- ABI macro labels
-- VRL readiness
-
-#### 7) (Optional) Bind Tahoe / Voice Control to commands
-
-Recommended phrases:
-- “export everything” → hvlien assets export-all
-- “build index” → hvlien index build
-- “check drift” → hvlien drift check
-- “certify station” → hvlien station certify
-
-Use Keyboard Maestro or Shortcuts to map phrases → shell commands.
-
-Voice is used as an operator interface, not parameter control.
-
-#### 8) Operator shell (recommended)
-
-The operator shell provides a safe, menu-driven interface with confirmations for clicky/overwrite actions.
-It also auto-detects your newest anchor pack if you don’t pass one.
-```bash
-.build/release/hvlien ui --anchors-pack specs/automation/anchors/<pack_id>
-```
-
-#### 9) Ready to export real assets (no mouse)
-
-Once Ableton is open and the correct sets are loaded:
-```bash
-.build/release/hvlien assets export-all \
-  --anchors-pack specs/automation/anchors/<pack_id> \
-  --overwrite
-```
-
-This replaces all placeholder artifacts with real exports and emits receipts.
-
-#### What you have after this
-- ✅ CLI built and verified
-- ✅ UI automation safe
-- ✅ Voice runtime optional but working
-- ✅ Asset export pipeline ready
-- ✅ Repo is SPEC-COMPLETE, EXPORT-READY
-
-#### When to stop
-
-If you’ve completed steps 1–4, you are safe to proceed slowly.
-Steps 5–8 can be done incrementally as needed.
-
-#### Why this matters (ergonomics)
-
-This setup:
-- minimizes mouse use
-- allows keyboard-only or voice-triggered workflows
-- prevents repeated manual export pain
-- protects wrists during long engineering sessions
 
 ### Automation CLI quick reference
 ```bash
