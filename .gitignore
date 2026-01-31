@@ -6,6 +6,9 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Swift build artifacts
+.build/
+
 # Ableton backups / temp (if any)
 **/Backup*/
 **/Temp*/

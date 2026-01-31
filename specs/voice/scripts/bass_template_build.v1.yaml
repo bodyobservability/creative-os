@@ -1,0 +1,65 @@
+schema_version: 1
+name: HVLIEN_BASS_TEMPLATE_BUILD_V1
+goal: Build a bass-music focused Ableton template with canonical HVLIEN macro ABI instruments.
+assumptions:
+  display_profile: 2560x1440
+  ableton:
+    version: "12.3"
+    theme: default
+    window: maximized
+    browser_visible: true
+    device_view_visible: true
+  voice_control:
+    overlays: numbers_grid
+    dictation: enabled
+
+tracks:
+  - name: Vox
+    type: audio
+    devices: [EQ Eight, Compressor, Limiter, Utility]
+  - name: Sub
+    type: midi
+    synth: Serum 2
+    profile: sub_bass_v1
+  - name: MidGrowl
+    type: midi
+    synth: Serum 2
+    profile: growl_mid_v1
+  - name: BassLead
+    type: midi
+    synth: Serum 2
+    profile: bass_lead_v1
+  - name: DrumBus
+    type: audio
+    devices: [EQ Eight, Glue Compressor, Saturator, Utility, Limiter]
+
+steps:
+  - section: Normalize workspace
+  - say: "Show numbers"
+  - say: "Click"
+  - say: "Press Command Option L"
+  - say: "Press Command Option B"
+
+  - section: Create tracks
+  - say: "Press Command T"
+  - say: "Rename"
+  - dictate: "Vox"
+
+  - say: "Press Command Shift T"
+  - say: "Rename"
+  - dictate: "Sub"
+
+  - say: "Press Command Shift T"
+  - say: "Rename"
+  - dictate: "MidGrowl"
+
+  - say: "Press Command Shift T"
+  - say: "Rename"
+  - dictate: "BassLead"
+
+  - say: "Press Command T"
+  - say: "Rename"
+  - dictate: "DrumBus"
+
+notes:
+  - After voice compile, use v4/v5 verification to insert devices/presets, verify ABI, and produce receipts.

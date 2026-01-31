@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "run_id": "verify_bass_template_v1",
+  "mode": "apply",
+  "targets": {
+    "os": "macos",
+    "ableton": "12.3",
+    "plugin_format_preference": [
+      "au",
+      "vst3"
+    ]
+  },
+  "anchors": {
+    "pack_id": "ableton12_3_default",
+    "min_score": 0.9
+  },
+  "ops": [
+    {
+      "id": "verify_tracks",
+      "do": {
+        "type": "sleep",
+        "ms": 100
+      },
+      "post": [
+        {
+          "type": "ui_text_contains",
+          "region": "tracks.list",
+          "text": "Vox",
+          "min_conf": 0.7
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "tracks.list",
+          "text": "Sub",
+          "min_conf": 0.7
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "tracks.list",
+          "text": "MidGrowl",
+          "min_conf": 0.7
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "tracks.list",
+          "text": "BassLead",
+          "min_conf": 0.7
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "tracks.list",
+          "text": "DrumBus",
+          "min_conf": 0.7
+        }
+      ],
+      "retries": 1,
+      "timeout_ms": 6000
+    },
+    {
+      "id": "verify_sub_chain",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "tracks.list",
+        "match": {
+          "text": "Sub",
+          "mode": "contains",
+          "min_conf": 0.75
+        }
+      },
+      "post": [
+        {
+          "type": "ui_text_contains",
+          "region": "device.chain",
+          "text": "Serum",
+          "min_conf": 0.65
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "device.chain",
+          "text": "Utility",
+          "min_conf": 0.7
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "device.chain",
+          "text": "Limiter",
+          "min_conf": 0.7
+        }
+      ],
+      "retries": 2,
+      "timeout_ms": 9000
+    }
+  ]
+}

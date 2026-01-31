@@ -1,0 +1,35 @@
+schema_version: 1
+id: sub_bass_v1
+name: Sub Bass (Serum) — HVLIEN
+abi: HVLIEN_MACRO_ABI
+intent: Stable mono sub with safe harmonics and controlled transient.
+macro_targets:
+  Energy:
+    targets:
+      - serum: { param: "FX Distortion Mix", range: [0.00, 0.25] }
+      - ableton: { device: "Utility", param: "Gain", range: [-0.05, 0.10] }
+  Motion:
+    targets:
+      - serum: { param: "LFO1 Amount -> Fine Pitch", range: [0.00, 0.15] }
+  Tone:
+    targets:
+      - serum: { param: "Filter Cutoff", range: [0.05, 0.35] }
+  Texture:
+    targets:
+      - serum: { param: "Noise Level", range: [0.00, 0.10] }
+  Width:
+    targets:
+      - ableton: { device: "Utility", param: "Width", range: [0.00, 0.05] }
+    notes: Sub stays mono.
+  Space:
+    targets:
+      - ableton: { send: "Space", param: "Send", range: [0.00, 0.10] }
+  Impact:
+    targets:
+      - ableton: { device: "Compressor", param: "Dry/Wet", range: [0.00, 0.25] }
+  Morph:
+    targets:
+      - serum: { param: "Osc A Level", range: [0.70, 1.00] }
+dont_map:
+  - "Reverb Decay > 2s"
+  - "Delay Feedback > 30%"

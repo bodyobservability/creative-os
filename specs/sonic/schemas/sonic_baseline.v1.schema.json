@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hvlien.audio/specs/sonic/schemas/sonic_baseline.v1.schema.json",
+  "title": "HVLIEN Sonic Baseline v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "rack_id",
+    "profile_id",
+    "macro",
+    "sweep_receipt"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "rack_id": {
+      "type": "string"
+    },
+    "profile_id": {
+      "type": "string"
+    },
+    "macro": {
+      "type": "string"
+    },
+    "sweep_receipt": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

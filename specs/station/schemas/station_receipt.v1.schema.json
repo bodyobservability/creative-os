@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hvlien.audio/specs/station/schemas/station_receipt.v1.schema.json",
+  "title": "HVLIEN Station Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "timestamp",
+    "station_profile",
+    "status",
+    "artifacts",
+    "steps",
+    "reasons"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "station_profile": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail"
+      ]
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "command",
+          "exit_code"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "exit_code": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,299 @@
+{
+  "schema_version": 1,
+  "name": "HVLIEN Rack Pack Manifest v1 (Bass Music)",
+  "applies_to": {
+    "os": "macos",
+    "ableton": "12.3"
+  },
+  "racks": [
+    {
+      "rack_id": "hvlien_basslead_rack_v1",
+      "display_name": "HVLIEN BassLead Rack v1",
+      "type": "instrument_rack",
+      "profile_binding": "bass_lead_v1",
+      "target_track": "BassLead",
+      "expected_tokens": [
+        "BassLead",
+        "HVLIEN",
+        "Energy",
+        "Motion",
+        "Tone",
+        "Texture",
+        "Width",
+        "Space",
+        "Impact",
+        "Morph"
+      ],
+      "macro_abi": "HVLIEN_MACRO_ABI",
+      "macro_names": [
+        "Energy",
+        "Motion",
+        "Tone",
+        "Texture",
+        "Width",
+        "Space",
+        "Impact",
+        "Morph"
+      ],
+      "requires": [
+        {
+          "kind": "plugin",
+          "name": "Serum 2",
+          "format": "au",
+          "vendor": "Xfer",
+          "optional": false
+        },
+        {
+          "kind": "device",
+          "name": "EQ Eight",
+          "vendor": "Ableton",
+          "optional": true
+        },
+        {
+          "kind": "device",
+          "name": "Utility",
+          "vendor": "Ableton",
+          "optional": false
+        },
+        {
+          "kind": "device",
+          "name": "Limiter",
+          "vendor": "Ableton",
+          "optional": false
+        }
+      ],
+      "verification": {
+        "regions": [
+          "rack.macros",
+          "device.chain"
+        ],
+        "checks": [
+          {
+            "type": "ocr_contains_all",
+            "region": "rack.macros",
+            "tokens": [
+              "Energy",
+              "Motion",
+              "Tone",
+              "Texture",
+              "Width",
+              "Space",
+              "Impact",
+              "Morph"
+            ],
+            "min_conf": 0.65
+          },
+          {
+            "type": "ocr_contains_any",
+            "region": "device.chain",
+            "tokens": [
+              "Serum",
+              "Serum 2"
+            ],
+            "min_conf": 0.6
+          }
+        ]
+      },
+      "notes": "Primary bass lead rack. Safe width range; limiter safety."
+    },
+    {
+      "rack_id": "hvlien_sub_rack_v1",
+      "display_name": "HVLIEN Sub Rack v1",
+      "type": "instrument_rack",
+      "profile_binding": "sub_bass_v1",
+      "target_track": "Sub",
+      "expected_tokens": [
+        "Sub",
+        "HVLIEN",
+        "Energy",
+        "Tone",
+        "Width"
+      ],
+      "macro_abi": "HVLIEN_MACRO_ABI",
+      "macro_names": [
+        "Energy",
+        "Motion",
+        "Tone",
+        "Texture",
+        "Width",
+        "Space",
+        "Impact",
+        "Morph"
+      ],
+      "requires": [
+        {
+          "kind": "plugin",
+          "name": "Serum 2",
+          "format": "au",
+          "vendor": "Xfer",
+          "optional": false
+        },
+        {
+          "kind": "device",
+          "name": "Utility",
+          "vendor": "Ableton",
+          "optional": false
+        },
+        {
+          "kind": "device",
+          "name": "Limiter",
+          "vendor": "Ableton",
+          "optional": false
+        }
+      ],
+      "verification": {
+        "regions": [
+          "rack.macros",
+          "device.chain"
+        ],
+        "checks": [
+          {
+            "type": "ocr_contains_all",
+            "region": "rack.macros",
+            "tokens": [
+              "Energy",
+              "Tone",
+              "Width"
+            ],
+            "min_conf": 0.65
+          },
+          {
+            "type": "ocr_contains_any",
+            "region": "device.chain",
+            "tokens": [
+              "Serum",
+              "Serum 2"
+            ],
+            "min_conf": 0.6
+          }
+        ]
+      },
+      "notes": "Sub stays mono; width macro should remain near 0."
+    },
+    {
+      "rack_id": "hvlien_midgrowl_rack_v1",
+      "display_name": "HVLIEN MidGrowl Rack v1",
+      "type": "instrument_rack",
+      "profile_binding": "growl_mid_v1",
+      "target_track": "MidGrowl",
+      "expected_tokens": [
+        "MidGrowl",
+        "HVLIEN",
+        "Morph"
+      ],
+      "macro_abi": "HVLIEN_MACRO_ABI",
+      "macro_names": [
+        "Energy",
+        "Motion",
+        "Tone",
+        "Texture",
+        "Width",
+        "Space",
+        "Impact",
+        "Morph"
+      ],
+      "requires": [
+        {
+          "kind": "plugin",
+          "name": "Serum 2",
+          "format": "au",
+          "vendor": "Xfer",
+          "optional": false
+        },
+        {
+          "kind": "device",
+          "name": "EQ Eight",
+          "vendor": "Ableton",
+          "optional": true
+        },
+        {
+          "kind": "device",
+          "name": "Utility",
+          "vendor": "Ableton",
+          "optional": true
+        }
+      ],
+      "verification": {
+        "regions": [
+          "rack.macros",
+          "device.chain"
+        ],
+        "checks": [
+          {
+            "type": "ocr_contains_all",
+            "region": "rack.macros",
+            "tokens": [
+              "Motion",
+              "Tone",
+              "Morph"
+            ],
+            "min_conf": 0.65
+          }
+        ]
+      },
+      "notes": "Mid growl focuses on motion + tone + morph."
+    },
+    {
+      "rack_id": "hvlien_drumbus_rack_v1",
+      "display_name": "HVLIEN DrumBus Rack v1",
+      "type": "audio_rack",
+      "profile_binding": "drum_bus_v1",
+      "target_track": "DrumBus",
+      "expected_tokens": [
+        "DrumBus",
+        "HVLIEN",
+        "Impact"
+      ],
+      "macro_abi": "HVLIEN_MACRO_ABI",
+      "macro_names": [
+        "Energy",
+        "Motion",
+        "Tone",
+        "Texture",
+        "Width",
+        "Space",
+        "Impact",
+        "Morph"
+      ],
+      "requires": [
+        {
+          "kind": "device",
+          "name": "Glue Compressor",
+          "vendor": "Ableton",
+          "optional": true
+        },
+        {
+          "kind": "device",
+          "name": "Saturator",
+          "vendor": "Ableton",
+          "optional": true
+        },
+        {
+          "kind": "device",
+          "name": "Limiter",
+          "vendor": "Ableton",
+          "optional": true
+        }
+      ],
+      "verification": {
+        "regions": [
+          "rack.macros",
+          "device.chain"
+        ],
+        "checks": [
+          {
+            "type": "ocr_contains_any",
+            "region": "rack.macros",
+            "tokens": [
+              "Impact",
+              "Energy"
+            ],
+            "min_conf": 0.65
+          }
+        ]
+      },
+      "notes": "Drum glue + punch. Always bounded."
+    }
+  ],
+  "notes": "Autopatched to include explicit target_track for deterministic track selection."
+}

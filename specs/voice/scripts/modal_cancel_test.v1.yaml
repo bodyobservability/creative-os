@@ -1,0 +1,20 @@
+schema_version: 1
+name: MODAL_CANCEL_TEST_V1
+goal: Verify Voice Control can dismiss a macOS Open dialog deterministically.
+assumptions:
+  voice_control:
+    overlays: numbers_grid
+    dictation: enabled
+user_prep:
+  - Open TextEdit (or any safe app)
+  - Trigger Open dialog (Command O) and leave it visible
+
+steps:
+  - say: "Show numbers"
+  - say: "Click Cancel"
+  - say: "Press Escape"
+  - say: "Press Escape"
+  - verify: { expected: "Dialog closed", method: "visual" }
+
+notes:
+  - This is a human-facing sanity check; v4 doctor also includes a modal guard test.

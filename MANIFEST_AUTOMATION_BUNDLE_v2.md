@@ -1,3 +1,5 @@
+Note: Superseded by the v4–v8.7 toolchain bundle; kept for historical reference.
+
 # HVLIEN Automation Bundle v2 (complete)
 
 Includes:

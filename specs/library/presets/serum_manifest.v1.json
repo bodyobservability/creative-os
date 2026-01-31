@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "synth": "Serum 2",
+  "format": "au",
+  "presets": [
+    {
+      "id": "lead_neonglass",
+      "name": "NeonGlass",
+      "tags": [
+        "bass_lead",
+        "lead",
+        "bright"
+      ],
+      "profile": "bass_lead_v1",
+      "expected_tokens": [
+        "NeonGlass",
+        "Serum"
+      ],
+      "path": ""
+    },
+    {
+      "id": "sub_deepsubclean",
+      "name": "DeepSubClean",
+      "tags": [
+        "sub",
+        "mono"
+      ],
+      "profile": "sub_bass_v1",
+      "expected_tokens": [
+        "DeepSubClean",
+        "Serum"
+      ],
+      "path": ""
+    },
+    {
+      "id": "mid_formantgrowl",
+      "name": "FormantGrowl",
+      "tags": [
+        "mid",
+        "growl"
+      ],
+      "profile": "growl_mid_v1",
+      "expected_tokens": [
+        "FormantGrowl",
+        "Serum"
+      ],
+      "path": ""
+    }
+  ],
+  "notes": "Fill in preset paths if using Strategy B file-load; otherwise name typing Strategy A."
+}

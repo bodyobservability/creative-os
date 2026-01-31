@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "name": "HVLIEN Bass Music Recommendations v1",
+  "applies_to": {
+    "os": "macos",
+    "ableton": "12.3",
+    "preferred_plugin_format": [
+      "au",
+      "vst3"
+    ]
+  },
+  "tags": {
+    "synth": {
+      "priority": 100,
+      "why": "Core synth for bass music instruments.",
+      "suggestions": [
+        {
+          "type": "plugin",
+          "name": "Serum 2 (AU)",
+          "vendor": "Xfer",
+          "notes": "Primary synth."
+        },
+        {
+          "type": "builtin",
+          "name": "Wavetable",
+          "vendor": "Ableton",
+          "notes": "Fallback instrument."
+        }
+      ]
+    },
+    "distortion": {
+      "priority": 95,
+      "why": "Harmonics and aggression.",
+      "suggestions": [
+        {
+          "type": "builtin",
+          "name": "Saturator",
+          "vendor": "Ableton",
+          "notes": "Primary."
+        },
+        {
+          "type": "builtin",
+          "name": "Overdrive",
+          "vendor": "Ableton",
+          "notes": "Secondary."
+        },
+        {
+          "type": "plugin",
+          "name": "FabFilter Saturn 2 (AU)",
+          "vendor": "FabFilter",
+          "notes": "If installed."
+        }
+      ]
+    },
+    "sub_safety": {
+      "priority": 98,
+      "why": "Mono-safe low-end and headroom control.",
+      "suggestions": [
+        {
+          "type": "builtin",
+          "name": "Utility",
+          "vendor": "Ableton",
+          "notes": "Mono/width and gain safety."
+        },
+        {
+          "type": "builtin",
+          "name": "Limiter",
+          "vendor": "Ableton",
+          "notes": "Ceiling safety."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,36 @@
+schema_version: 1
+id: growl_mid_v1
+name: Mid Growl (Serum) — HVLIEN
+abi: HVLIEN_MACRO_ABI
+intent: Midrange movement, formant-like morphs, controlled harshness.
+macro_targets:
+  Energy:
+    targets:
+      - serum: { param: "FX Distortion Mix", range: [0.05, 0.55] }
+      - serum: { param: "FX Compressor Mix", range: [0.00, 0.40] }
+  Motion:
+    targets:
+      - serum: { param: "LFO1 Amount -> WT Pos", range: [0.20, 0.90] }
+      - serum: { param: "LFO1 Rate", range: [0.15, 0.70] }
+  Tone:
+    targets:
+      - serum: { param: "Filter Cutoff", range: [0.15, 0.80] }
+      - serum: { param: "Filter Resonance", range: [0.05, 0.45] }
+  Texture:
+    targets:
+      - serum: { param: "Noise Level", range: [0.00, 0.25] }
+      - serum: { param: "FM Amount", range: [0.00, 0.55] }
+  Width:
+    targets:
+      - ableton: { device: "Utility", param: "Width", range: [0.00, 0.45] }
+  Space:
+    targets:
+      - ableton: { send: "Space", param: "Send", range: [0.00, 0.35] }
+  Impact:
+    targets:
+      - ableton: { device: "Glue Compressor", param: "Dry/Wet", range: [0.10, 0.55] }
+  Morph:
+    targets:
+      - serum: { param: "Filter Type", range: [0.00, 1.00] }
+dont_map:
+  - "Resonance > 0.55"

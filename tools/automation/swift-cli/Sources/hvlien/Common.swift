@@ -7,6 +7,9 @@ struct CommonOptions: ParsableArguments {
   @Option(name: .long) var ableton: String = "12.3"
   @Option(name: .long) var serum: String = "2"
   @Option(name: .long) var preferredFormats: String = "au,vst3"
+  @Option(name: .long) var regionsConfig: String = "tools/automation/swift-cli/config/regions.v1.json"
+  @Option(name: .long, help: "Evidence capture: none | fail | all (default: fail).")
+  var evidence: String = "fail"
   @Option(name: .long) var substitutions: String = "specs/automation/substitutions/substitutions.v1.json"
   @Option(name: .long) var recommendations: String = "specs/automation/recommendations/recommendations.v1.json"
   @Option(name: .long) var packSignatures: String = "specs/automation/recommendations/pack_signatures.v1.json"

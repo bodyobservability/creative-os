@@ -63,7 +63,7 @@ performance, and long-term identity consistency.
 - `tools/automation/` — automation bundle compiler + CLI tooling
 - `checksums/` — sha256 manifests per subsystem
 - `notes/` — operational rules, failure modes, rituals
-- `MANIFEST_AUTOMATION_BUNDLE_v3.md` — bundle contents + checks
+- `MANIFEST_AUTOMATION_BUNDLE_v3.md` — bundle contents + checks (historical)
 
 ---
 
@@ -72,8 +72,33 @@ performance, and long-term identity consistency.
 **Specs:** COMPLETE (including automation bundle v3)  
 **Controller architecture:** SPECIFIED  
 **AI workloads:** SPECIFIED (offline, advisory)  
-**Automation tooling:** INCLUDED (Swift CLI)  
+**Automation tooling:** INCLUDED (Swift CLI, v4–v8.7 features applied)  
 **Ableton/Serum exports:** PENDING (tracked below)
+
+### Automation features (v4–v8.7)
+- v4: regions, anchors, plan/apply automation
+- v5: voice handshake + macro OCR verification
+- v6: rack manifest install + verify
+- v7: sonic probe/sweep calibration
+- v8: station certify + reporting
+
+### Automation Quickstart (repo already wired)
+```bash
+# Build CLI
+cd tools/automation/swift-cli && swift build -c release
+
+# Sanity check
+.build/release/hvlien doctor --modal-test detect --allow-ocr-fallback
+```
+
+### Mac bootstrap (prereqs + UI)
+- Install Xcode (Command Line Tools included) and accept license.
+- Install Homebrew + OpenCV: `brew install opencv`.
+- Install Ableton Live 12.3 + Serum 2 AU (if used).
+- Enable IAC Driver (Audio MIDI Setup) and connect controllers (MPK Mini, APC40).
+- Grant Screen Recording + Accessibility permissions to the terminal/Xcode running `hvlien`.
+- Ableton UI: show Browser + Device View (Cmd+Opt+L), reveal track headers, keep theme/scale stable.
+- OpenCV anchors (optional): `tools/automation/swift-cli/docs/OPENCV_BUILD.md`.
 
 ### TODO (Required for artifact completeness)
 - [ ] Export real Ableton bass performance set  

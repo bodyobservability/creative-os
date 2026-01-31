@@ -1,7 +1,7 @@
 import Foundation
 import CoreMIDI
 
-public func buildControllersInventoryDoc(ableton: String) -> ControllersInventoryDoc {
+func buildControllersInventoryDoc(ableton: String) -> ControllersInventoryDoc {
   var devices: [ControllerDevice] = []
   let n = MIDIGetNumberOfDevices()
   for i in 0..<n {
