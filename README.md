@@ -353,6 +353,7 @@ See `CONTRIBUTING.md` for commit message standards and contribution guidelines.
 ## Roadmap
 
 This roadmap uses the **same repo lineage** versioning (no parallel automation-only versions).
+Export-all makes artifacts deterministic; v1.8+ intelligence is ledger/graph-driven, not UI-driven.
 
 ### v1.8 — Artifact & Receipt Index + Drift Detection
 - Build a unified `ArtifactIndex` + `ReceiptIndex` over:
@@ -360,6 +361,7 @@ This roadmap uses the **same repo lineage** versioning (no parallel automation-o
   - v7 sonic receipts (sweep/calibrate/sub-mono/transient)
   - v8 certify/release receipts
   - v9 VRL mapping receipts
+- DependencyGraph (sets → racks → profiles → macros → receipts)
 - Add drift checks:
   - “artifact changed but not re-exported”
   - “baseline missing or stale”
@@ -388,6 +390,13 @@ This roadmap uses the **same repo lineage** versioning (no parallel automation-o
 - Live-set safety certification across scenes:
   - no clipping, no silence, no runaway macros
 - Emit a “tour-ready” style receipt
+
+Voice-as-operator examples:
+- “export everything”
+- “check drift”
+- “build index”
+- “certify station”
+- “run cross-rack analysis”
 
 ---
 
