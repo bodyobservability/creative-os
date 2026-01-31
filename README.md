@@ -84,14 +84,154 @@ performance, and long-term identity consistency.
 - station certify + reporting
 - voice runtime layer + VRL validation + MIDI utilities
 
-### Automation Quickstart (repo already wired)
-```bash
-# Build CLI
-cd tools/automation/swift-cli && swift build -c release
+### Automation Quickstart (First-Time Setup on macOS)
 
-# Sanity check
+This section gets you from a fresh clone to a fully operational automation + voice + export pipeline in ~20 minutes.
+
+Goal: build the CLI, verify UI automation safety, and be ready to export real Ableton assets without mouse-heavy setup.
+
+#### 0) Prerequisites (one-time)
+
+macOS
+- macOS Sonoma or later (Tahoe recommended for Voice Control improvements)
+
+Install tooling
+```bash
+# Xcode CLI tools
+xcode-select --install
+
+# Homebrew (if not installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# OpenCV (optional but recommended for anchor robustness)
+brew install opencv
+```
+
+Install apps
+- Ableton Live 12.3
+- Serum 2 AU (if used)
+- Keyboard Maestro (recommended for voice → command binding)
+
+#### 1) Clone and build the CLI
+```bash
+git clone <repo-url>
+cd hvlien-audio-system-main
+
+cd tools/automation/swift-cli
+swift build -c release
+
+.build/release/hvlien --help
+```
+
+#### 2) Grant macOS permissions (required)
+
+Open System Settings → Privacy & Security and grant:
+- Screen Recording
+- Accessibility
+
+to:
+- Terminal (or iTerm)
+- Xcode (if running from Xcode)
+- Keyboard Maestro (if using voice triggers)
+
+⚠️ Automation will not work without these.
+
+#### 3) Basic UI sanity check (safe)
+
+This ensures the automation stack can see the screen and won’t brick anything.
+```bash
 .build/release/hvlien doctor --modal-test detect --allow-ocr-fallback
 ```
+
+Expected:
+- Modal detection passes
+- No crashes
+- No clicks performed
+
+#### 4) Select display profile + calibrate regions (required once per display)
+```bash
+.build/release/hvlien regions-select \
+  --display 2560x1440 \
+  --config-dir tools/automation/swift-cli/config
+
+.build/release/hvlien calibrate-regions \
+  --regions-config tools/automation/swift-cli/config/regions.v1.json
+```
+
+This step is critical for OCR accuracy.
+
+#### 5) Capture and validate anchors (recommended)
+
+Anchors improve robustness (especially for Serum and save dialogs).
+```bash
+.build/release/hvlien capture-anchor \
+  --regions-config tools/automation/swift-cli/config/regions.v1.json \
+  --region browser.search
+
+.build/release/hvlien validate-anchors \
+  --regions-config tools/automation/swift-cli/config/regions.v1.json \
+  --pack /path/to/anchor_pack
+```
+
+You can skip anchors initially, but they are strongly recommended for v1.7.1 exports.
+
+#### 6) Verify voice runtime layer (optional but recommended)
+
+Enable IAC Driver (Audio MIDI Setup → MIDI Studio → IAC Driver → “Device is online”).
+
+Then verify:
+```bash
+.build/release/hvlien midi list
+.build/release/hvlien vrl validate \
+  --mapping specs/voice_runtime/v9_3_ableton_mapping.v1.yaml
+```
+
+This confirms:
+- MIDI bus visibility
+- ABI macro labels
+- VRL readiness
+
+#### 7) (Optional) Bind Tahoe / Voice Control to commands
+
+Recommended phrases:
+- “export everything” → hvlien assets export-all
+- “check drift” → hvlien drift check (future v1.8)
+- “certify station” → hvlien station certify
+
+Use Keyboard Maestro or Shortcuts to map phrases → shell commands.
+
+Voice is used as an operator interface, not parameter control.
+
+#### 8) Ready to export real assets (no mouse)
+
+Once Ableton is open and the correct sets are loaded:
+```bash
+.build/release/hvlien assets export-all \
+  --anchors-pack specs/automation/anchors/<pack_id> \
+  --overwrite
+```
+
+This replaces all placeholder artifacts with real exports and emits receipts.
+
+#### What you have after this
+- ✅ CLI built and verified
+- ✅ UI automation safe
+- ✅ Voice runtime optional but working
+- ✅ Asset export pipeline ready
+- ✅ Repo is SPEC-COMPLETE, EXPORT-READY
+
+#### When to stop
+
+If you’ve completed steps 1–4, you are safe to proceed slowly.
+Steps 5–8 can be done incrementally as needed.
+
+#### Why this matters (ergonomics)
+
+This setup:
+- minimizes mouse use
+- allows keyboard-only or voice-triggered workflows
+- prevents repeated manual export pain
+- protects wrists during long engineering sessions
 
 ### Automation CLI quick reference
 ```bash
@@ -147,13 +287,25 @@ cd tools/automation/swift-cli && swift build -c release
 - Versioning + artifact rules: `notes/VERSIONING_RULES.md`
 - Ableton build runbook: `notes/AGENTIC_ABLETON_BUILD.md`
 
-### TODO (Required for artifact completeness)
+### Artifact Completeness Checklist
+
+The repository is considered **ARTIFACT-COMPLETE** when all items below exist, are non-placeholder, and have corresponding receipts committed.
+
+Most items can be produced by running:
+```bash
+.build/release/hvlien assets export-all --anchors-pack specs/automation/anchors/<pack_id> --overwrite
+```
+
+#### Automatically generated via `assets export-all`
 - [ ] Export real Ableton bass performance set  
   - Replace `ableton/performance-sets/HVLIEN_BASS_PERFORMANCE_SET_v1.0.als`
 - [ ] Export real Ableton finishing bays (replace placeholders)
 - [ ] Export real Ableton bass racks (`.adg`) into `ableton/racks/BASS_RACKS_v1.0/`
 - [ ] Commit Serum base patch (single permanent patch; macro-only)
   - Add to `library/serum/` (create folder) as `HVLIEN_SERUM_BASE_v1.0.fxp` (or `.fst`)
+- [ ] Export return FX + master safety racks
+
+#### One-time environment / validation tasks
 - [ ] Capture and commit regions profiles + overlays for standard displays (2560×1440, 5K More Space)
 - [ ] Build anchor packs and validate them against live UI (if OpenCV enabled)
 - [ ] Run rack install + verify and commit receipts
@@ -162,15 +314,6 @@ cd tools/automation/swift-cli && swift build -c release
 - [ ] Generate sonic baselines (calibrate/sweep/tune) and commit baselines + receipts
 - [ ] Run station certify and commit the run report
 - [ ] Regenerate checksums after audio artifacts are added
-
-Tooling that helps create the above:
-- Regions + anchors: `calibrate-regions`, `capture-anchor`, `validate-anchors`
-- Voice receipts: `voice verify`
-- VRL receipt: `vrl validate`
-- Rack receipts: `rack install`, `rack verify`
-- Asset exports: `assets export-all`
-- Sonic baselines: `sonic calibrate`, `sonic sweep`, `sonic tune`
-- Station report: `station certify`
 
 v1.7.1 milestone: every artifact in the repo can be generated, verified, and re-generated without UI clicking.
 
