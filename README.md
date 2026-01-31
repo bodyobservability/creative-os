@@ -1,4 +1,4 @@
-# HVLIEN Audio System v1.7.5
+# HVLIEN Audio System v1.8.4
 
 *A locked vocal + bass instrument with offline AI-assisted identity stabilization.*
 
@@ -83,6 +83,7 @@ performance, and long-term identity consistency.
 - sonic probe/sweep calibration
 - station certify + reporting
 - voice runtime layer + VRL validation + MIDI utilities
+- artifact/receipt index + drift detection (check/plan/fix)
 
 ### Automation Quickstart (First-Time Setup on macOS)
 
@@ -173,7 +174,7 @@ Anchors improve robustness (especially for Serum and save dialogs).
   --pack /path/to/anchor_pack
 ```
 
-You can skip anchors initially, but they are strongly recommended for v1.7.1 exports.
+You can skip anchors initially, but they are strongly recommended for v1.7.1+ exports and drift checks.
 
 #### 6) Verify voice runtime layer (optional but recommended)
 
@@ -195,7 +196,8 @@ This confirms:
 
 Recommended phrases:
 - “export everything” → hvlien assets export-all
-- “check drift” → hvlien drift check (future v1.8)
+- “build index” → hvlien index build
+- “check drift” → hvlien drift check
 - “certify station” → hvlien station certify
 
 Use Keyboard Maestro or Shortcuts to map phrases → shell commands.
@@ -266,6 +268,13 @@ This setup:
 .build/release/hvlien ui --anchors-pack specs/automation/anchors/<pack_id>
 # Anchor pack is auto-detected if not provided (v1.7.5)
 
+# Index + drift
+.build/release/hvlien index build
+.build/release/hvlien index status
+.build/release/hvlien drift check --anchors-pack-hint specs/automation/anchors/<pack_id>
+.build/release/hvlien drift plan --anchors-pack-hint specs/automation/anchors/<pack_id>
+.build/release/hvlien drift fix --anchors-pack-hint specs/automation/anchors/<pack_id> --dry-run
+
 # Asset exports
 .build/release/hvlien assets export-racks --anchors-pack specs/automation/anchors/<pack_id>
 .build/release/hvlien assets export-performance-set --anchors-pack specs/automation/anchors/<pack_id>
@@ -295,6 +304,7 @@ This setup:
 - Operator shell docs: `docs/voice_runtime/operator_shell.md`
 - Operator shell auto-detect update: `docs/voice_runtime/README_v1_7_5.md`
 - Asset export runbooks: `docs/assets/`
+- Index + drift docs: `docs/index/`
 - OpenCV build + anchors: `tools/automation/swift-cli/docs/OPENCV_BUILD.md`
 - Versioning + artifact rules: `notes/VERSIONING_RULES.md`
 - Ableton build runbook: `notes/AGENTIC_ABLETON_BUILD.md`
@@ -360,6 +370,7 @@ See `CONTRIBUTING.md` for commit message standards and contribution guidelines.
 - v1.7 — Voice runtime layer (VRL) + MIDI utilities
 - v1.7.1 — Asset export pipeline (repo completeness)
 - v1.7.5 — Operator shell + anchor auto-detect
+- v1.8 — Artifact/receipt index + drift detection + guarded fixes
 
 ---
 
@@ -369,7 +380,7 @@ This roadmap uses the **same repo lineage** versioning (no parallel automation-o
 Export-all makes artifacts deterministic; v1.8+ intelligence is ledger/graph-driven, not UI-driven.
 From v1.8 onward, intelligence operates over indexed artifacts and receipts, not live DAW state.
 
-### v1.8 — Artifact & Receipt Index + Drift Detection
+### v1.8 — Artifact & Receipt Index + Drift Detection (implemented)
 - Build a unified `ArtifactIndex` + `ReceiptIndex` over:
   - v9.5 export receipts (racks/sets/bays/Serum/extras)
   - v7 sonic receipts (sweep/calibrate/sub-mono/transient)

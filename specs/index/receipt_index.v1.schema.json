@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hvlien.audio/specs/index/receipt_index.v1.schema.json",
+  "title": "HVLIEN Receipt Index v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "receipts"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "receipts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Receipt"
+      }
+    }
+  },
+  "$defs": {
+    "Receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_id",
+        "kind",
+        "path",
+        "run_id",
+        "timestamp"
+      ],
+      "properties": {
+        "receipt_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

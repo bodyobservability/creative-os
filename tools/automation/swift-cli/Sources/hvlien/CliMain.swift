@@ -10,6 +10,8 @@ struct HVLIENCli: AsyncParsableCommand {
       // Core
       A0.self,
       Resolve.self,
+      Index.self,
+      Drift.self,
       Plan.self,
       Apply.self,
 

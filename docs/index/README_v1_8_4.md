@@ -1,0 +1,9 @@
+# HVLIEN v1.8.4 — Drift Fix (Guarded Execution)
+
+Includes:
+- drift_fix_receipt schema
+- Drift fix receipt models
+- `hvlien drift fix` (guarded execution)
+
+Note:
+This is an operator tool meant to be triggered by voice (Tahoe) or keyboard, not by background automation.

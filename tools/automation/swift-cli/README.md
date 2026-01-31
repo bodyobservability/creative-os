@@ -1,9 +1,9 @@
-# HVLIEN CLI (v4–v8.7)
+# HVLIEN CLI
 
 Build:
   swift build -c release
 
-This repo is already wired for v4–v8.7; the historical toolchain zips are not included.
+This repo is already wired; historical toolchain zips are not included.
 
 ## Core commands
 
@@ -22,7 +22,7 @@ Apply:
 Doctor (station readiness):
   .build/release/hvlien doctor --modal-test detect --allow-ocr-fallback
 
-## v4+ utilities
+## UI automation utilities
 
 calibrate‑regions:
   hvlien calibrate-regions
@@ -36,7 +36,18 @@ validate‑anchors (OpenCV build required):
 OpenCV build guide:
   tools/automation/swift-cli/docs/OPENCV_BUILD.md
 
-## v5–v8 workflows (selected)
+## Index + drift (v1.8)
+
+Index build/status:
+  hvlien index build
+  hvlien index status
+
+Drift check/plan/fix:
+  hvlien drift check --anchors-pack-hint specs/automation/anchors/<pack_id>
+  hvlien drift plan  --anchors-pack-hint specs/automation/anchors/<pack_id>
+  hvlien drift fix   --anchors-pack-hint specs/automation/anchors/<pack_id> --dry-run
+
+## Automation workflows (selected)
 
 Voice compile handshake:
   hvlien voice run --script <script.yaml> --abi <abi.yaml> --anchors-pack <pack> --macro-ocr
@@ -52,3 +63,9 @@ Sonic sweep + certify:
 
 Station certify:
   hvlien station certify --profile bass_v1
+
+Operator shell:
+  hvlien ui --anchors-pack specs/automation/anchors/<pack_id>
+
+Asset export:
+  hvlien assets export-all --anchors-pack specs/automation/anchors/<pack_id> --overwrite
