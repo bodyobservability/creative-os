@@ -103,8 +103,6 @@ cd tools/automation/swift-cli && swift build -c release
 ### Key docs
 - Voice runtime docs + artifacts: `docs/voice_runtime/`
 - OpenCV build + anchors: `tools/automation/swift-cli/docs/OPENCV_BUILD.md`
-- Automation bundle manifests: `MANIFEST_AUTOMATION_BUNDLE_v2.md`, `MANIFEST_AUTOMATION_BUNDLE_v3.md`
-- v4 consolidation status (historical): `V4_CONSOLIDATED_STATUS.md`
 - Versioning + artifact rules: `notes/VERSIONING_RULES.md`
 - Ableton build runbook: `notes/AGENTIC_ABLETON_BUILD.md`
 
