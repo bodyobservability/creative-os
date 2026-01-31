@@ -315,6 +315,15 @@ Most items can be produced by running:
 - [ ] Run station certify and commit the run report
 - [ ] Regenerate checksums after audio artifacts are added
 
+Tooling that helps create the above:
+- Regions + anchors: `calibrate-regions`, `capture-anchor`, `validate-anchors`
+- Voice receipts: `voice verify`
+- VRL receipt: `vrl validate`
+- Rack receipts: `rack install`, `rack verify`
+- Asset exports: `assets export-all`
+- Sonic baselines: `sonic calibrate`, `sonic sweep`, `sonic tune`
+- Station report: `station certify`
+
 v1.7.1 milestone: every artifact in the repo can be generated, verified, and re-generated without UI clicking.
 
 Until the above are complete, this repo should be considered **SPEC-COMPLETE, ARTIFACT-PENDING**.
