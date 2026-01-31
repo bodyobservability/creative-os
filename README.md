@@ -147,9 +147,9 @@ See `CONTRIBUTING.md` for commit message standards and contribution guidelines.
 - v1.2 — Controller-aware AI workloads
 - v1.3 — MPK Mini + APC40 instrument layer
 - v1.4 — README truth + packaging alignment (no spec changes)
-- v1.5 — Automation bundle v3 specs + tooling integrated
-- v1.6 — Automation tooling v4–v8.7 (CLI, anchors/regions, voice/rack/sonic specs)
-- v1.7 — Voice runtime layer v9 + VRL validator + MIDI utilities
+- v1.5 — Automation specs + tooling integrated
+- v1.6 — Expanded automation tooling (CLI, anchors/regions, voice/rack/sonic specs)
+- v1.7 — Voice runtime layer + VRL validator + MIDI utilities
 
 ---
 
