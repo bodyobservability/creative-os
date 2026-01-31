@@ -26,4 +26,73 @@ struct LocalConfig: Codable {
     let data = try JSONEncoder().encode(self)
     try data.write(to: URL(fileURLWithPath: p), options: [.atomic])
   }
+
+  // MARK: anchor pack auto-detection (best-effort)
+  /// Finds the newest anchor pack directory under common repo locations.
+  /// Returns a repo-relative path if possible, else absolute.
+  static func autoDetectAnchorsPack(repoRoot: String) -> String? {
+    let fm = FileManager.default
+
+    // Candidate parent directories in priority order
+    let candidates = [
+      "specs/automation/anchors",
+      "tools/automation/anchors",
+      "anchors",
+      "specs/anchors"
+    ].map { URL(fileURLWithPath: repoRoot).appendingPathComponent($0, isDirectory: true) }
+
+    var bestURL: URL? = nil
+    var bestDate: Date = .distantPast
+
+    for parent in candidates {
+      guard fm.fileExists(atPath: parent.path) else { continue }
+      guard let children = try? fm.contentsOfDirectory(at: parent, includingPropertiesForKeys: [.contentModificationDateKey, .isDirectoryKey], options: [.skipsHiddenFiles]) else { continue }
+      for c in children {
+        let rv = try? c.resourceValues(forKeys: [.isDirectoryKey, .contentModificationDateKey])
+        guard rv?.isDirectory == true else { continue }
+
+        if !looksLikeAnchorPack(dir: c) { continue }
+
+        let dt = rv?.contentModificationDate ?? Date.distantPast
+        if dt > bestDate {
+          bestDate = dt
+          bestURL = c
+        }
+      }
+    }
+
+    guard let chosen = bestURL else { return nil }
+
+    let rootURL = URL(fileURLWithPath: repoRoot).standardizedFileURL
+    let std = chosen.standardizedFileURL
+    if std.path.hasPrefix(rootURL.path + "/") {
+      let rel = String(std.path.dropFirst(rootURL.path.count + 1))
+      return rel
+    }
+    return chosen.path
+  }
+
+  private static func looksLikeAnchorPack(dir: URL) -> Bool {
+    let fm = FileManager.default
+    let names = (try? fm.contentsOfDirectory(atPath: dir.path)) ?? []
+    if names.contains("anchors.json") || names.contains("manifest.json") || names.contains("anchors.manifest.json") {
+      return true
+    }
+    for n in names {
+      let l = n.lowercased()
+      if l.hasSuffix(".png") || l.hasSuffix(".jpg") || l.hasSuffix(".jpeg") { return true }
+    }
+    for n in names {
+      let p = dir.appendingPathComponent(n, isDirectory: true)
+      var isDir: ObjCBool = false
+      if fm.fileExists(atPath: p.path, isDirectory: &isDir), isDir.boolValue {
+        let inner = (try? fm.contentsOfDirectory(atPath: p.path)) ?? []
+        for x in inner {
+          let l = x.lowercased()
+          if l.hasSuffix(".png") || l.hasSuffix(".jpg") || l.hasSuffix(".jpeg") { return true }
+        }
+      }
+    }
+    return false
+  }
 }

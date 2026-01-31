@@ -16,14 +16,21 @@ struct UI: AsyncParsableCommand {
 
   func run() async throws {
     let repoRoot = FileManager.default.currentDirectoryPath
-    let cfg = try LocalConfig.loadOrCreate(atRepoRoot: repoRoot)
-    var updatedCfg = cfg
+    var cfg = try LocalConfig.loadOrCreate(atRepoRoot: repoRoot)
+
     if let ap = anchorsPack, !ap.isEmpty {
-      updatedCfg.anchorsPack = ap
-      try updatedCfg.save(atRepoRoot: repoRoot)
+      cfg.anchorsPack = ap
+      try cfg.save(atRepoRoot: repoRoot)
     }
 
-    let ap = updatedCfg.anchorsPack ?? "specs/automation/anchors/<pack_id>"
+    if cfg.anchorsPack == nil || cfg.anchorsPack == "" || (cfg.anchorsPack?.contains("<pack_id>") ?? false) {
+      if let detected = LocalConfig.autoDetectAnchorsPack(repoRoot: repoRoot) {
+        cfg.anchorsPack = detected
+        try cfg.save(atRepoRoot: repoRoot)
+      }
+    }
+
+    let ap = cfg.anchorsPack ?? "specs/automation/anchors/<pack_id>"
     let hv = resolveHVLIENBinary(repoRoot: repoRoot) ?? "hvlien"
 
     let items: [MenuItem] = [
@@ -58,7 +65,7 @@ struct UI: AsyncParsableCommand {
     var lastRunDir: String? = nil
     var lastFailuresDir: String? = nil
 
-    let rec = recommendedNextAction(anchorsPack: updatedCfg.anchorsPack)
+    let rec = recommendedNextAction(anchorsPack: cfg.anchorsPack)
     let stdinRaw = StdinRawMode()
     try stdinRaw.enable()
     defer { stdinRaw.disable() }
@@ -140,7 +147,7 @@ struct UI: AsyncParsableCommand {
 
   func recommendedNextAction(anchorsPack: String?) -> String {
     if anchorsPack == nil || anchorsPack == "" || anchorsPack!.contains("<pack_id>") {
-      return "Set anchors-pack (or capture/validate anchors) → then run Export All"
+      return "No anchors pack configured/found → capture/validate anchors or pass --anchors-pack"
     }
     if !FileManager.default.fileExists(atPath: "checksums/index/artifact_index.v1.json") {
       return "Run: Index build (then Drift check)"
@@ -184,7 +191,7 @@ struct UI: AsyncParsableCommand {
                    lastExit: Int32?,
                    lastReceipt: String?) {
     print("\u{001B}[2J\u{001B}[H", terminator: "")
-    print("HVLIEN Operator Shell v1.7.4")
+    print("HVLIEN Operator Shell v1.7.5")
     print("repo: \(repoRoot)")
     print("hvlien: \(hv)")
     print("anchors-pack: \(anchorsPack)")
