@@ -63,7 +63,6 @@ performance, and long-term identity consistency.
 - `tools/automation/` — automation bundle compiler + CLI tooling
 - `checksums/` — sha256 manifests per subsystem
 - `notes/` — operational rules, failure modes, rituals
-- `MANIFEST_AUTOMATION_BUNDLE_v3.md` — bundle contents + checks (historical)
 
 ---
 
