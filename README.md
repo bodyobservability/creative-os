@@ -68,19 +68,19 @@ performance, and long-term identity consistency.
 
 ## Status
 
-**Specs:** COMPLETE (including automation bundle v4–v9)  
+**Specs:** COMPLETE (including automation tooling + specs)  
 **Controller architecture:** SPECIFIED  
 **AI workloads:** SPECIFIED (offline, advisory)  
-**Automation tooling:** INCLUDED (Swift CLI, v4–v9 features applied)  
+**Automation tooling:** INCLUDED (Swift CLI)  
 **Ableton/Serum exports:** PENDING (tracked below)
 
-### Automation features (v4–v9)
-- v4: regions, anchors, plan/apply automation
-- v5: voice handshake + macro OCR verification
-- v6: rack manifest install + verify
-- v7: sonic probe/sweep calibration
-- v8: station certify + reporting
-- v9: voice runtime layer + VRL validation + MIDI utilities
+### Automation features
+- regions, anchors, plan/apply automation
+- voice handshake + macro OCR verification
+- rack manifest install + verify
+- sonic probe/sweep calibration
+- station certify + reporting
+- voice runtime layer + VRL validation + MIDI utilities
 
 ### Automation Quickstart (repo already wired)
 ```bash
