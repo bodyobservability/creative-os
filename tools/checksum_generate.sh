@@ -10,7 +10,7 @@ mkdir -p checksums
 find specs -type f -print0 | sort -z | xargs -0 shasum -a 256 > checksums/specs_sha256.txt
 
 # Docs (README + notes)
-( printf "%s\0" README.md; find notes -type f -print0 ) | sort -z | xargs -0 shasum -a 256 > checksums/docs_sha256.txt
+( printf "%s\0" README.md; find notes -type f -print0; find docs -type f -print0; find . -maxdepth 1 -name 'README_v9_*.md' -print0 ) | sort -z | xargs -0 shasum -a 256 > checksums/docs_sha256.txt
 
 # Ableton artifacts
 find ableton -type f -print0 | sort -z | xargs -0 shasum -a 256 > checksums/ableton_sha256.txt

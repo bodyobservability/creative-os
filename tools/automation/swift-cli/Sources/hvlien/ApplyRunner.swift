@@ -19,6 +19,7 @@ final class ApplyRunner {
   var runDir: URL?
   var anchorsPackPath: String?
   var watchdogOpMs: Int = 30000
+  private var midiSendCache: [String: MidiSend] = [:]
 
   init(capture: FrameCapture, regions: RegionsV1, actuator: Actuator) {
     self.capture = capture
@@ -184,6 +185,25 @@ final class ApplyRunner {
         try await performClickAnchor(anchorId: anchor, fallbackRegion: action.fallbackRegion, opId: opId, attempt: attempt)
       }
 
+    case "send_midi_cc":
+      let dest = action.midiDest ?? "HVLIEN_VOICE"
+      let ch = action.channel ?? 1
+      guard let cc = action.cc, let value = action.value else {
+        throw NSError(domain: "ApplyRunner", code: 200, userInfo: [NSLocalizedDescriptionKey: "send_midi_cc missing cc/value"])
+      }
+      let sender = try midiSender(destContains: dest)
+      try sender.sendCC(cc: cc, value: value, channel: ch)
+
+    case "send_midi_note":
+      let dest = action.midiDest ?? "HVLIEN_VOICE"
+      let ch = action.channel ?? 1
+      guard let note = action.note else {
+        throw NSError(domain: "ApplyRunner", code: 201, userInfo: [NSLocalizedDescriptionKey: "send_midi_note missing note"])
+      }
+      let vel = action.velocity ?? 127
+      let sender = try midiSender(destContains: dest)
+      try sender.sendNoteOn(note: note, velocity: vel, channel: ch)
+
     default:
       break
     }
@@ -336,5 +356,12 @@ final class ApplyRunner {
     let dir = runDir.appendingPathComponent("failures/\(opId)", isDirectory: true)
     try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
     try note.data(using: .utf8)?.write(to: dir.appendingPathComponent("note.txt"))
+  }
+
+  private func midiSender(destContains: String) throws -> MidiSend {
+    if let sender = midiSendCache[destContains] { return sender }
+    let sender = try MidiSend(destNameContains: destContains)
+    midiSendCache[destContains] = sender
+    return sender
   }
 }

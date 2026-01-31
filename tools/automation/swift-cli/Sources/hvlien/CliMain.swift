@@ -21,9 +21,11 @@ struct HVLIENCli: AsyncParsableCommand {
 
       // Safety + ops
       Doctor.self,
+      MidiList.self,
 
       // Voice + racks + sessions
       Voice.self,
+      VRL.self,
       OCRDumpCmd.self,
       Rack.self,
       Session.self,

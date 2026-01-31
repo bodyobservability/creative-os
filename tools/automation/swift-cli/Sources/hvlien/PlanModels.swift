@@ -118,6 +118,12 @@ struct PlanAction: Codable {
   let pluginName: String?
   let deviceChainText: String?
   let openMethod: String?
+  let midiDest: String?
+  let channel: Int?
+  let cc: Int?
+  let value: Int?
+  let note: Int?
+  let velocity: Int?
 
   init(type: String,
        keys: [String]? = nil,
@@ -130,7 +136,13 @@ struct PlanAction: Codable {
        query: String? = nil,
        pluginName: String? = nil,
        deviceChainText: String? = nil,
-       openMethod: String? = nil) {
+       openMethod: String? = nil,
+       midiDest: String? = nil,
+       channel: Int? = nil,
+       cc: Int? = nil,
+       value: Int? = nil,
+       note: Int? = nil,
+       velocity: Int? = nil) {
     self.type = type
     self.keys = keys
     self.text = text
@@ -143,6 +155,12 @@ struct PlanAction: Codable {
     self.pluginName = pluginName
     self.deviceChainText = deviceChainText
     self.openMethod = openMethod
+    self.midiDest = midiDest
+    self.channel = channel
+    self.cc = cc
+    self.value = value
+    self.note = note
+    self.velocity = velocity
   }
 
   enum CodingKeys: String, CodingKey {
@@ -158,5 +176,11 @@ struct PlanAction: Codable {
     case pluginName = "plugin_name"
     case deviceChainText = "device_chain_text"
     case openMethod = "open_method"
+    case midiDest = "midi_dest"
+    case channel
+    case cc
+    case value
+    case note
+    case velocity
   }
 }
