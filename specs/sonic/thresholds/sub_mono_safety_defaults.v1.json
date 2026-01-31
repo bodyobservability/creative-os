@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "Sub Mono Safety Thresholds v1",
+  "bands_hz": {
+    "sub": [
+      20,
+      120
+    ],
+    "low": [
+      120,
+      250
+    ]
+  },
+  "thresholds": {
+    "max_sub_side_ratio": 0.12,
+    "min_sub_corr": 0.85,
+    "max_sub_dc_offset_abs": 0.01,
+    "max_sub_true_peak_dbfs": -1.0
+  },
+  "notes": "Conservative. max_sub_side_ratio is (side_rms / mid_rms) in 20-120 Hz."
+}

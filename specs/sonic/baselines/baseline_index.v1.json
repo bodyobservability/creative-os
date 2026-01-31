@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "rack_id": "hvlien_basslead_rack_v1",
+      "profile_id": "bass_lead_v1",
+      "macro": "Width",
+      "path": "specs/sonic/baselines/hvlien_basslead_rack_v1/Width.baseline.v1.json",
+      "notes": "Golden baseline for BassLead Width sweep."
+    }
+  ]
+}

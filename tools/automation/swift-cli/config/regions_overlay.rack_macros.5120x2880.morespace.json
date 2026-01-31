@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "overlay": {
+    "rack.macros": {
+      "x": 980,
+      "y": 2300,
+      "w": 2200,
+      "h": 420
+    }
+  },
+  "notes": "Starting guess for macro label area on 5K More Space. Tune with calibrate-regions and OCR dump."
+}

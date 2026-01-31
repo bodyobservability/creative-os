@@ -16,7 +16,7 @@ enum ResolvePhase {
     let compiled = try SpecCompiler.compile(specPath: specPath, packSignaturesPath: packSignaturesPath, defaultFormats: preferredFormats)
     let inv = try JSONIO.load(InventoryDoc.self, from: inventoryURL)
     let ctrls = try JSONIO.load(ControllersInventoryDoc.self, from: controllersURL)
-    let subs = try JSONIO.load(SubstitutionsDoc.self, from: URL(fileURLWithPath: substitutionsPath))
+    _ = try JSONIO.load(SubstitutionsDoc.self, from: URL(fileURLWithPath: substitutionsPath))
     let recs = try? JSONIO.load(RecommendationsDoc.self, from: URL(fileURLWithPath: recommendationsPath))
     let packs = try JSONDecoder().decode(PackSignaturesDoc.self, from: Data(contentsOf: URL(fileURLWithPath: packSignaturesPath)))
 
@@ -184,7 +184,7 @@ enum CapturePhase {
     let handler = VNImageRequestHandler(cgImage: img, options: [:])
     try handler.perform([req])
 
-    guard let obs = req.results as? [VNRecognizedTextObservation] else { return [] }
+    guard let obs = req.results else { return [] }
     var out: [OCRLine] = []
     out.reserveCapacity(obs.count)
 
@@ -209,45 +209,5 @@ enum CapturePhase {
     ).integral
 
     return img.cropping(to: cgRect) ?? img
-  }
-}
-
-// MARK: - FrameCollector (ScreenCaptureKit)
-
-final class FrameCollector: NSObject, SCStreamOutput {
-  private var frames: [CGImage] = []
-  private let lock = NSLock()
-
-  func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
-    guard type == .screen,
-          let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: true) as? [[SCStreamFrameInfo: Any]],
-          attachments.first?[.status] as? Int == SCFrameStatus.complete.rawValue,
-          let pixelBuffer = sampleBuffer.imageBuffer else { return }
-
-    let ci = CIImage(cvPixelBuffer: pixelBuffer)
-    let ctx = CIContext(options: nil)
-    if let cg = ctx.createCGImage(ci, from: ci.extent) {
-      lock.lock()
-      frames.append(cg)
-      if frames.count > 12 { frames.removeFirst(frames.count - 12) }
-      lock.unlock()
-    }
-  }
-
-  func takeFrames(count: Int, timeoutSec: Double) async throws -> [CGImage] {
-    let start = Date()
-    while Date().timeIntervalSince(start) < timeoutSec {
-      lock.lock()
-      let available = frames
-      lock.unlock()
-      if available.count >= count {
-        return Array(available.suffix(count))
-      }
-      try await Task.sleep(nanoseconds: 100_000_000) // 100ms
-    }
-    lock.lock()
-    let available = frames
-    lock.unlock()
-    return Array(available.suffix(count))
   }
 }

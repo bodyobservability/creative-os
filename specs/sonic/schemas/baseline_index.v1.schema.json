@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hvlien.audio/specs/sonic/schemas/baseline_index.v1.schema.json",
+  "title": "HVLIEN Baseline Index v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rack_id",
+          "profile_id",
+          "macro",
+          "path"
+        ],
+        "properties": {
+          "rack_id": {
+            "type": "string"
+          },
+          "profile_id": {
+            "type": "string"
+          },
+          "macro": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,11 +1,29 @@
 {
   "schema_version": 1,
   "regions": {
-    "ableton.browser.results_list": {
-      "x": 40,
-      "y": 140,
-      "w": 560,
-      "h": 900
+    "browser.search": {
+      "x": 80,
+      "y": 150,
+      "w": 780,
+      "h": 110
+    },
+    "browser.results": {
+      "x": 80,
+      "y": 270,
+      "w": 780,
+      "h": 1900
+    },
+    "tracks.list": {
+      "x": 900,
+      "y": 150,
+      "w": 520,
+      "h": 1900
+    },
+    "device.chain": {
+      "x": 900,
+      "y": 2150,
+      "w": 4100,
+      "h": 600
     }
   }
 }

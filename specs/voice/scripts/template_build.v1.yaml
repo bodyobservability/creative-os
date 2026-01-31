@@ -1,0 +1,91 @@
+schema_version: 1
+name: HVLIEN_TEMPLATE_BUILD_V1
+goal: Build a canonical HVLIEN Ableton template using Voice Control as a compile step.
+assumptions:
+  display_profile: 2560x1440
+  ableton:
+    version: "12.3"
+    theme: default
+    window: maximized
+    browser_visible: true
+    device_view_visible: true
+  voice_control:
+    overlays: numbers_grid
+    dictation: enabled
+
+steps:
+  - section: Normalize workspace
+  - say: "Show numbers"
+  - say: "Click"
+  - say: "Press Command Option L"
+  - say: "Press Command Option B"
+
+  - section: Create tracks
+  - say: "Press Command T"
+  - say: "Rename"
+  - dictate: "Vox"
+
+  - say: "Press Command Shift T"
+  - say: "Rename"
+  - dictate: "SerumLead"
+
+  - section: Insert devices - Vox
+  - say: "Click Vox"
+  - say: "Click Search"
+  - dictate: "EQ Eight"
+  - say: "Press Enter"
+  - dictate: "Compressor"
+  - say: "Press Enter"
+  - dictate: "Limiter"
+  - say: "Press Enter"
+  - dictate: "Utility"
+  - say: "Press Enter"
+
+  - section: Insert devices - SerumLead
+  - say: "Click SerumLead"
+  - say: "Click Search"
+  - dictate: "Serum 2"
+  - say: "Press Enter"
+  - dictate: "EQ Eight"
+  - say: "Press Enter"
+  - dictate: "Utility"
+  - say: "Press Enter"
+  - dictate: "Limiter"
+  - say: "Press Enter"
+
+  - section: Rack + Macro ABI wiring
+  - say: "Click Serum 2"
+  - say: "Press Command G"
+  - say: "Show Macros"
+  - say: "Enter MIDI Map Mode"
+
+  - map: { macro: 1, name: "Energy", intent: "density/drive" }
+  - map: { macro: 2, name: "Motion", intent: "LFO amount" }
+  - map: { macro: 3, name: "Tone", intent: "filter cutoff" }
+  - map: { macro: 4, name: "Texture", intent: "noise/distortion mix" }
+  - map: { macro: 5, name: "Width", intent: "stereo width" }
+  - map: { macro: 6, name: "Space", intent: "reverb/delay send" }
+  - map: { macro: 7, name: "Impact", intent: "transient/punch" }
+  - map: { macro: 8, name: "Morph", intent: "scene transform" }
+
+  - say: "Exit MIDI Map Mode"
+
+  - section: Rename macros
+  - rename_macros:
+      1: "Energy"
+      2: "Motion"
+      3: "Tone"
+      4: "Texture"
+      5: "Width"
+      6: "Space"
+      7: "Impact"
+      8: "Morph"
+
+  - section: Save template
+  - say: "Press Command Shift S"
+  - dictate: "HVLIEN_Template_v1"
+  - say: "Press Enter"
+
+notes:
+  - Voice Control is compile-time only.
+  - After this script, run v4 verification plan to confirm device presence and plugin window behavior.

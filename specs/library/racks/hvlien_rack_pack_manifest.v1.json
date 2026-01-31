@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "name": "HVLIEN Rack Pack v1",
+  "ableton": {
+    "version": "12.3",
+    "theme": "default"
+  },
+  "description": "Canonical Ableton racks aligned to the HVLIEN Macro ABI and bass-music profiles.",
+  "racks": [
+    {
+      "id": "hvlien_bass_lead_rack",
+      "display_name": "HVLIEN BassLead",
+      "type": "instrument",
+      "plugin": "Serum 2",
+      "format": "au",
+      "profile": "bass_lead_v1",
+      "expected_tokens": [
+        "HVLIEN",
+        "BassLead",
+        "Serum"
+      ],
+      "macros": [
+        "Energy",
+        "Motion",
+        "Tone",
+        "Texture",
+        "Width",
+        "Space",
+        "Impact",
+        "Morph"
+      ],
+      "safety_devices": [
+        "Utility",
+        "Limiter"
+      ],
+      "notes": "Primary aggressive lead rack. Mono-safe below 150Hz."
+    },
+    {
+      "id": "hvlien_sub_rack",
+      "display_name": "HVLIEN Sub",
+      "type": "instrument",
+      "plugin": "Serum 2",
+      "format": "au",
+      "profile": "sub_bass_v1",
+      "expected_tokens": [
+        "HVLIEN",
+        "Sub",
+        "Serum"
+      ],
+      "macros": [
+        "Energy",
+        "Motion",
+        "Tone",
+        "Texture",
+        "Width",
+        "Space",
+        "Impact",
+        "Morph"
+      ],
+      "safety_devices": [
+        "Utility",
+        "Limiter"
+      ],
+      "notes": "Strict mono sub rack. Width macro constrained."
+    },
+    {
+      "id": "hvlien_midgrowl_rack",
+      "display_name": "HVLIEN MidGrowl",
+      "type": "instrument",
+      "plugin": "Serum 2",
+      "format": "au",
+      "profile": "growl_mid_v1",
+      "expected_tokens": [
+        "HVLIEN",
+        "MidGrowl",
+        "Serum"
+      ],
+      "macros": [
+        "Energy",
+        "Motion",
+        "Tone",
+        "Texture",
+        "Width",
+        "Space",
+        "Impact",
+        "Morph"
+      ],
+      "safety_devices": [
+        "Utility",
+        "Limiter"
+      ],
+      "notes": "Midrange growl/formant rack with controlled resonance."
+    },
+    {
+      "id": "hvlien_drum_bus_rack",
+      "display_name": "HVLIEN DrumBus",
+      "type": "audio_effect",
+      "plugin": null,
+      "profile": "drum_bus_v1",
+      "expected_tokens": [
+        "HVLIEN",
+        "DrumBus"
+      ],
+      "macros": [
+        "Energy",
+        "Motion",
+        "Tone",
+        "Texture",
+        "Width",
+        "Space",
+        "Impact",
+        "Morph"
+      ],
+      "safety_devices": [
+        "Glue Compressor",
+        "Utility",
+        "Limiter"
+      ],
+      "notes": "Drum bus glue and punch rack."
+    },
+    {
+      "id": "hvlien_master_safety_rack",
+      "display_name": "HVLIEN MasterSafety",
+      "type": "audio_effect",
+      "plugin": null,
+      "profile": null,
+      "expected_tokens": [
+        "HVLIEN",
+        "Master"
+      ],
+      "macros": [
+        "Energy",
+        "Impact"
+      ],
+      "safety_devices": [
+        "Utility",
+        "Limiter"
+      ],
+      "notes": "Master safety rack; Energy macro clamps input."
+    }
+  ]
+}

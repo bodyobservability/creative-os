@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "name": "Transient + Low-band Thresholds v1",
+  "bands_hz": {
+    "sub": [
+      20,
+      120
+    ],
+    "low": [
+      20,
+      250
+    ]
+  },
+  "thresholds": {
+    "min_low_crest_db_warn": 6.0,
+    "min_low_crest_db_fail": 4.0,
+    "max_low_rms_dbfs_warn": -10.0,
+    "max_low_rms_dbfs_fail": -6.0,
+    "max_sub_true_peak_dbfs": -1.0
+  },
+  "notes": "Low-band crest factor detects over-limiting/compression in bass content."
+}

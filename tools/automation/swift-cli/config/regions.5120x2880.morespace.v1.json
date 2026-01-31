@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "display": {
+    "width": 5120,
+    "height": 2880,
+    "mode": "more_space"
+  },
+  "regions": {
+    "browser.search": {
+      "x": 80,
+      "y": 150,
+      "w": 780,
+      "h": 110
+    },
+    "browser.results": {
+      "x": 80,
+      "y": 270,
+      "w": 780,
+      "h": 1900
+    },
+    "tracks.list": {
+      "x": 900,
+      "y": 150,
+      "w": 520,
+      "h": 1900
+    },
+    "device.chain": {
+      "x": 900,
+      "y": 2150,
+      "w": 4100,
+      "h": 600
+    },
+    "device.chain.controls": {
+      "x": 900,
+      "y": 2150,
+      "w": 4100,
+      "h": 120
+    },
+    "plugin.window": {
+      "x": 1200,
+      "y": 300,
+      "w": 3200,
+      "h": 1700
+    },
+    "os.file_dialog": {
+      "x": 900,
+      "y": 550,
+      "w": 3200,
+      "h": 1700
+    },
+    "os.file_dialog.filename_field": {
+      "x": 1400,
+      "y": 2050,
+      "w": 2000,
+      "h": 180
+    },
+    "os.file_dialog.open_button": {
+      "x": 3600,
+      "y": 2050,
+      "w": 900,
+      "h": 180
+    }
+  }
+}

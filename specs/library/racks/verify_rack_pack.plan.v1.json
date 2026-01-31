@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "run_id": "verify_rack_pack_v1",
+  "mode": "apply",
+  "targets": {
+    "os": "macos",
+    "ableton": "12.3"
+  },
+  "anchors": {
+    "pack_id": "ableton12_3_default",
+    "min_score": 0.9
+  },
+  "ops": [
+    {
+      "id": "verify_hvlien_racks_present",
+      "do": {
+        "type": "sleep",
+        "ms": 100
+      },
+      "post": [
+        {
+          "type": "ui_text_contains",
+          "region": "browser.results",
+          "text": "HVLIEN BassLead",
+          "min_conf": 0.65
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "browser.results",
+          "text": "HVLIEN Sub",
+          "min_conf": 0.65
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "browser.results",
+          "text": "HVLIEN MidGrowl",
+          "min_conf": 0.65
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "browser.results",
+          "text": "HVLIEN DrumBus",
+          "min_conf": 0.65
+        }
+      ],
+      "retries": 2,
+      "timeout_ms": 8000
+    }
+  ]
+}

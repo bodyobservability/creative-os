@@ -1,0 +1,96 @@
+schema_version: 1
+name: HVLIEN_MACRO_ABI
+description: >
+  Canonical macro contract for HVLIEN racks. Macros are normalized 0.0–1.0 in Ableton Rack.
+  Names are stable; semantics are stable; unsafe parameters are not exposed.
+
+macros:
+  - id: M1
+    name: Energy
+    range: [0.0, 1.0]
+    intent: Perceived loudness + density + forwardness
+    safe_mappings:
+      - Saturation drive (bounded)
+      - Parallel comp mix (preferred over threshold)
+      - Gentle pre/post gain within safe ceiling
+    never_map:
+      - Limiter ceiling
+      - Output gain without limiter safety
+
+  - id: M2
+    name: Motion
+    range: [0.0, 1.0]
+    intent: Rhythmic/time movement without changing notes
+    safe_mappings:
+      - LFO amount (to filter/pan/wt pos)
+      - Tremolo depth (bounded)
+      - Delay feedback (capped <= 45%)
+
+  - id: M3
+    name: Tone
+    range: [0.0, 1.0]
+    intent: Brightness vs warmth / spectral tilt
+    safe_mappings:
+      - Filter cutoff (primary)
+      - EQ tilt shelf
+      - Filter drive (bounded)
+    safety:
+      resonance_cap: 0.55
+
+  - id: M4
+    name: Texture
+    range: [0.0, 1.0]
+    intent: Grit, air, noise, complexity
+    safe_mappings:
+      - Noise level (bounded)
+      - Distortion mix (not 100% wet)
+      - FM amount (bounded)
+    safety:
+      fm_cap: 0.45
+
+  - id: M5
+    name: Width
+    range: [0.0, 1.0]
+    intent: Mono -> wide with phase safety
+    safe_mappings:
+      - Utility Width
+      - Chorus width
+    safety:
+      mono_safe_midpoint: 0.4
+
+  - id: M6
+    name: Space
+    range: [0.0, 1.0]
+    intent: Distance and environment
+    safe_mappings:
+      - Reverb send amount (preferred)
+      - Delay send amount (preferred)
+    never_map:
+      - Reverb decay to extreme values
+
+  - id: M7
+    name: Impact
+    range: [0.0, 1.0]
+    intent: Transient punch / articulation
+    safe_mappings:
+      - Transient shaper amount (bounded)
+      - Compressor attack/release (bounded, indirect)
+    never_map:
+      - Thresholds that can mute
+
+  - id: M8
+    name: Morph
+    range: [0.0, 1.0]
+    intent: Patch “scene change” macro (multi-parameter transform)
+    safe_mappings:
+      - Wavetable position sweep
+      - Osc mix A<->B
+      - Filter mode morph (only if stable across travel)
+
+danger_parameter_blacklist:
+  - Master output gain without limiter safety
+  - Limiter ceiling
+  - Filter resonance beyond safe cap
+  - Delay/Reverb feedback beyond safe cap
+  - Routing toggles that can cause feedback
+  - Device on/off toggles (unless tightly controlled)

@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hvlien.audio/specs/sonic/schemas/sonic_receipt.v1.schema.json",
+  "title": "HVLIEN Sonic Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "timestamp",
+    "input_audio",
+    "status",
+    "metrics"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "input_audio": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "warn"
+      ]
+    },
+    "profile_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "rack_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_rate_hz",
+        "channels",
+        "duration_s",
+        "true_peak_dbfs",
+        "peak_dbfs",
+        "rms_dbfs",
+        "dc_offset",
+        "crest_factor_db",
+        "stereo_correlation"
+      ],
+      "properties": {
+        "sample_rate_hz": {
+          "type": "number"
+        },
+        "channels": {
+          "type": "integer"
+        },
+        "duration_s": {
+          "type": "number"
+        },
+        "true_peak_dbfs": {
+          "type": "number"
+        },
+        "peak_dbfs": {
+          "type": "number"
+        },
+        "rms_dbfs": {
+          "type": "number"
+        },
+        "dc_offset": {
+          "type": "number"
+        },
+        "crest_factor_db": {
+          "type": "number"
+        },
+        "stereo_correlation": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+schema_version: 1
+id: drum_bus_v1
+name: Drum Bus — HVLIEN
+abi: HVLIEN_MACRO_ABI
+intent: Drum glue, punch, and controlled saturation for bass music.
+macro_targets:
+  Energy:
+    targets:
+      - ableton: { device: "Saturator", param: "Drive", range: [0.00, 0.35] }
+  Motion:
+    targets:
+      - ableton: { device: "Auto Pan", param: "Amount", range: [0.00, 0.20] }
+  Tone:
+    targets:
+      - ableton: { device: "EQ Eight", param: "High Shelf Gain", range: [-0.10, 0.20] }
+  Texture:
+    targets:
+      - ableton: { device: "Overdrive", param: "Dry/Wet", range: [0.00, 0.35] }
+  Width:
+    targets:
+      - ableton: { device: "Utility", param: "Width", range: [0.00, 0.25] }
+  Space:
+    targets:
+      - ableton: { send: "Space", param: "Send", range: [0.00, 0.25] }
+  Impact:
+    targets:
+      - ableton: { device: "Glue Compressor", param: "Dry/Wet", range: [0.10, 0.55] }
+  Morph:
+    targets:
+      - ableton: { device: "EQ Eight", param: "Mid Gain", range: [-0.15, 0.20] }

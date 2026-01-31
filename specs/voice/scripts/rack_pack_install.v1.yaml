@@ -1,0 +1,20 @@
+schema_version: 1
+name: HVLIEN_RACK_PACK_INSTALL_V1
+goal: Install and validate the HVLIEN Rack Pack in Ableton.
+assumptions:
+  ableton:
+    version: "12.3"
+    browser_visible: true
+  voice_control:
+    overlays: numbers_grid
+
+steps:
+  - say: "Show numbers"
+  - say: "Click Browser"
+  - dictate: "HVLIEN"
+  - say: "Press Enter"
+  - verify:
+      expected: "HVLIEN racks visible in browser"
+      method: "visual"
+notes:
+  - Use verify_rack_pack.plan.v1.json to machine-verify installation.

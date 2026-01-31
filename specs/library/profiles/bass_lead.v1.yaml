@@ -1,0 +1,43 @@
+schema_version: 1
+id: bass_lead_v1
+name: Bass Lead (Serum) — HVLIEN
+abi: HVLIEN_MACRO_ABI
+intent: Aggressive, mono-forward lead that expands safely with Width/Space.
+macro_targets:
+  Energy:
+    targets:
+      - serum: { param: "FX Distortion Mix", range: [0.00, 0.45] }
+      - ableton: { device: "Saturator", param: "Drive", range: [0.0, 0.35] }
+    notes: Prefer mix/drive, not output gain.
+  Motion:
+    targets:
+      - serum: { param: "LFO1 Amount -> Filter Cutoff", range: [0.00, 0.70] }
+      - serum: { param: "LFO1 Rate", range: [0.10, 0.60] }
+  Tone:
+    targets:
+      - serum: { param: "Filter Cutoff", range: [0.20, 0.85] }
+      - serum: { param: "Filter Drive", range: [0.00, 0.40] }
+    safety: { resonance_cap: 0.55 }
+  Texture:
+    targets:
+      - serum: { param: "Noise Level", range: [0.00, 0.35] }
+      - serum: { param: "FM Amount", range: [0.00, 0.40] }
+  Width:
+    targets:
+      - ableton: { device: "Utility", param: "Width", range: [0.0, 0.60] }
+    safety: { mono_safe_midpoint: 0.40 }
+  Space:
+    targets:
+      - ableton: { send: "Space", param: "Send", range: [0.00, 0.55] }
+      - ableton: { send: "Delay", param: "Send", range: [0.00, 0.35] }
+  Impact:
+    targets:
+      - ableton: { device: "Glue Compressor", param: "Dry/Wet", range: [0.00, 0.45] }
+      - ableton: { device: "Saturator", param: "Dry/Wet", range: [0.10, 0.60] }
+  Morph:
+    targets:
+      - serum: { param: "WT Pos", range: [0.10, 0.90] }
+      - serum: { param: "Filter Type Morph", range: [0.00, 1.00] }
+dont_map:
+  - "Limiter Ceiling"
+  - "Master Output Gain"

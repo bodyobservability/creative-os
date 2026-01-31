@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hvlien.audio/specs/automation/schemas/plan.v1.schema.json",
+  "title": "HVLIEN UI Actuation Plan v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "mode", "targets", "ops"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "run_id": { "type": "string", "minLength": 6 },
+    "mode": { "type": "string", "enum": ["dry_run", "apply"] },
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os", "ableton", "plugin_format_preference"],
+      "properties": {
+        "os": { "type": "string", "enum": ["macos"] },
+        "ableton": { "type": "string" },
+        "plugin_format_preference": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "enum": ["au", "vst3"] }
+        }
+      }
+    },
+    "anchors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pack_id", "min_score"],
+      "properties": {
+        "pack_id": { "type": "string" },
+        "min_score": { "type": "number", "minimum": 0.5, "maximum": 1.0, "default": 0.9 }
+      }
+    },
+    "ops": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/Op" } }
+  },
+  "$defs": {
+    "Op": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "do"],
+      "properties": {
+        "id": { "type": "string", "minLength": 4 },
+        "pre": { "type": "array", "items": { "$ref": "#/$defs/Assert" }, "default": [] },
+        "do": { "$ref": "#/$defs/Action" },
+        "post": { "type": "array", "items": { "$ref": "#/$defs/Assert" }, "default": [] },
+        "recover": { "type": "array", "items": { "$ref": "#/$defs/Action" }, "default": [] },
+        "retries": { "type": "integer", "minimum": 0, "maximum": 5, "default": 2 },
+        "timeout_ms": { "type": "integer", "minimum": 250, "maximum": 60000, "default": 8000 },
+        "notes": { "type": "string" }
+      }
+    },
+    "Assert": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ui_anchor_present", "ui_text_contains", "plugin_window_open", "no_modal_dialog"]
+        },
+        "anchor_id": { "type": "string" },
+        "min_score": { "type": "number", "minimum": 0.5, "maximum": 1.0, "default": 0.9 },
+        "region": { "type": "string" },
+        "text": { "type": "string" },
+        "min_conf": { "type": "number", "minimum": 0, "maximum": 1.0, "default": 0.8 },
+        "plugin_name": { "type": "string" }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "ui_anchor_present" } }, "required": ["type"] },
+          "then": { "required": ["anchor_id"] } },
+        { "if": { "properties": { "type": { "const": "ui_text_contains" } }, "required": ["type"] },
+          "then": { "required": ["region", "text"] } },
+        { "if": { "properties": { "type": { "const": "plugin_window_open" } }, "required": ["type"] },
+          "then": { "required": ["plugin_name"] } }
+      ]
+    },
+    "OCRMatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "mode"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "mode": { "type": "string", "enum": ["exact", "contains", "fuzzy"] },
+        "min_conf": { "type": "number", "minimum": 0, "maximum": 1.0, "default": 0.7 }
+      }
+    },
+    "Action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "press_keys", "type_text", "sleep",
+            "click_anchor",
+            "click_ocr_match", "dblclick_ocr_match",
+            "search_browser",
+            "open_plugin_window"
+          ]
+        },
+        "keys": { "type": "array", "items": { "type": "string" } },
+        "text": { "type": "string" },
+        "ms": { "type": "integer", "minimum": 0, "maximum": 60000 },
+        "anchor_id": { "type": "string" },
+        "fallback_region": { "type": "string" },
+        "region": { "type": "string" },
+        "match": { "$ref": "#/$defs/OCRMatch" },
+        "query": { "type": "string" },
+        "plugin_name": { "type": "string" },
+        "device_chain_text": { "type": "string" },
+        "open_method": { "type": "string", "enum": ["anchor_button", "double_click_device"], "default": "anchor_button" }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "press_keys" } }, "required": ["type"] },
+          "then": { "required": ["keys"] } },
+        { "if": { "properties": { "type": { "const": "type_text" } }, "required": ["type"] },
+          "then": { "required": ["text"] } },
+        { "if": { "properties": { "type": { "const": "sleep" } }, "required": ["type"] },
+          "then": { "required": ["ms"] } },
+        { "if": { "properties": { "type": { "const": "click_anchor" } }, "required": ["type"] },
+          "then": { "required": ["anchor_id"] } },
+        { "if": { "properties": { "type": { "const": "click_ocr_match" } }, "required": ["type"] },
+          "then": { "required": ["region", "match"] } },
+        { "if": { "properties": { "type": { "const": "dblclick_ocr_match" } }, "required": ["type"] },
+          "then": { "required": ["region", "match"] } },
+        { "if": { "properties": { "type": { "const": "search_browser" } }, "required": ["type"] },
+          "then": { "required": ["query"] } },
+        { "if": { "properties": { "type": { "const": "open_plugin_window" } }, "required": ["type"] },
+          "then": { "required": ["plugin_name", "device_chain_text"] } }
+      ]
+    }
+  }
+}
