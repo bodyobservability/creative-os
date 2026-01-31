@@ -38,3 +38,7 @@ Examples:
 ## Versioning and artifacts
 
 Follow the rules in `notes/VERSIONING_RULES.md` and update specs in `specs/` when making structural changes.
+
+## Legacy files
+
+We do not keep legacy bundles or historical status docs solely for audit trails. If a file is superseded, remove it rather than archiving.
