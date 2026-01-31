@@ -255,6 +255,7 @@ This setup:
 # Voice runtime layer
 .build/release/hvlien vrl validate --mapping specs/voice_runtime/v9_3_ableton_mapping.v1.yaml
 .build/release/hvlien midi list
+.build/release/hvlien ui --anchors-pack specs/automation/anchors/<pack_id>
 
 # Asset exports
 .build/release/hvlien assets export-racks --anchors-pack specs/automation/anchors/<pack_id>
@@ -282,6 +283,7 @@ This setup:
 
 ### Key docs
 - Voice runtime docs + artifacts: `docs/voice_runtime/`
+- Operator shell docs: `docs/voice_runtime/operator_shell.md`
 - Asset export runbooks: `docs/assets/`
 - OpenCV build + anchors: `tools/automation/swift-cli/docs/OPENCV_BUILD.md`
 - Versioning + artifact rules: `notes/VERSIONING_RULES.md`

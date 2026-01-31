@@ -23,3 +23,6 @@ renders/
 *.flac
 *.mp3
 *.m4a
+
+# Local operator shell config
+notes/LOCAL_CONFIG.json

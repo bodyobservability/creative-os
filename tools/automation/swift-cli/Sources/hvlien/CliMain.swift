@@ -26,6 +26,7 @@ struct HVLIENCli: AsyncParsableCommand {
       // Voice + racks + sessions
       Voice.self,
       VRL.self,
+      UI.self,
       OCRDumpCmd.self,
       Rack.self,
       Session.self,
