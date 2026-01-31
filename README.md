@@ -69,7 +69,7 @@ performance, and long-term identity consistency.
 
 ## Status
 
-**Specs:** COMPLETE (including automation bundle v3)  
+**Specs:** COMPLETE (including automation bundle v4–v8.7)  
 **Controller architecture:** SPECIFIED  
 **AI workloads:** SPECIFIED (offline, advisory)  
 **Automation tooling:** INCLUDED (Swift CLI, v4–v8.7 features applied)  
@@ -107,7 +107,20 @@ cd tools/automation/swift-cli && swift build -c release
 - [ ] Export real Ableton bass racks (`.adg`) into `ableton/racks/BASS_RACKS_v1.0/`
 - [ ] Commit Serum base patch (single permanent patch; macro-only)
   - Add to `library/serum/` (create folder) as `HVLIEN_SERUM_BASE_v1.0.fxp` (or `.fst`)
+- [ ] Capture and commit regions profiles + overlays for standard displays (2560×1440, 5K More Space)
+- [ ] Build anchor packs and validate them against live UI (if OpenCV enabled)
+- [ ] Run rack install + verify and commit receipts
+- [ ] Run voice template build/verify and commit receipts
+- [ ] Generate sonic baselines (calibrate/sweep/tune) and commit baselines + receipts
+- [ ] Run station certify and commit the run report
 - [ ] Regenerate checksums after audio artifacts are added
+
+v1.6 tooling that helps create the above:
+- Regions + anchors: `calibrate-regions`, `capture-anchor`, `validate-anchors`
+- Voice receipts: `voice verify`
+- Rack receipts: `rack install`, `rack verify`
+- Sonic baselines: `sonic calibrate`, `sonic sweep`, `sonic tune`
+- Station report: `station certify`
 
 Until the above are complete, this repo should be considered **SPEC-COMPLETE, ARTIFACT-PENDING**.
 
