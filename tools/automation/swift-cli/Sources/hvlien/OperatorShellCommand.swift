@@ -69,7 +69,12 @@ struct UI: AsyncParsableCommand {
       lastFailuresDir = latestFailuresDir(inRunDir: lastRunDir)
 
       let state = DashboardState.load(lastRunDir: lastRunDir)
-      let rec = recommendedNextAction(cfgAnchorsPack: cfg.anchorsPack, state: state, hv: hv, anchorsPack: ap)
+      let readyReport = latestReadyReport(inRunDir: lastRunDir)
+      let rec = recommendedNextAction(cfgAnchorsPack: cfg.anchorsPack,
+                                      state: state,
+                                      ready: readyReport,
+                                      hv: hv,
+                                      anchorsPack: ap)
       let displayCheck = displayTargetCheck(anchorsPack: ap)
 
       printScreen(repoRoot: repoRoot,
@@ -87,7 +92,8 @@ struct UI: AsyncParsableCommand {
                   items: items,
                   selected: selected,
                   lastExit: lastCommandExit,
-                  lastReceipt: lastReceiptPath)
+                  lastReceipt: lastReceiptPath,
+                  readyStatus: readyReport?.status)
 
       let key = readKey()
       switch key {
@@ -253,9 +259,21 @@ struct UI: AsyncParsableCommand {
     struct Action { let command: [String]; let danger: Bool; let label: String }
   }
 
-  func recommendedNextAction(cfgAnchorsPack: String?, state: DashboardState, hv: String, anchorsPack: String) -> RecommendedAction {
+  func recommendedNextAction(cfgAnchorsPack: String?,
+                             state: DashboardState,
+                             ready: ReadyReportV1?,
+                             hv: String,
+                             anchorsPack: String) -> RecommendedAction {
     if cfgAnchorsPack == nil || cfgAnchorsPack == "" || (cfgAnchorsPack?.contains("<pack_id>") ?? false) {
       return .init(summary: "No anchors pack configured/found → set anchors-pack", action: nil)
+    }
+    if let r = ready {
+      if let cmd = r.recommendedCommands.first, let action = recommendedActionFromCommand(cmd, hv: hv) {
+        return .init(summary: "Ready: \(r.status) → \(cmd)", action: action)
+      }
+      if r.status == "not_ready" {
+        return .init(summary: "Ready: NOT_READY → run Ready verify", action: .init(command: [hv,"ready","--anchors-pack-hint", anchorsPack], danger: false, label: "Ready: verify"))
+      }
     }
     if !state.indexExists {
       return .init(summary: "Run Index build", action: .init(command: [hv,"index","build"], danger: false, label: "Index: build"))
@@ -368,7 +386,8 @@ struct UI: AsyncParsableCommand {
                    items: [MenuItem],
                    selected: Int,
                    lastExit: Int32?,
-                   lastReceipt: String?) {
+                   lastReceipt: String?,
+                   readyStatus: String?) {
     print("\u{001B}[2J\u{001B}[H", terminator: "")
     print("HVLIEN Operator Shell v1.7.15")
     print("anchors-pack: \(anchorsPack)")
@@ -381,7 +400,8 @@ struct UI: AsyncParsableCommand {
     print("last run: \(lastRun ?? "(none)")")
     if let fd = failuresDir { print("last failures: \(fd)") }
     print("recommended: \(recommended)")
-    print("badges: index=\(state.indexExists ? "✅" : "❌") pending=\(state.pendingArtifacts) drift=\(state.driftStatus ?? "-") exportAll=\(state.lastExportAllStatus ?? "-")")
+    let readyBadge = readyStatus?.uppercased() ?? "-"
+    print("badges: ready=\(readyBadge) index=\(state.indexExists ? "✅" : "❌") pending=\(state.pendingArtifacts) drift=\(state.driftStatus ?? "-") exportAll=\(state.lastExportAllStatus ?? "-")")
     if let e = lastExit { print("last exit: \(e)") }
     if let r = lastReceipt { print("last receipt: \(r)") }
 
@@ -440,6 +460,25 @@ struct UI: AsyncParsableCommand {
     guard !receiptFiles.isEmpty else { return nil }
     let chosen = receiptFiles.sorted().last!
     return URL(fileURLWithPath: rd).appendingPathComponent(chosen).path
+  }
+
+  func latestReadyReport(inRunDir runDir: String?) -> ReadyReportV1? {
+    guard let rd = runDir else { return nil }
+    let fm = FileManager.default
+    guard let files = try? fm.contentsOfDirectory(atPath: rd) else { return nil }
+    let candidates = files.filter { $0.hasPrefix("ready_report") && $0.hasSuffix(".json") }.sorted()
+    guard let chosen = candidates.last else { return nil }
+    let path = URL(fileURLWithPath: rd).appendingPathComponent(chosen)
+    return try? JSONIO.load(ReadyReportV1.self, from: path)
+  }
+
+  func recommendedActionFromCommand(_ cmd: String, hv: String) -> RecommendedAction.Action? {
+    let parts = cmd.split(separator: " ").map(String.init)
+    guard !parts.isEmpty else { return nil }
+    var args = parts
+    if args.first == "hvlien" { args[0] = hv }
+    let danger = cmd.contains("export-all") || cmd.contains("drift fix") || cmd.contains("assets export")
+    return .init(command: args, danger: danger, label: cmd)
   }
 
   func resolveHVLIENBinary(repoRoot: String) -> String? {

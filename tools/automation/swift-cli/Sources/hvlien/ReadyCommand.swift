@@ -16,7 +16,7 @@ struct Ready: AsyncParsableCommand {
   @Option(name: .long, help: "Run directory to inspect for drift/export receipts (optional). Defaults to latest runs/<id>.")
   var runDir: String? = nil
 
-  @Flag(name: .long, help: "Write JSON report to runs/<run_id>/ready_report.v1.json")
+  @Flag(name: .long, inversion: .prefixedNo, help: "Write JSON report to runs/<run_id>/ready_report.v1.json")
   var writeReport: Bool = true
 
   func run() async throws {
