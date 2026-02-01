@@ -84,6 +84,13 @@ Required schemas:
   - slices are additive; no agent may overwrite another agent’s slice
   - **merge key:** slices are keyed by `agent_id` (one slice per agent)
   - **merge rule:** last‑write wins is forbidden; collisions are errors
+ - **ActionRef (used by suggested_actions)**
+   - `{ id, kind, description? }`
+   - `kind`: enum `setup|repair|recheck|open|docs|manual`
+ - **Effect (used by effects)**
+   - `{ id, kind, target, description? }`
+   - `kind`: enum `filesystem|config|device|process|ui`
+   - `target`: string (path, setting name, or device id)
 - **Profile**
   - `id`, `intents`, `policies`, `requirements`, `packs`
 - **PackManifest**
@@ -111,7 +118,7 @@ Constraints:
 - No new CLI surface in this phase.
 - No deletion or modification of existing report outputs.
 - Any `manual_required` PlanStep must be emitted but never executed by setup.
- - A mapping table must exist from legacy report enums → Creative OS enums.
+- A mapping table must exist from legacy report enums → Creative OS enums.
 
 Acceptance gate:
 - Build passes
@@ -178,6 +185,7 @@ Requirements:
     - `active_pack_ids: [string]`
     - `last_updated: ISO8601 string`
   - Migration: if file missing, default to first profile in `profiles/` and write it
+  - Location: **long‑term authoritative** unless superseded by a future `core/config/` spec
 
 Acceptance gate:
 - `wub profile use hvlien` persists selection
