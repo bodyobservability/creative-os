@@ -26,3 +26,7 @@ renders/
 
 # Local operator shell config
 notes/LOCAL_CONFIG.json
+
+# Runtime outputs
+runs/
+checksums/index/
