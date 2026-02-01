@@ -9,7 +9,7 @@ make studio
 ```
 
 That builds the CLI (if needed) and opens the **Operator Shell** (`hvlien ui`).
-On first launch, a one-time wizard offers to run build/doctor/index steps.
+On first launch, a one-time wizard offers to run build/doctor/index and asset export steps.
 
 ## Operator Shell essentials
 
@@ -20,6 +20,7 @@ On first launch, a one-time wizard offers to run build/doctor/index steps.
 ### One-key flow
 - **Space**: run recommended next action
 - **p**: preview drift remediation plan
+- **c**: ready verifier
 - **R**: refresh state
 
 ### Open evidence

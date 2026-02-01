@@ -1,15 +1,22 @@
-# v1.7.9 First-Run Wizard (Operator Shell)
+# v1.7.10 First-Run Wizard — Asset Export Phase
 
-On first launch of `hvlien ui`, a one-time wizard appears if `notes/LOCAL_CONFIG.json` indicates first run.
+The first-run wizard inside `hvlien ui` now guides initial artifact exports after the basic setup steps.
 
-The wizard offers (with confirmation prompts):
-1) Build CLI (`swift build -c release`)
-2) Doctor (`hvlien doctor --modal-test detect --allow-ocr-fallback`)
-3) Index build (`hvlien index build`)
+## Flow
+After Build → Doctor → Index build, the wizard checks `checksums/index/artifact_index.v1.json` for missing or placeholder artifacts.
 
-After completion it sets:
-- `notes/LOCAL_CONFIG.json` → `firstRunCompleted: true`
+If artifacts are pending, it offers:
+1. Export ALL (recommended)
+2. Export step-by-step (guided)
+3. Print commands only
+4. Skip for now
 
-You can reset the wizard by deleting:
-- `notes/LOCAL_CONFIG.json`
-or setting `firstRunCompleted` to false.
+## Safety
+- Every destructive/clicky action is explicitly confirmed.
+- No Ableton set switching or UI manipulation happens automatically.
+- If anchors pack is unset, the wizard offers a **Validate Anchors** pre-step.
+
+## State persistence
+`notes/LOCAL_CONFIG.json` includes:
+- `firstRunCompleted`
+- `artifactExportsCompleted`

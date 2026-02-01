@@ -95,6 +95,7 @@ performance, and long-term identity consistency.
 - station certify + reporting
 - voice runtime layer + VRL validation + MIDI utilities
 - artifact/receipt index + drift detection (check/plan/fix)
+- operator shell wizard + ready verifier
 
 ### Automation Quickstart (First-Time Setup on macOS)
 
@@ -184,6 +185,9 @@ All steps emit receipts into `runs/<run_id>/...` and can be opened from the shel
 .build/release/hvlien drift plan --anchors-pack-hint specs/automation/anchors/<pack_id>
 .build/release/hvlien drift fix --anchors-pack-hint specs/automation/anchors/<pack_id> --dry-run
 
+# Ready verifier
+.build/release/hvlien ready --anchors-pack-hint specs/automation/anchors/<pack_id>
+
 # Asset exports
 .build/release/hvlien assets export-racks --anchors-pack specs/automation/anchors/<pack_id>
 .build/release/hvlien assets export-performance-set --anchors-pack specs/automation/anchors/<pack_id>
@@ -217,6 +221,9 @@ All steps emit receipts into `runs/<run_id>/...` and can be opened from the shel
 - Operator shell voice studio update: `docs/voice_runtime/README_v1_7_8.md`
 - Operator shell wizard update: `docs/voice_runtime/README_v1_7_9.md`
 - Operator shell wizard guide: `docs/voice_runtime/operator_shell_wizard.md`
+- Operator shell wizard receipt: `docs/voice_runtime/operator_shell_wizard_receipt.md`
+- Ready verifier docs: `docs/index/ready_verifier.md`
+- Makefile ready target: `docs/index/README_make_ready.md`
 - Asset export runbooks: `docs/assets/`
 - Index + drift docs: `docs/index/`
 - OpenCV build + anchors: `tools/automation/swift-cli/docs/OPENCV_BUILD.md`
@@ -288,6 +295,11 @@ See `CONTRIBUTING.md` for commit message standards and contribution guidelines.
 - v1.7.7 — Operator shell plan preview + drift UX
 - v1.7.8 — Operator shell voice/studio modes
 - v1.7.9 — Operator shell first-run wizard
+- v1.7.10 — Wizard asset export phase
+- v1.7.11 — Wizard receipt
+- v1.7.12 — Wizard receipt step log + schema
+- v1.7.14 — Ready verifier command + report schema
+- v1.7.15 — Operator shell ready hotkey + verifier flow
 - v1.8 — Artifact/receipt index + drift detection + guarded fixes
 
 ---

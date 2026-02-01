@@ -3,6 +3,7 @@ import Foundation
 struct LocalConfig: Codable {
   var anchorsPack: String?
   var firstRunCompleted: Bool?
+  var artifactExportsCompleted: Bool?
 
   static func path(atRepoRoot root: String) -> String {
     return URL(fileURLWithPath: root).appendingPathComponent("notes/LOCAL_CONFIG.json").path
@@ -15,7 +16,7 @@ struct LocalConfig: Codable {
       return try JSONDecoder().decode(LocalConfig.self, from: data)
     }
     // create default config (but do not force anchorsPack)
-    let cfg = LocalConfig(anchorsPack: nil, firstRunCompleted: false)
+    let cfg = LocalConfig(anchorsPack: nil, firstRunCompleted: false, artifactExportsCompleted: false)
     try cfg.save(atRepoRoot: root)
     return cfg
   }

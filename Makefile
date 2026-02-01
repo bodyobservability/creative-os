@@ -1,7 +1,31 @@
-.PHONY: build studio
+# Makefile aliases for HVLIEN operator workflows
+# Note: This file assumes the Swift CLI builds to tools/automation/swift-cli/.build/release/hvlien
+
+.PHONY: build studio doctor export certify index drift ready
+
+HVLIEN=tools/automation/swift-cli/.build/release/hvlien
+ANCHORS?=specs/automation/anchors/<pack_id>
 
 build:
 	cd tools/automation/swift-cli && swift build -c release
 
 studio: build
-	tools/automation/swift-cli/.build/release/hvlien ui
+	$(HVLIEN) ui
+
+doctor: build
+	$(HVLIEN) doctor --modal-test detect --allow-ocr-fallback
+
+index: build
+	$(HVLIEN) index build
+
+drift: build
+	$(HVLIEN) drift check --anchors-pack-hint $(ANCHORS)
+
+export: build
+	$(HVLIEN) assets export-all --anchors-pack $(ANCHORS) --overwrite
+
+certify: build
+	$(HVLIEN) station certify
+
+ready: build
+	$(HVLIEN) ready --anchors-pack-hint $(ANCHORS)

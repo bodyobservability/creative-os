@@ -5,7 +5,7 @@ import Darwin
 struct UI: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     commandName: "ui",
-    abstract: "Operator shell (TUI) for common workflows (v1.7.9)."
+    abstract: "Operator shell (TUI) for common workflows (v1.7.15)."
   )
 
   @Option(name: .long, help: "Anchors pack hint (stored in local config if provided).")
@@ -126,6 +126,19 @@ struct UI: AsyncParsableCommand {
         _ = readLine()
         try stdinRaw.enable()
 
+      case .readyVerify:
+        stdinRaw.disable()
+        print("\n# READY verifier\n")
+        if dryRun {
+          print("(dry-run) would run: \(hv) ready --anchors-pack-hint \(ap)\n")
+        } else {
+          let output = try await captureProcessOutput([hv, "ready", "--anchors-pack-hint", ap])
+          print(output.isEmpty ? "(no output)" : output)
+        }
+        print("\nPress Enter to return…", terminator: "")
+        _ = readLine()
+        try stdinRaw.enable()
+
       case .runRecommended:
         if let action = rec.action {
           try await runAction(action, stdinRaw: stdinRaw, dryRun: dryRun,
@@ -194,6 +207,7 @@ struct UI: AsyncParsableCommand {
       .init(title: "Drift: plan", command: [hv, "drift", "plan", "--anchors-pack-hint", anchorsPack], danger: false, category: "Drift"),
       .init(title: "Drift: fix (guarded)", command: [hv, "drift", "fix", "--anchors-pack-hint", anchorsPack], danger: true, category: "Drift"),
 
+      .init(title: "Ready: verify", command: [hv, "ready", "--anchors-pack-hint", anchorsPack], danger: false, category: "Governance"),
       .init(title: "Station: certify", command: [hv, "station", "certify"], danger: true, category: "Governance"),
       .init(title: "Open last report", command: ["bash","-lc", "open " + (latestReportPath() ?? "runs")], danger: false, category: "Open"),
       .init(title: "Open last run folder", command: ["bash","-lc", "open " + (latestRunDir() ?? "runs")], danger: false, category: "Open"),
@@ -218,6 +232,7 @@ struct UI: AsyncParsableCommand {
         "Drift: plan",
         "Drift: fix (guarded)",
         "VRL validate",
+        "Ready: verify",
         "Station: certify",
         "Open last report",
         "Open last run folder"
@@ -349,7 +364,7 @@ struct UI: AsyncParsableCommand {
                    lastExit: Int32?,
                    lastReceipt: String?) {
     print("\u{001B}[2J\u{001B}[H", terminator: "")
-    print("HVLIEN Operator Shell v1.7.9")
+    print("HVLIEN Operator Shell v1.7.15")
     print("anchors-pack: \(anchorsPack)")
     print("last run: \(lastRun ?? "(none)")")
     if let fd = failuresDir { print("last failures: \(fd)") }
@@ -360,7 +375,7 @@ struct UI: AsyncParsableCommand {
 
     print(String(repeating: "-", count: 88))
     print("modes: voice=\(voiceMode ? "ON" : "OFF") (v)  studio=\(studioMode ? "ON" : "OFF") (s)  all=\(showAll ? "ON" : "OFF") (a)")
-    print("keys: ↑/↓ j/k • Enter run • Space recommended • p plan • R refresh • r/o/f/x • q quit")
+    print("keys: ↑/↓ j/k • Enter run • Space recommended • p plan • c ready • R refresh • r/o/f/x • q quit")
     if voiceMode { print("voice hint: Say \"press 3\" (then Enter) or use number keys 1-9.") }
     print(String(repeating: "-", count: 88))
 
@@ -456,7 +471,7 @@ struct UI: AsyncParsableCommand {
   enum Key {
     case up, down, enter, quit
     case openReceipt, openRun, openReport, openFailures
-    case toggleAll, refresh, runRecommended, previewDriftPlan
+    case toggleAll, refresh, runRecommended, previewDriftPlan, readyVerify
     case toggleVoiceMode, toggleStudioMode
     case selectNumber(Int)
     case none
@@ -480,6 +495,7 @@ struct UI: AsyncParsableCommand {
 
     if c == 0x20 { return .runRecommended }
     if c == asciiByte("p") { return .previewDriftPlan }
+    if c == asciiByte("c") { return .readyVerify }
     if c == asciiByte("v") { return .toggleVoiceMode }
     if c == asciiByte("s") { return .toggleStudioMode }
     if c == 0x0D || c == 0x0A { return .enter }
@@ -510,25 +526,124 @@ struct UI: AsyncParsableCommand {
                                  cfg: inout LocalConfig) async throws {
     // Wizard runs in cooked mode (outside raw-key loop).
     print("\u{001B}[2J\u{001B}[H", terminator: "")
-    print("HVLIEN First-Run Wizard (v1.7.9)")
+    print("HVLIEN First-Run Wizard (v1.7.15)")
     print(String(repeating: "=", count: 72))
     print("Goal: establish a safe baseline with minimal friction.\n")
     print("Anchors pack: \(anchorsPack)")
+
+    let wizardRunId = RunContext.makeRunId()
+    var wizardSteps: [WizardStep] = []
+    let wizardNotes: [String] = []
+    var wizardStatus: String = "pass"
+    var sawSkip = false
+
     print("\nRecommended steps:")
     print("  1) Build CLI")
     print("  2) Doctor (permissions + modal safety)")
     print("  3) Index build (v1.8)")
     print("\nYou can skip any step. Nothing runs without confirmation.\n")
 
-    if await confirm("Run build now? (swift build -c release)") {
-      _ = try? await runProcess([ "bash","-lc","cd tools/automation/swift-cli && swift build -c release" ])
+    _ = await wizardRunStep(id: "build",
+                            command: ["bash","-lc","cd tools/automation/swift-cli && swift build -c release"],
+                            prompt: "Run build now? (swift build -c release)",
+                            steps: &wizardSteps,
+                            status: &wizardStatus)
+    _ = await wizardRunStep(id: "doctor",
+                            command: [hv,"doctor","--modal-test","detect","--allow-ocr-fallback"],
+                            prompt: "Run doctor now?",
+                            steps: &wizardSteps,
+                            status: &wizardStatus)
+    _ = await wizardRunStep(id: "index_build",
+                            command: [hv,"index","build"],
+                            prompt: "Run index build now?",
+                            steps: &wizardSteps,
+                            status: &wizardStatus)
+
+    // Step 4) Asset exports (recommended)
+    if detectPendingArtifacts() {
+      print("\nStep 4) Asset exports (recommended)")
+      print("Your repository still contains placeholder or missing assets.")
+      print("This will use UI automation in Ableton and may overwrite placeholders.\n")
+
+      // Pre-step: validate anchors if pack looks unset (skippable)
+      let packLooksUnset = anchorsPack.contains("<pack_id>") || anchorsPack.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      if packLooksUnset {
+        print("No anchors pack detected. UI automation will be brittle without anchors.\n")
+        _ = await wizardRunStep(
+          id: "validate_anchors",
+          command: [hv,"validate-anchors","--regions-config","tools/automation/swift-cli/config/regions.v1.json","--pack",anchorsPack],
+          prompt: "Run Validate Anchors now?",
+          steps: &wizardSteps,
+          status: &wizardStatus
+        )
+      } else {
+        wizardSteps.append(WizardStep(id: "validate_anchors", command: "validate-anchors", exitCode: nil, decision: "skip", notes: "anchors pack present"))
+      }
+
+      print("Choose an option:")
+      print("  [1] Export ALL (recommended)")
+      print("  [2] Export step-by-step (guided)")
+      print("  [3] Print commands only")
+      print("  [s] Skip for now")
+      print("> ", terminator: "")
+      let choice = (readLine() ?? "").lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+
+      switch choice {
+      case "1":
+        let ok = await wizardRunStep(id: "export_all",
+                                     command: [hv,"assets","export-all","--anchors-pack",anchorsPack,"--overwrite"],
+                                     prompt: "Proceed with Export ALL now?",
+                                     steps: &wizardSteps,
+                                     status: &wizardStatus)
+        if ok { cfg.artifactExportsCompleted = true }
+      case "2":
+        let subs: [(String,[String])] = [
+          ("export_racks", [hv,"assets","export-racks","--anchors-pack",anchorsPack,"--overwrite","ask"]),
+          ("export_performance_set", [hv,"assets","export-performance-set","--anchors-pack",anchorsPack,"--overwrite"]),
+          ("export_finishing_bays", [hv,"assets","export-finishing-bays","--anchors-pack",anchorsPack,"--overwrite"]),
+          ("export_serum_base", [hv,"assets","export-serum-base","--anchors-pack",anchorsPack,"--overwrite"]),
+          ("export_extras", [hv,"assets","export-extras","--anchors-pack",anchorsPack,"--overwrite"])
+        ]
+        for (sid, cmd) in subs {
+          let ok = await wizardRunStep(id: sid,
+                                       command: cmd,
+                                       prompt: "Run " + sid.replacingOccurrences(of: "_", with: " ") + "?",
+                                       steps: &wizardSteps,
+                                       status: &wizardStatus)
+          if ok { cfg.artifactExportsCompleted = true }
+        }
+      case "3":
+        let cmdText = "hvlien assets export-all --anchors-pack \(anchorsPack) --overwrite"
+        wizardSteps.append(WizardStep(id: "print_commands", command: cmdText, exitCode: nil, decision: "yes", notes: "printed"))
+        print("\nCommands:\n" + cmdText + "\n")
+        sawSkip = true
+      default:
+        wizardSteps.append(WizardStep(id: "asset_exports", command: "exports", exitCode: nil, decision: "skip", notes: "user_skipped"))
+        print("Skipping asset exports for now.")
+        sawSkip = true
+      }
+
+      if cfg.artifactExportsCompleted == true {
+        _ = await wizardRunStep(id: "index_rebuild",
+                                command: [hv,"index","build"],
+                                prompt: "Rebuild index now?",
+                                steps: &wizardSteps,
+                                status: &wizardStatus)
+      }
+    } else {
+      wizardSteps.append(WizardStep(id: "asset_exports", command: "exports", exitCode: nil, decision: "skip", notes: "no_pending_artifacts"))
     }
-    if await confirm("Run doctor now?") {
-      _ = try? await runProcess([ hv, "doctor", "--modal-test", "detect", "--allow-ocr-fallback" ])
-    }
-    if await confirm("Run index build now?") {
-      _ = try? await runProcess([ hv, "index", "build" ])
-    }
+
+    if sawSkip && wizardStatus == "pass" { wizardStatus = "warn" }
+    let ts = ISO8601DateFormatter().string(from: Date())
+    let receipt = WizardReceiptV1(schemaVersion: 1,
+                                  runId: wizardRunId,
+                                  timestamp: ts,
+                                  status: wizardStatus,
+                                  steps: wizardSteps,
+                                  anchorsPack: anchorsPack,
+                                  notes: wizardNotes)
+    writeWizardReceipt(runId: wizardRunId, receipt: receipt)
 
     cfg.firstRunCompleted = true
     try cfg.save(atRepoRoot: repoRoot)
@@ -542,6 +657,87 @@ struct UI: AsyncParsableCommand {
     print(prompt + " [y/N] ", terminator: "")
     let ans = (readLine() ?? "").lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
     return ans == "y" || ans == "yes"
+  }
+
+  private struct WizardReceiptV1: Codable {
+    let schemaVersion: Int
+    let runId: String
+    let timestamp: String
+    let status: String
+    let steps: [WizardStep]
+    let anchorsPack: String?
+    let notes: [String]
+
+    enum CodingKeys: String, CodingKey {
+      case schemaVersion = "schema_version"
+      case runId = "run_id"
+      case timestamp
+      case status
+      case steps
+      case anchorsPack = "anchors_pack"
+      case notes
+    }
+  }
+
+  private struct WizardStep: Codable {
+    let id: String
+    let command: String
+    let exitCode: Int?
+    let decision: String
+    let notes: String?
+
+    enum CodingKeys: String, CodingKey {
+      case id, command
+      case exitCode = "exit_code"
+      case decision
+      case notes
+    }
+  }
+
+  private func writeWizardReceipt(runId: String, receipt: WizardReceiptV1) {
+    let dir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
+    try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    let path = dir.appendingPathComponent("wizard_receipt.v1.json")
+    if let data = try? JSONEncoder().encode(receipt) {
+      try? data.write(to: path, options: [.atomic])
+    }
+  }
+
+  private func wizardRunStep(id: String,
+                             command: [String],
+                             prompt: String,
+                             steps: inout [WizardStep],
+                             status: inout String) async -> Bool {
+    print(prompt + " [y/N] ", terminator: "")
+    let ans = (readLine() ?? "").lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+    let yes = (ans == "y" || ans == "yes")
+    let cmdStr = command.joined(separator: " ")
+    if !yes {
+      steps.append(WizardStep(id: id, command: cmdStr, exitCode: nil, decision: "no", notes: nil))
+      return false
+    }
+    let exit = (try? await runProcess(command)) ?? 999
+    steps.append(WizardStep(id: id, command: cmdStr, exitCode: Int(exit), decision: "yes", notes: nil))
+    if exit != 0 { status = "fail" }
+    return exit == 0
+  }
+
+  private func detectPendingArtifacts() -> Bool {
+    let idx = "checksums/index/artifact_index.v1.json"
+    guard FileManager.default.fileExists(atPath: idx),
+          let data = try? Data(contentsOf: URL(fileURLWithPath: idx)),
+          let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+          let arts = obj["artifacts"] as? [[String: Any]] else {
+      return true
+    }
+    for a in arts {
+      if let st = a["status"] as? [String: Any],
+         let state = st["state"] as? String,
+         (state == "missing" || state == "placeholder") {
+        return true
+      }
+    }
+    return false
   }
 }
 
