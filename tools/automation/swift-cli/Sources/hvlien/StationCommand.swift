@@ -6,7 +6,7 @@ struct Station: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     commandName: "station",
     abstract: "Station operations (v8.4).",
-    subcommands: [Certify.self]
+    subcommands: [Certify.self, Status.self]
   )
 
   struct Certify: AsyncParsableCommand {
