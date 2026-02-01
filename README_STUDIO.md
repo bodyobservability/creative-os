@@ -22,6 +22,7 @@ The shell also prints a display/anchors warning if your main display does not ma
 - **Space**: run recommended next action
 - **p**: preview drift remediation plan
 - **c**: ready verifier
+- **g**: repair recipe (guarded)
 - **R**: refresh state
 
 ### Open evidence
@@ -38,6 +39,18 @@ Inside the Operator Shell:
 3. **Assets → Export ALL** → replaces placeholders with real Ableton/Serum artifacts
 4. **Index build** → **Drift check** → **Drift fix (guarded)** if needed
 5. **Station certify** when you want a full proof-of-health receipt
+
+## Studio Operator Checklist
+Use this when onboarding a new machine or recovering from drift.
+
+1. **Build** → `make studio`
+2. **Doctor** → permissions + modal guard
+3. **Export preflight** → regions/OCR/anchors sanity
+4. **Assets → Export ALL** (Ableton open)
+5. **Index build** → **Drift check**
+6. **Ready** → confirm ARTIFACT-READY
+7. **Repair** (if drift fails)
+8. **Station certify** for a full governance receipt
 
 ## Non-goals
 - No live AI control
