@@ -149,6 +149,19 @@ struct UI: AsyncParsableCommand {
         _ = readLine()
         try stdinRaw.enable()
 
+      case .repairRun:
+        stdinRaw.disable()
+        print("\n# Repair recipe\n")
+        if dryRun {
+          print("(dry-run) would run: \(hv) repair --anchors-pack-hint \(ap)\n")
+        } else {
+          let output = try await captureProcessOutput([hv, "repair", "--anchors-pack-hint", ap])
+          print(output.isEmpty ? "(no output)" : output)
+        }
+        print("\nPress Enter to return…", terminator: "")
+        _ = readLine()
+        try stdinRaw.enable()
+
       case .runRecommended:
         if let action = rec.action {
           try await runAction(action, stdinRaw: stdinRaw, dryRun: dryRun,
@@ -218,6 +231,7 @@ struct UI: AsyncParsableCommand {
       .init(title: "Drift: fix (guarded)", command: [hv, "drift", "fix", "--anchors-pack-hint", anchorsPack], danger: true, category: "Drift"),
 
       .init(title: "Ready: verify", command: [hv, "ready", "--anchors-pack-hint", anchorsPack], danger: false, category: "Governance"),
+      .init(title: "Repair: run recipe (guarded)", command: [hv, "repair", "--anchors-pack-hint", anchorsPack], danger: true, category: "Governance"),
       .init(title: "Station: certify", command: [hv, "station", "certify"], danger: true, category: "Governance"),
       .init(title: "Open last report", command: ["bash","-lc", "open " + (latestReportPath() ?? "runs")], danger: false, category: "Open"),
       .init(title: "Open last run folder", command: ["bash","-lc", "open " + (latestRunDir() ?? "runs")], danger: false, category: "Open"),
@@ -243,6 +257,7 @@ struct UI: AsyncParsableCommand {
         "Drift: fix (guarded)",
         "VRL validate",
         "Ready: verify",
+        "Repair: run recipe (guarded)",
         "Station: certify",
         "Open last report",
         "Open last run folder"
@@ -407,7 +422,7 @@ struct UI: AsyncParsableCommand {
 
     print(String(repeating: "-", count: 88))
     print("modes: voice=\(voiceMode ? "ON" : "OFF") (v)  studio=\(studioMode ? "ON" : "OFF") (s)  all=\(showAll ? "ON" : "OFF") (a)")
-    print("keys: ↑/↓ j/k • Enter run • Space recommended • p plan • c ready • R refresh • r/o/f/x • q quit")
+    print("keys: ↑/↓ j/k • Enter run • Space recommended • p plan • c ready • g repair • R refresh • r/o/f/x • q quit")
     if voiceMode { print("voice hint: Say \"press 3\" (then Enter) or use number keys 1-9.") }
     print(String(repeating: "-", count: 88))
 
@@ -522,7 +537,7 @@ struct UI: AsyncParsableCommand {
   enum Key {
     case up, down, enter, quit
     case openReceipt, openRun, openReport, openFailures
-    case toggleAll, refresh, runRecommended, previewDriftPlan, readyVerify
+    case toggleAll, refresh, runRecommended, previewDriftPlan, readyVerify, repairRun
     case toggleVoiceMode, toggleStudioMode
     case selectNumber(Int)
     case none
@@ -547,6 +562,7 @@ struct UI: AsyncParsableCommand {
     if c == 0x20 { return .runRecommended }
     if c == asciiByte("p") { return .previewDriftPlan }
     if c == asciiByte("c") { return .readyVerify }
+    if c == asciiByte("g") { return .repairRun }
     if c == asciiByte("v") { return .toggleVoiceMode }
     if c == asciiByte("s") { return .toggleStudioMode }
     if c == 0x0D || c == 0x0A { return .enter }

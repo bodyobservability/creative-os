@@ -37,6 +37,7 @@ struct HVLIENCli: AsyncParsableCommand {
       // Sonic + governance
       Sonic.self,
       Ready.self,
+      Repair.self,
       Station.self,
       Release.self,
       Pipeline.self,
