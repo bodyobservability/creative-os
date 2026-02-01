@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://hvlien.audio/specs/automation/schemas/controllers.v1.schema.json",
-  "title": "HVLIEN Controllers Inventory v1",
+  "$id": "https://studio-operator.local/specs/automation/schemas/controllers.v1.schema.json",
+  "title": "Studio Controllers Inventory v1",
   "type": "object",
   "additionalProperties": false,
   "required": [

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "run_id": "2026-01-01_000000",
+  "timestamp": "2026-01-01T00:00:00Z",
+  "status": "not_ready",
+  "checks": [
+    {
+      "id": "artifact_index_present",
+      "status": "fail",
+      "details": {"path": "checksums/index/artifact_index.v1.json"}
+    },
+    {
+      "id": "anchors_pack_path_exists",
+      "status": "warn",
+      "details": {"path": "specs/automation/anchors/pack"}
+    }
+  ],
+  "recommended_commands": [
+    "hvlien index build",
+    "hvlien drift check --anchors-pack-hint specs/automation/anchors/pack"
+  ],
+  "notes": ["Repo contains missing/placeholder artifacts."]
+}

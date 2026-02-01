@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://studio-operator.local/profiles/hvlien/specs/index/drift_report.v1.schema.json",
+  "title": "HVLIEN Drift Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "timestamp",
+    "status",
+    "summary",
+    "findings",
+    "reasons"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "warn",
+        "fail"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Finding"
+      }
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "Finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "severity",
+        "kind",
+        "artifact_path",
+        "title",
+        "why",
+        "fix"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "info",
+            "warn",
+            "fail"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "missing",
+            "placeholder",
+            "stale",
+            "unknown"
+          ]
+        },
+        "artifact_path": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "why": {
+          "type": "string"
+        },
+        "fix": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}

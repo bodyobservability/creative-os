@@ -1,0 +1,29 @@
+{
+  "artifacts_dir": "runs/2026-01-01_000000/evidence",
+  "checks": [
+    {
+      "artifacts": [
+        "runs/2026-01-01_000000/evidence/a.png"
+      ],
+      "details": {
+        "key": "value"
+      },
+      "id": "ableton_liveness",
+      "status": "pass"
+    },
+    {
+      "artifacts": [],
+      "details": {
+        "reason": "missing"
+      },
+      "id": "controllers",
+      "status": "fail"
+    }
+  ],
+  "manual_steps": [],
+  "run_id": "2026-01-01_000000",
+  "safe_steps": [],
+  "schema_version": 1,
+  "status": "fail",
+  "timestamp": "2026-01-01T00:00:00Z"
+}

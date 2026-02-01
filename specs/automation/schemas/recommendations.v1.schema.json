@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://hvlien.audio/specs/automation/schemas/recommendations.v1.schema.json",
-  "title": "HVLIEN Recommendations v1",
+  "$id": "https://studio-operator.local/specs/automation/schemas/recommendations.v1.schema.json",
+  "title": "Studio Recommendations v1",
   "type": "object",
   "additionalProperties": false,
   "required": [

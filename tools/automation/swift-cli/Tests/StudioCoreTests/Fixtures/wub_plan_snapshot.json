@@ -1,0 +1,35 @@
+{
+  "desired_state": {
+    "slices": [
+      {
+        "agent_id": "profile",
+        "raw": {
+          "id": "hvlien",
+          "intents": [],
+          "packs": [
+            "hvlien-defaults"
+          ],
+          "policies": {},
+          "requirements": {}
+        }
+      }
+    ]
+  },
+  "observed_state": {
+    "slices": [
+      {
+        "agent_id": "profile",
+        "raw": {
+          "id": "hvlien",
+          "intents": [],
+          "packs": [
+            "hvlien-defaults"
+          ],
+          "policies": {},
+          "requirements": {}
+        }
+      }
+    ]
+  },
+  "steps": []
+}

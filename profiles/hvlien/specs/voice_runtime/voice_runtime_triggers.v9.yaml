@@ -1,0 +1,109 @@
+schema_version: 1
+layer: v9
+midi_bus: WUB_VOICE
+
+triggers:
+  wub_up:
+    phrase: "wub up"
+    action:
+      type: midi_cc
+      cc: 14
+      value: 96
+    target:
+      macro: WUB_RATE
+    intent: increase_energy
+
+  wub_down:
+    phrase: "wub down"
+    action:
+      type: midi_cc
+      cc: 14
+      value: 32
+    target:
+      macro: WUB_RATE
+    intent: decrease_energy
+
+  open_filter:
+    phrase: "open filter"
+    action:
+      type: midi_cc
+      cc: 21
+      value: 110
+    target:
+      macro: FILTER
+    intent: brighten_tone
+
+  close_filter:
+    phrase: "close filter"
+    action:
+      type: midi_cc
+      cc: 21
+      value: 40
+    target:
+      macro: FILTER
+    intent: darken_tone
+
+  sidechain_on:
+    phrase: "sidechain on"
+    action:
+      type: midi_note
+      note: 60
+      velocity: 127
+    target:
+      device: SIDECHAIN
+    intent: enable_ducking
+
+  sidechain_off:
+    phrase: "sidechain off"
+    action:
+      type: midi_note
+      note: 61
+      velocity: 127
+    target:
+      device: SIDECHAIN
+    intent: disable_ducking
+
+  drop_riser:
+    phrase: "drop riser"
+    action:
+      type: midi_note
+      note: 48
+    target:
+      clip: RISER
+    intent: accent_transition
+
+  next_scene:
+    phrase: "next scene"
+    action:
+      type: midi_note
+      note: 50
+    target:
+      scene: NEXT
+    intent: advance_arrangement
+
+  arm_bass:
+    phrase: "arm bass"
+    action:
+      type: midi_note
+      note: 40
+    target:
+      track: BASS
+    intent: prepare_recording
+
+  arm_vox:
+    phrase: "arm vox"
+    action:
+      type: midi_note
+      note: 41
+    target:
+      track: VOX
+    intent: prepare_recording
+
+  record_take:
+    phrase: "record take"
+    action:
+      type: midi_note
+      note: 36
+    target:
+      transport: RECORD
+    intent: capture_take

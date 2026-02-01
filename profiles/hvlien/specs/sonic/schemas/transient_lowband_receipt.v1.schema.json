@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://studio-operator.local/profiles/hvlien/specs/sonic/schemas/transient_lowband_receipt.v1.schema.json",
+  "title": "HVLIEN Transient + Lowband Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "timestamp",
+    "input_audio",
+    "status",
+    "bands_hz",
+    "metrics",
+    "thresholds",
+    "reasons"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "input_audio": {
+      "type": "string"
+    },
+    "rack_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "profile_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "warn",
+        "fail"
+      ]
+    },
+    "bands_hz": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sub",
+        "low"
+      ],
+      "properties": {
+        "sub": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "low": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_rate_hz",
+        "duration_s",
+        "low_rms_dbfs",
+        "low_true_peak_dbfs",
+        "low_crest_db",
+        "sub_true_peak_dbfs"
+      ],
+      "properties": {
+        "sample_rate_hz": {
+          "type": "number"
+        },
+        "duration_s": {
+          "type": "number"
+        },
+        "low_rms_dbfs": {
+          "type": "number"
+        },
+        "low_true_peak_dbfs": {
+          "type": "number"
+        },
+        "low_crest_db": {
+          "type": "number"
+        },
+        "sub_true_peak_dbfs": {
+          "type": "number"
+        }
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

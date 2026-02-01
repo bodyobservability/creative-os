@@ -1,0 +1,29 @@
+schema_version: 1
+name: HVLIEN Release Policy v1
+purpose: >
+  Define dev/release channels for profiles and the required gates to promote a tuned profile to release.
+
+channels:
+  dev:
+    path: profiles/hvlien/specs/library/profiles/dev
+    description: Experimental profiles; may be unstable.
+  release:
+    path: profiles/hvlien/specs/library/profiles/release
+    description: Certified profiles suitable for studio use.
+
+promotion_gates:
+  required:
+    - gate: sonic_certify
+      description: Must pass `wub sonic certify` against the current baseline for the rack+macro.
+    - gate: rack_verify
+      description: Must pass `wub rack verify` for the rack pack manifest (macro labels and deps).
+  optional:
+    - gate: sub_mono
+      description: For sub-focused racks, pass `wub sonic sub-mono` on a representative render.
+    - gate: transient_low
+      description: Pass `wub sonic transient-low` on representative render.
+
+baseline_convention:
+  directory: profiles/hvlien/specs/sonic/baselines
+  file_naming: "<rack_id>/<macro>.baseline.v1.json"
+  meaning: "Baseline sweep receipt representing approved behavior."

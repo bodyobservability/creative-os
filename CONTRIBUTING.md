@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping keep the HVLIEN Audio System consistent and versioned.
+Thanks for helping keep the Studio Operator (HVLIEN profile) consistent and versioned.
 
 ## Commit message standard
 
@@ -37,7 +37,7 @@ Examples:
 
 ## Versioning and artifacts
 
-Follow the rules in `notes/VERSIONING_RULES.md` and update specs in `specs/` when making structural changes.
+Follow the rules in `profiles/hvlien/notes/VERSIONING_RULES.md` and update specs in `profiles/hvlien/specs/` when making structural changes.
 
 ## Legacy files
 

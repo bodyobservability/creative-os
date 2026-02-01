@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://hvlien.audio/specs/automation/schemas/plan.v1.schema.json",
-  "title": "HVLIEN UI Actuation Plan v1",
+  "$id": "https://studio-operator.local/specs/automation/schemas/plan.v1.schema.json",
+  "title": "Studio UI Actuation Plan v1",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "run_id", "mode", "targets", "ops"],

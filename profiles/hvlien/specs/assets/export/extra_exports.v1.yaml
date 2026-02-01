@@ -1,0 +1,34 @@
+schema_version: 1
+layer: v9.5
+job: extra_exports
+
+exports:
+  - id: return_space_rack
+    kind: rack_preset
+    description: Export the Space return FX rack preset.
+    track_name: Space
+    device_name_contains: "HVLIEN"
+    output_path: packs/hvlien-defaults/ableton/racks/RETURNS_v1.0/HVLIEN_RETURN_SPACE_v1.0.adg
+
+  - id: return_delay_rack
+    kind: rack_preset
+    description: Export the Delay return FX rack preset.
+    track_name: Delay
+    device_name_contains: "HVLIEN"
+    output_path: packs/hvlien-defaults/ableton/racks/RETURNS_v1.0/HVLIEN_RETURN_DELAY_v1.0.adg
+
+  - id: master_safety_rack
+    kind: rack_preset
+    description: Export the Master safety chain preset (Limiter/Utility/Glue etc).
+    track_name: Master
+    device_name_contains: "HVLIEN"
+    output_path: packs/hvlien-defaults/ableton/racks/MASTER_v1.0/HVLIEN_MASTER_SAFETY_v1.0.adg
+
+verification:
+  file_must_exist: true
+  min_bytes: 20000
+  warn_if_bytes_below: 80000
+
+notes:
+  - Each export assumes the correct device is visible in the device chain and can be selected by OCR.
+  - device_name_contains is intentionally loose; tighten once you know exact device names.

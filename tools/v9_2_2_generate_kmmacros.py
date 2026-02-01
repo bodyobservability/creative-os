@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-HVLIEN v9.2.2 — Keyboard Maestro .kmmacros Export Generator
+WUB v9.2.2 — Keyboard Maestro .kmmacros Export Generator
 
 Reads v9.1 YAML trigger spec and generates a Keyboard Maestro Macro Group export (.kmmacros)
 with one macro per trigger, each running exactly one sendmidi shell command.
@@ -8,9 +8,9 @@ with one macro per trigger, each running exactly one sendmidi shell command.
 Usage:
   pip3 install pyyaml
   python3 tools/v9_2_2_generate_kmmacros.py \
-    --in specs/voice_runtime/voice_runtime_triggers.v9.yaml \
-    --out HVLIEN_VRL_v9.kmmacros \
-    --group-name "HVLIEN VRL v9" \
+    --in profiles/hvlien/specs/voice_runtime/voice_runtime_triggers.v9.yaml \
+    --out WUB_VRL_v9.kmmacros \
+    --group-name "WUB VRL v9" \
     --channel 1
 
 Notes:
@@ -78,12 +78,12 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--in", dest="inp", required=True)
     ap.add_argument("--out", dest="out", required=True)
-    ap.add_argument("--group-name", default="HVLIEN VRL v9")
+    ap.add_argument("--group-name", default="WUB VRL v9")
     ap.add_argument("--channel", type=int, default=1)
     args = ap.parse_args()
 
     doc = load_yaml(args.inp)
-    midi_bus = doc.get("midi_bus") or "HVLIEN_VOICE"
+    midi_bus = doc.get("midi_bus") or "WUB_VOICE"
     channel = max(1, min(int(args.channel), 16))
 
     triggers = doc.get("triggers") or {}

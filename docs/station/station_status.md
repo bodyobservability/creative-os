@@ -2,8 +2,8 @@
 
 Command:
 ```bash
-hvlien station status --format human
-hvlien station status --format json --no-write-report
+wub station status --format human
+wub station status --format json --no-write-report
 ```
 
 Writes:

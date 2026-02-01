@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-HVLIEN v9.2.1 Optional Helper
+WUB v9.2.1 Optional Helper
 Reads v9.1 YAML trigger spec and outputs:
 - CSV mapping (phrase -> midi)
 - sendmidi command lines per trigger
 - Keyboard Maestro macro list (manual import guidance)
 
 Usage:
-  python3 tools/v9_2_1_vrl_helper.py --in specs/voice_runtime/voice_runtime_triggers.v9.yaml --out-dir out/
+  python3 tools/v9_2_1_vrl_helper.py --in profiles/hvlien/specs/voice_runtime/voice_runtime_triggers.v9.yaml --out-dir out/
 
 Notes:
 - Requires PyYAML: pip3 install pyyaml
@@ -94,7 +94,7 @@ def write_csv(triggers: List[Trigger], path: str, midi_bus: str, channel: int) -
             ])
 
 def sendmidi_line(t: Trigger, midi_bus: str, channel: int) -> str:
-    # sendmidi example: sendmidi dev "HVLIEN_VOICE" ch 1 cc 14 96
+    # sendmidi example: sendmidi dev "WUB_VOICE" ch 1 cc 14 96
     if t.midi_type == "cc":
         return f'sendmidi dev "{midi_bus}" ch {channel} cc {t.cc} {t.value}'
     return f'sendmidi dev "{midi_bus}" ch {channel} on {t.note} {t.velocity or 127}'
@@ -147,11 +147,11 @@ def main() -> None:
     ap.add_argument("--in", dest="inp", required=True, help="Input v9 YAML triggers file")
     ap.add_argument("--out-dir", dest="outdir", required=True, help="Output directory")
     ap.add_argument("--channel", type=int, default=1, help="MIDI channel 1-16 (default 1)")
-    ap.add_argument("--group-name", default="HVLIEN VRL v9", help="KM group name")
+    ap.add_argument("--group-name", default="WUB VRL v9", help="KM group name")
     args = ap.parse_args()
 
     doc = load_yaml(args.inp)
-    midi_bus = doc.get("midi_bus") or "HVLIEN_VOICE"
+    midi_bus = doc.get("midi_bus") or "WUB_VOICE"
     channel = max(1, min(int(args.channel), 16))
 
     triggers = parse_triggers(doc)

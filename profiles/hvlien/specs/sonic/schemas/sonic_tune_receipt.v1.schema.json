@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://studio-operator.local/profiles/hvlien/specs/sonic/schemas/sonic_tune_receipt.v1.schema.json",
+  "title": "HVLIEN Sonic Tune Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "timestamp",
+    "input_sweep_receipt",
+    "profile_in",
+    "profile_out",
+    "status",
+    "changes"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "input_sweep_receipt": {
+      "type": "string"
+    },
+    "profile_in": {
+      "type": "string"
+    },
+    "profile_out": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "warn"
+      ]
+    },
+    "macro": {
+      "type": "string"
+    },
+    "suggested_safe_max_position": {
+      "type": "number"
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "macro",
+          "path",
+          "before",
+          "after"
+        ],
+        "properties": {
+          "macro": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "before": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "after": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

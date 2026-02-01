@@ -1,31 +1,24 @@
-# Makefile aliases for HVLIEN operator workflows
-# Note: This file assumes the Swift CLI builds to tools/automation/swift-cli/.build/release/hvlien
+# Makefile aliases for wub workflows
+# Note: This file assumes the Swift CLI builds to tools/automation/swift-cli/.build/release/wub
 
-.PHONY: build studio doctor export certify index drift ready
+.PHONY: build sweep plan setup profile station
 
-HVLIEN=tools/automation/swift-cli/.build/release/hvlien
-ANCHORS?=specs/automation/anchors/ableton12_3_macos_default_2560x1440
+WUB=tools/automation/swift-cli/.build/release/wub
 
 build:
 	cd tools/automation/swift-cli && swift build -c release
 
-studio: build
-	$(HVLIEN) ui
+sweep: build
+	$(WUB) sweep
 
-doctor: build
-	$(HVLIEN) doctor --modal-test detect --allow-ocr-fallback
+plan: build
+	$(WUB) plan
 
-index: build
-	$(HVLIEN) index build
+setup: build
+	$(WUB) setup --show-manual
 
-drift: build
-	$(HVLIEN) drift check --anchors-pack-hint $(ANCHORS)
+profile: build
+	$(WUB) profile use hvlien
 
-export: build
-	$(HVLIEN) assets export-all --anchors-pack $(ANCHORS) --overwrite
-
-certify: build
-	$(HVLIEN) station certify
-
-ready: build
-	$(HVLIEN) ready --anchors-pack-hint $(ANCHORS)
+station: build
+	$(WUB) station status --format human

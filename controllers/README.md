@@ -1,6 +1,6 @@
 # Controllers
 
-This folder defines the **stable controller layer** for the HVLIEN bass instrument.
+This folder defines the **stable controller layer** for the HVLIEN profile bass instrument.
 
 These docs are not optional: the goal is to make bass production repeatable at high speed across sessions, without re-inventing mappings.
 
@@ -21,8 +21,8 @@ These docs must be implemented in Ableton as:
 - stable controller mappings
 
 If you export Ableton racks (`.adg`) or templates (`.als`), store them under:
-- `ableton/racks/...
-- `ableton/performance-sets/...
+- `packs/hvlien-defaults/ableton/racks/...
+- `packs/hvlien-defaults/ableton/performance-sets/...
 
 Do not store hardware driver installers or vendor editors in this repo.
 

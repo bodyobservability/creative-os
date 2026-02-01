@@ -2,7 +2,7 @@
 
 StationGate now evaluates safety by calling:
 ```bash
-hvlien station status --format json --no-write-report
+wub station status --format json --no-write-report
 ```
 
 Behavior:
@@ -14,8 +14,4 @@ Fallback:
 - If station status JSON cannot be read, gate defaults to `warn_force`.
 
 Usage (override):
-```bash
-hvlien assets export-all --force
-hvlien apply --force --plan /tmp/plan.json
-hvlien drift fix --force
-```
+- Use `--force` on the specific mutating command when supported.

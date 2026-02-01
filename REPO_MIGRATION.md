@@ -102,7 +102,7 @@ Implementation guidance:
 
 Acceptance gate:
 - `swift build -c release` passes
-- Existing commands (`doctor`, `ready`, `drift`) unchanged
+- Existing commands (`safety`, `ready`, `drift`) unchanged
 
 ---
 
@@ -110,7 +110,7 @@ Acceptance gate:
 **Purpose:** translate existing report lineage into Creative OS schemas without changing CLI behavior.
 
 Bridge outputs:
-- `DoctorReportV1` → `[CheckResult]`
+- `DubSweeperReportV1` → `[CheckResult]`
 - `ReadyReportV1` → `[CheckResult]` + safe `PlanStep`s
 - `DriftReportV2` → `CheckResult`s + `PlanStep`s (manual_required by default)
 
@@ -151,17 +151,19 @@ Acceptance gate:
 
 ---
 
-### Phase 3 — `wub` CLI (Parity First, No Deletions)
-**Purpose:** add `wub` without removing `hvlien`.
+### Phase 3 — `wub` CLI (Parity First, Wub-Only)
+**Purpose:** ship `wub` as the only CLI while keeping behavior parity.
 
 Implementation constraints:
-- Shared library target (`StudioCore`) with two executables (`hvlien`, `wub`)
+- Shared library target (`StudioCore`) with a single executable (`wub`)
+- No `hvlien` executable target in the package
 - `wub` uses bridge/runtime outputs
 
 Minimum parity checklist:
 - `wub sweep`
-- `wub plan`
-- `wub setup`
+- `wub state-sweep`
+- `wub state-plan`
+- `wub state-setup`
 - `wub profile use`
 
 Acceptance gate:
@@ -169,7 +171,7 @@ Acceptance gate:
   - JSON via `--json` (or structured default)
   - Human output derived from the same data structure (no parallel logic)
   - Stable ordering: lists sorted by `agent` then `id`; maps sorted by key
-- `wub sweep` facts align with current `doctor`/`ready`/`drift` reports
+- `wub state-sweep` and `wub state-plan` are derived from observed/desired state slices (no legacy report consumption)
 
 ---
 
@@ -189,7 +191,7 @@ Requirements:
 
 Acceptance gate:
 - `wub profile use hvlien` persists selection
-- `wub sweep` loads profile policies
+- `wub state-sweep` loads profile policies
 
 ---
 
@@ -215,7 +217,7 @@ Acceptance gate:
 **Purpose:** ensure migration is verifiable.
 
 Tests:
-- Snapshot tests for `wub sweep` and `wub plan`
+- Snapshot tests for `wub state-sweep` and `wub state-plan`
 - Unit tests for severity mapping + policy diff
 
 Acceptance gate:
@@ -247,7 +249,7 @@ Acceptance gate:
 3) **Every risky step must be labeled `manual_required`**
 4) **Gating uses station status before mutations**
    - Station status is defined as a read‑only report:
-     `hvlien station status --format json --no-write-report`
+     `wub station status --format json --no-write-report`
    - `station_state` values: `idle|editing|exporting|performing|blocked|unknown`
    - Gating rules:
      - refuse on `blocked|exporting|performing`

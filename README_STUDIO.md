@@ -1,60 +1,30 @@
-# HVLIEN Audio System — Studio Guide (v1.8.4)
+# Studio Guide
 
-This guide is for **studio operation**: fast, safe, low wrist strain.
+This guide is for day-to-day operation using `wub`.
 
-## Start here
+## Build and run
 
 ```bash
-make studio
+cd tools/automation/swift-cli
+swift build -c release
 ```
 
-That builds the CLI (if needed) and opens the **Operator Shell** (`hvlien ui`).
-On first launch, a one-time wizard offers to run build/doctor/index and asset export steps.
-The shell also prints a display/anchors warning if your main display does not match the anchors pack.
+```bash
+tools/automation/swift-cli/.build/release/wub sweep
+  # or for Creative OS state snapshots:
+  tools/automation/swift-cli/.build/release/wub state-sweep
+tools/automation/swift-cli/.build/release/wub plan
+tools/automation/swift-cli/.build/release/wub setup --show-manual
+```
 
-## Operator Shell essentials
+## Profiles
 
-### Modes
-- **Studio Mode**: `s` (safe-only; hides risky actions)
-- **Voice Mode**: `v` (numbered actions + “Say ‘press N’” prompts; number keys 1–9 select)
+```bash
+tools/automation/swift-cli/.build/release/wub profile use hvlien
+```
 
-### One-key flow
-- **Space**: run recommended next action
-- **p**: preview drift remediation plan
-- **c**: ready verifier
-- **g**: repair recipe (guarded)
-- **R**: refresh state
+## Station status
 
-### Open evidence
-- `r`: open last receipt
-- `o`: open last report
-- `f`: open last run folder
-- `x`: open last failures folder
-
-## Studio loop (recommended)
-
-Inside the Operator Shell:
-1. **Doctor** → confirm permissions & modal guard
-2. **Validate anchors** (recommended) → ensures stable clicking/save dialogs
-3. **Assets → Export ALL** → replaces placeholders with real Ableton/Serum artifacts
-4. **Index build** → **Drift check** → **Drift fix (guarded)** if needed
-5. **Station certify** when you want a full proof-of-health receipt
-
-## Studio Operator Checklist
-Use this when onboarding a new machine or recovering from drift.
-
-1. **Build** → `make studio`
-2. **Doctor** → permissions + modal guard
-3. **Export preflight** → regions/OCR/anchors sanity
-4. **Assets → Export ALL** (Ableton open)
-5. **Index build** → **Drift check**
-6. **Ready** → confirm ARTIFACT-READY
-7. **Repair** (if drift fails)
-8. **Station certify** for a full governance receipt
-
-## Non-goals
-- No live AI control
-- No generative music
-- No DAW replacement
-
-This system exists to protect capture velocity and keep the instrument stable.
+```bash
+tools/automation/swift-cli/.build/release/wub station status --format human
+```

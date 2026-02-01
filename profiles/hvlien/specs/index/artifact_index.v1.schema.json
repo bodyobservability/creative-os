@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://studio-operator.local/profiles/hvlien/specs/index/artifact_index.v1.schema.json",
+  "title": "HVLIEN Artifact Index v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "repo_version",
+    "artifacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "repo_version": {
+      "type": "string"
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Artifact"
+      }
+    }
+  },
+  "$defs": {
+    "Export": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "job",
+        "run_id",
+        "receipt_path",
+        "exported_at"
+      ],
+      "properties": {
+        "job": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "receipt_path": {
+          "type": "string"
+        },
+        "exported_at": {
+          "type": "string"
+        }
+      }
+    },
+    "Status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "current",
+            "stale",
+            "missing",
+            "placeholder",
+            "unknown"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "Dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "racks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "macros": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "kind",
+        "path",
+        "exists",
+        "status"
+      ],
+      "properties": {
+        "artifact_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "rack",
+            "set_performance",
+            "set_finishing_bay",
+            "serum_patch",
+            "other"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "bytes": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mtime": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "export": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Export"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "dependencies": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Dependencies"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "$ref": "#/$defs/Status"
+        }
+      }
+    }
+  }
+}
