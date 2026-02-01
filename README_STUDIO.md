@@ -10,6 +10,7 @@ make studio
 
 That builds the CLI (if needed) and opens the **Operator Shell** (`hvlien ui`).
 On first launch, a one-time wizard offers to run build/doctor/index and asset export steps.
+The shell also prints a display/anchors warning if your main display does not match the anchors pack.
 
 ## Operator Shell essentials
 

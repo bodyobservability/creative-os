@@ -4,7 +4,7 @@
 .PHONY: build studio doctor export certify index drift ready
 
 HVLIEN=tools/automation/swift-cli/.build/release/hvlien
-ANCHORS?=specs/automation/anchors/<pack_id>
+ANCHORS?=specs/automation/anchors/ableton12_3_macos_default_2560x1440
 
 build:
 	cd tools/automation/swift-cli && swift build -c release

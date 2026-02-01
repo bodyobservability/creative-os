@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import ArgumentParser
 import Darwin
 
@@ -69,10 +70,13 @@ struct UI: AsyncParsableCommand {
 
       let state = DashboardState.load(lastRunDir: lastRunDir)
       let rec = recommendedNextAction(cfgAnchorsPack: cfg.anchorsPack, state: state, hv: hv, anchorsPack: ap)
+      let displayCheck = displayTargetCheck(anchorsPack: ap)
 
       printScreen(repoRoot: repoRoot,
                   hv: hv,
                   anchorsPack: ap,
+                  displayInfo: displayCheck.info,
+                  displayWarning: displayCheck.warning,
                   voiceMode: voiceMode,
                   studioMode: studioMode,
                   showAll: showAll,
@@ -352,6 +356,8 @@ struct UI: AsyncParsableCommand {
   func printScreen(repoRoot: String,
                    hv: String,
                    anchorsPack: String,
+                   displayInfo: String?,
+                   displayWarning: String?,
                    voiceMode: Bool,
                    studioMode: Bool,
                    showAll: Bool,
@@ -366,6 +372,12 @@ struct UI: AsyncParsableCommand {
     print("\u{001B}[2J\u{001B}[H", terminator: "")
     print("HVLIEN Operator Shell v1.7.15")
     print("anchors-pack: \(anchorsPack)")
+    if let info = displayInfo {
+      print("display: \(info)")
+    }
+    if let warn = displayWarning {
+      print("display warning: \(warn)")
+    }
     print("last run: \(lastRun ?? "(none)")")
     if let fd = failuresDir { print("last failures: \(fd)") }
     print("recommended: \(recommended)")
@@ -738,6 +750,36 @@ struct UI: AsyncParsableCommand {
       }
     }
     return false
+  }
+
+  private struct DisplayCheckResult {
+    let info: String?
+    let warning: String?
+  }
+
+  private func displayTargetCheck(anchorsPack: String) -> DisplayCheckResult {
+    guard let screen = NSScreen.main else { return .init(info: nil, warning: "no main display detected") }
+    let size = screen.frame.size
+    let width = Int(size.width)
+    let height = Int(size.height)
+    let info = "\(width)x\(height) main"
+
+    if anchorsPack.contains("<pack_id>") || anchorsPack.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      return .init(info: info, warning: "anchors-pack not set; UI targets may be wrong")
+    }
+
+    if anchorsPack.contains("2560x1440") {
+      if width != 2560 || height != 1440 {
+        return .init(info: info, warning: "anchors pack is 2560x1440 but main display is \(width)x\(height)")
+      }
+    } else if anchorsPack.contains("5k_morespace") {
+      // Apple Studio Display 'More Space' typically reports 3200x1800 points.
+      if width != 3200 || height != 1800 {
+        return .init(info: info, warning: "anchors pack is 5k_morespace but main display is \(width)x\(height)")
+      }
+    }
+
+    return .init(info: info, warning: nil)
   }
 }
 
