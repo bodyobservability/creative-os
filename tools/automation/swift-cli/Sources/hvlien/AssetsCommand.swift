@@ -6,6 +6,7 @@ struct Assets: AsyncParsableCommand {
     commandName: "assets",
     abstract: "Asset export pipeline (v9.5).",
     subcommands: [
+      ExportPreflight.self,
       ExportRacks.self,
       ExportPerformanceSet.self,
       ExportFinishingBays.self,
@@ -47,12 +48,23 @@ struct Assets: AsyncParsableCommand {
     @Flag(name: .long, help: "Interactive prompts (recommended).")
     var interactive: Bool = true
 
+    @Flag(name: .long, inversion: .prefixedNo, help: "Run export preflight before executing.")
+    var preflight: Bool = true
+
     func run() async throws {
       let runId = RunContext.makeRunId()
       let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
       try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
       let plansDir = runDir.appendingPathComponent("plans", isDirectory: true)
       try FileManager.default.createDirectory(at: plansDir, withIntermediateDirectories: true)
+
+      if preflight {
+        let report = try await ExportPreflightRunner.run(common: common,
+                                                         anchorsPack: anchorsPack,
+                                                         runId: runId,
+                                                         runDir: runDir)
+        if report.status == "fail" { throw ExitCode(2) }
+      }
 
       let mfData = try Data(contentsOf: URL(fileURLWithPath: manifest))
       let mf = try JSONDecoder().decode(RackPackManifestV1.self, from: mfData)

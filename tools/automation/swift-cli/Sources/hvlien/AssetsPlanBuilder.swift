@@ -42,61 +42,7 @@ enum AssetsPlanBuilder {
       "timeout_ms": 3000
     ])
 
-    // Go to folder (Cmd+Shift+G) -> type outDir -> Enter
-    ops.append([
-      "id": "goto_folder",
-      "do": ["type":"press_keys","keys":["CMD+SHIFT+G"]],
-      "retries": 1,
-      "timeout_ms": 2000,
-      "notes": "macOS save sheet: Go to folder"
-    ])
-    ops.append([
-      "id": "type_folder",
-      "do": ["type":"type_text","text": outDir],
-      "retries": 1,
-      "timeout_ms": 2000
-    ])
-    ops.append([
-      "id": "confirm_folder",
-      "do": ["type":"press_keys","keys":["ENTER"]],
-      "retries": 1,
-      "timeout_ms": 3000
-    ])
-
-    // Focus filename field via anchor if available, else region click
-    ops.append([
-      "id": "focus_filename",
-      "do": ["type":"click_anchor","anchor_id":"macos.open_dialog.filename_field","fallback_region":"os.file_dialog.filename_field"],
-      "retries": 2,
-      "timeout_ms": 8000
-    ])
-    ops.append([
-      "id": "select_all_name",
-      "do": ["type":"press_keys","keys":["CMD+A"]],
-      "retries": 1,
-      "timeout_ms": 2000
-    ])
-    ops.append([
-      "id": "type_filename",
-      "do": ["type":"type_text","text": fileName],
-      "retries": 1,
-      "timeout_ms": 2000
-    ])
-    ops.append([
-      "id": "confirm_save",
-      "do": ["type":"press_keys","keys":["ENTER"]],
-      "retries": 1,
-      "timeout_ms": 5000
-    ])
-
-    // Modal guard postcheck (optional)
-    ops.append([
-      "id": "no_modal",
-      "do": ["type":"sleep","ms":250],
-      "post": [["type":"no_modal_dialog"]],
-      "retries": 1,
-      "timeout_ms": 6000
-    ])
+    ops += SaveDialogDriver.saveSheetOps(idPrefix: "save_", targetDir: outDir, fileName: fileName)
 
     return [
       "schema_version": 1,

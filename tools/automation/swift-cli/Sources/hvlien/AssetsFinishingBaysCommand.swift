@@ -29,12 +29,23 @@ extension Assets {
     @Flag(name: .long, help: "Prompt before exporting each bay (recommended).")
     var promptEach: Bool = true
 
+    @Flag(name: .long, inversion: .prefixedNo, help: "Run export preflight before executing.")
+    var preflight: Bool = true
+
     func run() async throws {
       let runId = RunContext.makeRunId()
       let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
       try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
       let plansDir = runDir.appendingPathComponent("plans", isDirectory: true)
       try FileManager.default.createDirectory(at: plansDir, withIntermediateDirectories: true)
+
+      if preflight {
+        let report = try await ExportPreflightRunner.run(common: common,
+                                                         anchorsPack: anchorsPack,
+                                                         runId: runId,
+                                                         runDir: runDir)
+        if report.status == "fail" { throw ExitCode(2) }
+      }
 
       let specText = try String(contentsOfFile: spec, encoding: .utf8)
       let doc = try (Yams.load(yaml: specText) as? [String: Any]) ?? [:]

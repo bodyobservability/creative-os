@@ -571,9 +571,20 @@ struct UI: AsyncParsableCommand {
                             steps: &wizardSteps,
                             status: &wizardStatus)
 
-    // Step 4) Asset exports (recommended)
+    // Step 4) Export preflight + 5) Asset exports (recommended)
     if detectPendingArtifacts() {
-      print("\nStep 4) Asset exports (recommended)")
+      print("\nStep 4) Export preflight (recommended)")
+      print("This checks regions, OCR visibility, and anchors before running exports.\n")
+
+      _ = await wizardRunStep(
+        id: "export_preflight",
+        command: [hv,"assets","preflight","--anchors-pack",anchorsPack],
+        prompt: "Run export preflight now?",
+        steps: &wizardSteps,
+        status: &wizardStatus
+      )
+
+      print("\nStep 5) Asset exports (recommended)")
       print("Your repository still contains placeholder or missing assets.")
       print("This will use UI automation in Ableton and may overwrite placeholders.\n")
 

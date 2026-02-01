@@ -19,6 +19,9 @@ extension Assets {
     @Flag(name: .long, help: "Skip interactive prompts (uses safe defaults).")
     var nonInteractive: Bool = false
 
+    @Flag(name: .long, inversion: .prefixedNo, help: "Run export preflight before executing.")
+    var preflight: Bool = true
+
     @Option(name: .long, help: "Output directory for racks export.")
     var racksOut: String = "ableton/racks/BASS_RACKS_v1.0"
 
@@ -34,10 +37,27 @@ extension Assets {
     @Option(name: .long, help: "Spec file for extra exports.")
     var extrasSpec: String = "specs/assets/export/extra_exports.v1.yaml"
 
+    @Flag(name: .long, inversion: .prefixedNo, help: "Run post-export semantic checks.")
+    var postcheck: Bool = true
+
+    @Option(name: .long, help: "Rack verify manifest path (postcheck).")
+    var rackVerifyManifest: String = "specs/library/racks/rack_pack_manifest.v1.json"
+
+    @Option(name: .long, help: "VRL mapping spec path (postcheck).")
+    var vrlMapping: String = "specs/voice_runtime/v9_3_ableton_mapping.v1.yaml"
+
     func run() async throws {
       let runId = RunContext.makeRunId()
       let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
       try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
+
+      if preflight {
+        let report = try await ExportPreflightRunner.run(common: common,
+                                                         anchorsPack: anchorsPack,
+                                                         runId: runId,
+                                                         runDir: runDir)
+        if report.status == "fail" { throw ExitCode(2) }
+      }
 
       let exe = CommandLine.arguments.first ?? "hvlien"
       var steps: [AssetsExportStepV1] = []
@@ -63,12 +83,31 @@ extension Assets {
       _ = await step("export_racks", racksArgs)
       artifacts["racks_out_dir"] = racksOut
 
+      if postcheck {
+        if FileManager.default.fileExists(atPath: rackVerifyManifest) {
+          var verifyArgs = ["rack","verify","--manifest", rackVerifyManifest]
+          if let ap = anchorsPack { verifyArgs += ["--anchors-pack", ap] }
+          _ = await step("verify_racks", verifyArgs)
+        } else {
+          reasons.append("verify_racks: missing manifest \(rackVerifyManifest)")
+        }
+      }
+
       // 2) export performance set
       var perfArgs = ["assets","export-performance-set","--out", performanceOut]
       if let ap = anchorsPack { perfArgs += ["--anchors-pack", ap] }
       if overwrite { perfArgs += ["--overwrite"] }
       _ = await step("export_performance_set", perfArgs)
       artifacts["performance_set_out"] = performanceOut
+
+      if postcheck {
+        if FileManager.default.fileExists(atPath: vrlMapping) {
+          let vrlArgs = ["vrl","validate","--mapping", vrlMapping, "--regions", common.regionsConfig]
+          _ = await step("vrl_validate", vrlArgs)
+        } else {
+          reasons.append("vrl_validate: missing mapping \(vrlMapping)")
+        }
+      }
 
       // 3) export finishing bays
       var baysArgs = ["assets","export-finishing-bays","--spec", baysSpec]
