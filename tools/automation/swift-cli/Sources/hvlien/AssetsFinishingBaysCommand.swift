@@ -11,6 +11,9 @@ extension Assets {
 
     @OptionGroup var common: CommonOptions
 
+    @Flag(name: .long, help: "Override station gating (dangerous).")
+    var force: Bool = false
+
     @Option(name: .long, help: "Finishing bays export spec YAML.")
     var spec: String = "specs/assets/export/finishing_bays_export.v1.yaml"
 
@@ -33,6 +36,8 @@ extension Assets {
     var preflight: Bool = true
 
     func run() async throws {
+      try StationGate.enforceOrThrow(force: force, anchorsPackHint: anchorsPack, commandName: "assets export-finishing-bays")
+
       let runId = RunContext.makeRunId()
       let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
       try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)

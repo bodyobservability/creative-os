@@ -8,6 +8,9 @@ extension Drift {
       abstract: "Execute the drift remediation plan with guarded prompts and emit a fix receipt (v1.8.4)."
     )
 
+    @Flag(name: .long, help: "Override station gating (dangerous).")
+    var force: Bool = false
+
     @Option(name: .long) var artifactIndex: String = "checksums/index/artifact_index.v1.json"
     @Option(name: .long) var receiptIndex: String = "checksums/index/receipt_index.v1.json"
     @Option(name: .long) var anchorsPackHint: String = "specs/automation/anchors/<pack_id>"
@@ -22,6 +25,8 @@ extension Drift {
     var out: String?
 
     func run() async throws {
+      try StationGate.enforceOrThrow(force: force, anchorsPackHint: anchorsPackHint, commandName: "drift fix")
+
       // Build current drift recommended fixes (same logic as drift plan)
       let aidx = try JSONIO.load(ArtifactIndexV1.self, from: URL(fileURLWithPath: artifactIndex))
       let ridx = try JSONIO.load(ReceiptIndexV1.self, from: URL(fileURLWithPath: receiptIndex))

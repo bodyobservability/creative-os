@@ -6,12 +6,16 @@ struct CaptureAnchor: AsyncParsableCommand {
   static let configuration = CommandConfiguration(commandName: "capture-anchor", abstract: "Capture full frame and region crop for anchor creation.")
 
   @OptionGroup var common: CommonOptions
+  @Flag(name: .long, help: "Override station gating (dangerous).")
+  var force: Bool = false
   @Option(name: .long) var region: String
   @Option(name: .long) var out: String?
   @Option(name: .long) var frames: Int = 1
   @Option(name: .long) var intervalMs: Int = 150
 
   func run() async throws {
+    try StationGate.enforceOrThrow(force: force, anchorsPackHint: nil, commandName: "capture-anchor")
+
     let ctx = RunContext(common: common)
     try ctx.ensureRunDir()
     let regions = try JSONIO.load(RegionsV1.self, from: URL(fileURLWithPath: common.regionsConfig))

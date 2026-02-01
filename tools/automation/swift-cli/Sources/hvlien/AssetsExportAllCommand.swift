@@ -10,6 +10,9 @@ extension Assets {
 
     @OptionGroup var common: CommonOptions
 
+    @Flag(name: .long, help: "Override station gating (dangerous).")
+    var force: Bool = false
+
     @Option(name: .long, help: "Anchors pack passed to apply in subcommands.")
     var anchorsPack: String?
 
@@ -47,6 +50,8 @@ extension Assets {
     var vrlMapping: String = "specs/voice_runtime/v9_3_ableton_mapping.v1.yaml"
 
     func run() async throws {
+      try StationGate.enforceOrThrow(force: force, anchorsPackHint: anchorsPack, commandName: "assets export-all")
+
       let runId = RunContext.makeRunId()
       let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
       try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)

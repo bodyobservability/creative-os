@@ -24,6 +24,9 @@ struct Assets: AsyncParsableCommand {
 
     @OptionGroup var common: CommonOptions
 
+    @Flag(name: .long, help: "Override station gating (dangerous).")
+    var force: Bool = false
+
     @Option(name: .long, help: "Rack pack manifest JSON.")
     var manifest: String = "specs/library/racks/rack_pack_manifest.v1.json"
 
@@ -52,6 +55,8 @@ struct Assets: AsyncParsableCommand {
     var preflight: Bool = true
 
     func run() async throws {
+      try StationGate.enforceOrThrow(force: force, anchorsPackHint: anchorsPack, commandName: "assets export-racks")
+
       let runId = RunContext.makeRunId()
       let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
       try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)

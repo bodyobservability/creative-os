@@ -10,6 +10,9 @@ extension Assets {
 
     @OptionGroup var common: CommonOptions
 
+    @Flag(name: .long, help: "Override station gating (dangerous).")
+    var force: Bool = false
+
     @Option(name: .long, help: "Target output path (repo-relative or absolute).")
     var out: String = "ableton/performance-sets/HVLIEN_BASS_PERFORMANCE_SET_v1.0.als"
 
@@ -32,6 +35,8 @@ extension Assets {
     var preflight: Bool = true
 
     func run() async throws {
+      try StationGate.enforceOrThrow(force: force, anchorsPackHint: anchorsPack, commandName: "assets export-performance-set")
+
       let runId = RunContext.makeRunId()
       let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
       try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)

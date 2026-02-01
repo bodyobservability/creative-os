@@ -6,9 +6,13 @@ struct CalibrateRegions: AsyncParsableCommand {
   static let configuration = CommandConfiguration(commandName: "calibrate-regions", abstract: "Draw region rectangles on a captured frame.")
 
   @OptionGroup var common: CommonOptions
+  @Flag(name: .long, help: "Override station gating (dangerous).")
+  var force: Bool = false
   @Option(name: .long) var out: String?
 
   func run() async throws {
+    try StationGate.enforceOrThrow(force: force, anchorsPackHint: nil, commandName: "calibrate-regions")
+
     let ctx = RunContext(common: common)
     try ctx.ensureRunDir()
 

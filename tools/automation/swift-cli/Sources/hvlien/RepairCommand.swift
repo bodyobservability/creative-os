@@ -7,6 +7,9 @@ struct Repair: AsyncParsableCommand {
     abstract: "Run the standard repair recipe: export-all → index build → drift check → drift fix (if needed)."
   )
 
+  @Flag(name: .long, help: "Override station gating (dangerous).")
+  var force: Bool = false
+
   @Option(name: .long, help: "Anchors pack hint for exports and drift.")
   var anchorsPackHint: String = "specs/automation/anchors/<pack_id>"
 
@@ -17,6 +20,8 @@ struct Repair: AsyncParsableCommand {
   var overwrite: Bool = true
 
   func run() async throws {
+    try StationGate.enforceOrThrow(force: force, anchorsPackHint: anchorsPackHint, commandName: "repair")
+
     let runId = RunContext.makeRunId()
     let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
     try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)

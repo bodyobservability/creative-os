@@ -6,6 +6,8 @@ struct Apply: AsyncParsableCommand {
     abstract: "Execute plan.v1.json using Teensy (default). Industrial-grade: anchor cancel + watchdog + ping/reconnect.")
 
   @OptionGroup var common: CommonOptions
+  @Flag(name: .long, help: "Override station gating (dangerous).")
+  var force: Bool = false
   @Option(name: .long) var plan: String
   @Option(name: .long) var teensy: String?
   @Flag(name: .long) var allowCgevent: Bool = false
@@ -13,6 +15,8 @@ struct Apply: AsyncParsableCommand {
   @Option(name: .long) var watchdogMs: Int = 30000
 
   func run() async throws {
+    try StationGate.enforceOrThrow(force: force, anchorsPackHint: anchorsPack ?? "", commandName: "apply")
+
     let ctx = RunContext(common: common)
     try ctx.ensureRunDir()
     let runDir = ctx.runDir

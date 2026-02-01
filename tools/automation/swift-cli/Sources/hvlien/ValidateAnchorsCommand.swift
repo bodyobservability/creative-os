@@ -6,10 +6,14 @@ struct ValidateAnchors: AsyncParsableCommand {
     abstract: "Validate anchor templates against current screen (OpenCV-enabled builds).")
 
   @OptionGroup var common: CommonOptions
+  @Flag(name: .long, help: "Override station gating (dangerous).")
+  var force: Bool = false
   @Option(name: .long) var pack: String
   @Option(name: .long) var out: String?
 
   func run() async throws {
+    try StationGate.enforceOrThrow(force: force, anchorsPackHint: pack, commandName: "validate-anchors")
+
     let ctx = RunContext(common: common)
     try ctx.ensureRunDir()
 

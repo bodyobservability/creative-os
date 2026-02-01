@@ -179,6 +179,7 @@ Full reference lives in `docs/automation/cli_reference.md`. For daily use, prefe
 - Makefile ready target: `docs/index/README_make_ready.md`
 - Asset export runbooks: `docs/assets/`
 - Station status: `docs/station/station_status.md`
+- Station gating: `docs/station/gating_v1_7_18.md`
 - Index + drift docs: `docs/index/`
 - OpenCV build + anchors: `tools/automation/swift-cli/docs/OPENCV_BUILD.md`
 - Versioning + artifact rules: `notes/VERSIONING_RULES.md`
