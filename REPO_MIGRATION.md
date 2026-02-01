@@ -66,11 +66,24 @@ docs/                  # system-level docs
 Required schemas:
 - **CheckResult**
   - `id`, `agent`, `severity`, `category`, `observed`, `expected`, `evidence`, `suggested_actions`
+  - Types and defaults (locked):
+    - `severity`: enum `pass|warn|fail` (default: `warn`)
+    - `category`: enum `audio|plugin|midi|filesystem|policy|ui|automation|runtime` (default: `runtime`)
+    - `observed`/`expected`: `JSONValue` (nullable)
+    - `evidence`: structured object `{ id, kind, path?, details? }[]` (default: empty)
+    - `suggested_actions`: `ActionRef[]` (default: empty)
 - **PlanStep**
   - `id`, `agent`, `type (automated|manual_required)`, `description`, `effects`, `idempotent`, `manual_reason?`
+  - Types and defaults (locked):
+    - `type`: enum `automated|manual_required` (default: `manual_required`)
+    - `effects`: `Effect[]` (default: empty)
+    - `idempotent`: Bool (default: true)
+    - `manual_reason`: string (required when `type=manual_required`)
 - **ObservedState / DesiredState**
   - slice‑based, with a JSONValue escape hatch
   - slices are additive; no agent may overwrite another agent’s slice
+  - **merge key:** slices are keyed by `agent_id` (one slice per agent)
+  - **merge rule:** last‑write wins is forbidden; collisions are errors
 - **Profile**
   - `id`, `intents`, `policies`, `requirements`, `packs`
 - **PackManifest**
@@ -98,6 +111,7 @@ Constraints:
 - No new CLI surface in this phase.
 - No deletion or modification of existing report outputs.
 - Any `manual_required` PlanStep must be emitted but never executed by setup.
+ - A mapping table must exist from legacy report enums → Creative OS enums.
 
 Acceptance gate:
 - Build passes
@@ -147,6 +161,7 @@ Acceptance gate:
 - Output is JSON‑capable and human‑readable:
   - JSON via `--json` (or structured default)
   - Human output derived from the same data structure (no parallel logic)
+  - Stable ordering: lists sorted by `agent` then `id`; maps sorted by key
 - `wub sweep` facts align with current `doctor`/`ready`/`drift` reports
 
 ---
@@ -157,7 +172,12 @@ Acceptance gate:
 Requirements:
 - `profiles/hvlien.profile.yaml`
 - `packs/hvlien-defaults/pack.yaml`
-- Profile selection stored in repo‑local config (e.g., `notes/WUB_CONFIG.json`)
+- Profile selection stored in repo‑local config at `notes/WUB_CONFIG.json`
+  - Format (locked):
+    - `active_profile_id: string`
+    - `active_pack_ids: [string]`
+    - `last_updated: ISO8601 string`
+  - Migration: if file missing, default to first profile in `profiles/` and write it
 
 Acceptance gate:
 - `wub profile use hvlien` persists selection
@@ -218,6 +238,13 @@ Acceptance gate:
 2) **All mutating commands must be previewable**
 3) **Every risky step must be labeled `manual_required`**
 4) **Gating uses station status before mutations**
+   - Station status is defined as a read‑only report:
+     `hvlien station status --format json --no-write-report`
+   - `station_state` values: `idle|editing|exporting|performing|blocked|unknown`
+   - Gating rules:
+     - refuse on `blocked|exporting|performing`
+     - warn_force on `unknown`
+     - allow on `idle|editing`
 
 If these rules conflict with implementation, update this document before changing code.
 
