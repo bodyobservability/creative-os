@@ -1,5 +1,14 @@
 # Creative OS Refactor Plan
 
+> ⚠️ EXECUTION MODEL NOTE (SAFETY-FIRST)
+>
+> During this refactor, execution is treated as **actuation**: it must be explicit, inspectable, and constrained.
+> The default posture is **deny-by-default** with **dry-run** as the primary UX.
+>
+> Until the Action Catalog + schemas land (PR 2) and gating is consolidated (PR 6),
+> `state-setup` should only execute a **small, explicit allowlist** of actions that are
+> safe to re-run and/or read-only. Everything else remains visible in plans but non-executable.
+
 Below is a comprehensive, safe diff plan designed to keep the repo continuously working while moving decisively toward the Creative OS target. It is structured as a PR series with:
 
 - Goal
@@ -54,11 +63,14 @@ These invariants should be true after every PR:
 
 ---
 
-## PR 1 — Make “actionRef implies automated” (unlock OS execution)
+## PR 1 — Permissioned execution model (deny-by-default)
 
 Right now: many steps include an `actionRef` but are still type: `.manualRequired`, so `state-setup` won’t execute them.
+We want Creative OS setup to become real, but **without** implicitly executing new actions just because an `actionRef` exists.
 
-**Goal:** Ensure any step with a resolvable `actionRef` becomes executable by the Creative OS setup path.
+**Goal:** Make execution explicit and policy-gated:
+- `actionRef` makes a step *addressable*, not automatically executable.
+- `state-setup` executes only an explicit allowlist of actions (initially hardcoded, later owned by the Action Catalog).
 
 **Files touched:**
 
@@ -76,18 +88,24 @@ let automated = report.steps.filter { $0.type == .automated }
 
 to:
 
-- Treat steps as executable if:
-  - `step.actionRef != nil` AND `ServiceExecutor` supports it, OR
-  - (legacy) contains `.process` effects and explicitly allowed.
+- Treat steps as *eligible* if `step.actionRef != nil`.
+- Treat steps as *executable* in `state-setup` only if:
+  - action ID is in an explicit **allowlist** for this command/context, AND
+  - `ServiceExecutor` supports it.
+
+> The allowlist is intentionally small until PR 2 (catalog + schemas) and PR 6 (gating consolidation).
+> The default for unknown/unclassified actions is **do not execute**.
 
 2. Update agents that already include `actionRef` (e.g. `SweeperAgent`, `DriftAgent`, `ReadyAgent`, `StationAgent`, `AssetsAgent`, etc.) so their steps are type: `.automated` (or new rule makes that irrelevant).
-3. Keep `.process` effects only as optional “debug hints” — not the primary execution mechanism.
+3. Keep `.process` effects only as optional “debug hints” — never executed by `state-setup`.
 
 **Acceptance criteria:**
 
-- `wub state-setup` now actually runs at least one step via:
-  - `ServiceExecutor.execute(step:)`
-- Steps with `actionRef` are included in the executed set.
+- `wub state-setup` defaults to **dry-run** output (prints what would run and why others are skipped).
+- Execution requires explicit opt-in (e.g., `--apply`).
+- Only allowlisted actions can execute; all other actions remain visible but non-executable.
+- `.process` effects are not executed by `state-setup` under any circumstances.
+- At least one allowlisted action successfully executes via `ServiceExecutor.execute(step:)`.
 
 **Rollback:** revert selection logic + revert step type changes.
 
@@ -399,7 +417,7 @@ You can declare the Creative OS target “real” when:
 If you want the safest high-leverage start, do these first:
 
 1. PR 0 (tests)
-2. PR 1 (actionRef implies automated)
+2. PR 1 (permissioned execution model)
 3. PR 2 (config catalog)
 
 That trio will immediately make Creative OS “setup” real, without forcing a big reorg.

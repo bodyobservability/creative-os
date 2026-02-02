@@ -18,7 +18,7 @@ execution safety, gating, and schema governance.
 ### Kernel refactor sequence (summary)
 
 1. PR 0 — Safety harness (tests + fixtures)
-2. PR 1 — Permissioned execution model
+2. PR 1 — Permissioned execution model (deny-by-default)
 3. PR 2 — Action catalog + config contracts
 4. PR 3 — Setup receipts (schema-first)
 5. PR 4 — Agent modularization (move-only)
