@@ -16,6 +16,9 @@ struct DubSweeper: AsyncParsableCommand {
   @Flag(name: .long, help: "Output JSON.") var json: Bool = false
 
   func run() async throws {
+    print("DEPRECATED: sweep-legacy is compatibility-only. Use 'wub sweep' for the CreativeOS runtime.")
+    print("This command will be removed after the Phase C migration hard-cut.")
+
     let serviceConfig = SweeperService.Config(anchorsPack: anchorsPack,
                                              modalTest: modalTest,
                                              requiredControllers: requireController,

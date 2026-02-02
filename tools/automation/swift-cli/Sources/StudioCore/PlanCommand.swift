@@ -16,6 +16,9 @@ struct LegacyPlan: ParsableCommand {
   var out: String?
 
   func run() throws {
+    print("DEPRECATED: plan-legacy is compatibility-only. Use 'wub apply' with a modern plan generator.")
+    print("This command will be removed after the Phase C migration hard-cut.")
+
     let ctx = RunContext(common: common)
     try ctx.ensureRunDir()
 
