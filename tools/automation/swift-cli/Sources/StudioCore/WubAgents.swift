@@ -154,14 +154,14 @@ struct SweeperAgent: CreativeOS.Agent {
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = buildCommand()
-    p.register(id: "sweep_legacy") {
-      [CreativeOS.PlanStep(id: "sweep_legacy",
+    p.register(id: "sweep_maintenance") {
+      [CreativeOS.PlanStep(id: "sweep_maintenance",
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(cmd)",
-                           effects: [CreativeOS.Effect(id: "sweep_command", kind: .process, target: cmd, description: "Run legacy sweep")],
+                           effects: [CreativeOS.Effect(id: "sweep_command", kind: .process, target: cmd, description: "Run maintenance sweep")],
                            idempotent: true,
-                           manualReason: "legacy_sweep")]
+                           manualReason: "sweep_required")]
     }
   }
 
@@ -209,7 +209,7 @@ struct DriftAgent: CreativeOS.Agent {
                            description: "Run: \(checkCmd)",
                            effects: [CreativeOS.Effect(id: "drift_check", kind: .process, target: checkCmd, description: "Run drift check")],
                            idempotent: true,
-                           manualReason: "legacy_drift_check")]
+                           manualReason: "drift_check_required")]
     }
     p.register(id: "drift_plan") {
       [CreativeOS.PlanStep(id: "drift_plan",
@@ -218,7 +218,7 @@ struct DriftAgent: CreativeOS.Agent {
                            description: "Run: \(planCmd)",
                            effects: [CreativeOS.Effect(id: "drift_plan", kind: .process, target: planCmd, description: "Run drift plan")],
                            idempotent: true,
-                           manualReason: "legacy_drift_plan")]
+                           manualReason: "drift_plan_required")]
     }
     p.register(id: "drift_fix") {
       [CreativeOS.PlanStep(id: "drift_fix",
@@ -227,7 +227,7 @@ struct DriftAgent: CreativeOS.Agent {
                            description: "Run: \(fixCmd)",
                            effects: [CreativeOS.Effect(id: "drift_fix", kind: .process, target: fixCmd, description: "Run drift fix (dry run)")],
                            idempotent: true,
-                           manualReason: "legacy_drift_fix")]
+                           manualReason: "drift_fix_required")]
     }
   }
 
@@ -252,7 +252,7 @@ struct ReadyAgent: CreativeOS.Agent {
                            description: "Run: \(cmd)",
                            effects: [CreativeOS.Effect(id: "ready_check", kind: .process, target: cmd, description: "Run ready check")],
                            idempotent: true,
-                           manualReason: "legacy_ready_check")]
+                           manualReason: "ready_check_required")]
     }
   }
 
@@ -300,7 +300,7 @@ struct AssetsAgent: CreativeOS.Agent {
                            description: "Run: \(cmd)",
                            effects: [CreativeOS.Effect(id: "assets_export_all", kind: .process, target: cmd, description: "Run assets export-all")],
                            idempotent: true,
-                           manualReason: "legacy_assets_export")]
+                           manualReason: "assets_export_required")]
     }
   }
 
@@ -345,7 +345,7 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
                            description: "Run: \(voiceCmd)",
                            effects: [CreativeOS.Effect(id: "voice_run", kind: .process, target: voiceCmd, description: "Run voice handshake")],
                            idempotent: true,
-                           manualReason: "legacy_voice_run")]
+                           manualReason: "voice_run_required")]
     }
     p.register(id: "rack_install") {
       [CreativeOS.PlanStep(id: "rack_install",
@@ -354,7 +354,7 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
                            description: "Run: \(rackInstallCmd)",
                            effects: [CreativeOS.Effect(id: "rack_install", kind: .process, target: rackInstallCmd, description: "Install racks")],
                            idempotent: true,
-                           manualReason: "legacy_rack_install")]
+                           manualReason: "rack_install_required")]
     }
     p.register(id: "rack_verify") {
       [CreativeOS.PlanStep(id: "rack_verify",
@@ -363,7 +363,7 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
                            description: "Run: \(rackVerifyCmd)",
                            effects: [CreativeOS.Effect(id: "rack_verify", kind: .process, target: rackVerifyCmd, description: "Verify racks")],
                            idempotent: true,
-                           manualReason: "legacy_rack_verify")]
+                           manualReason: "rack_verify_required")]
     }
     p.register(id: "session_compile") {
       [CreativeOS.PlanStep(id: "session_compile",
@@ -372,7 +372,7 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
                            description: "Run: \(sessionCmd)",
                            effects: [CreativeOS.Effect(id: "session_compile", kind: .process, target: sessionCmd, description: "Compile session")],
                            idempotent: true,
-                           manualReason: "legacy_session_compile")]
+                           manualReason: "session_compile_required")]
     }
   }
 
@@ -396,7 +396,7 @@ struct IndexAgent: CreativeOS.Agent {
                            description: "Run: \(cmd)",
                            effects: [CreativeOS.Effect(id: "index_build", kind: .process, target: cmd, description: "Build indexes")],
                            idempotent: true,
-                           manualReason: "legacy_index_build")]
+                           manualReason: "index_build_required")]
     }
     p.register(id: "index_status") {
       let statusCmd = "wub index status"
@@ -406,7 +406,7 @@ struct IndexAgent: CreativeOS.Agent {
                                   description: "Run: \(statusCmd)",
                                   effects: [CreativeOS.Effect(id: "index_status", kind: .process, target: statusCmd, description: "Check index status")],
                                   idempotent: true,
-                                  manualReason: "legacy_index_status")]
+                                  manualReason: "index_status_required")]
     }
   }
 
@@ -430,7 +430,7 @@ struct ReleaseAgent: CreativeOS.Agent {
                            description: "Run: \(cmd)",
                            effects: [CreativeOS.Effect(id: "release_promote_profile", kind: .process, target: cmd, description: "Promote profile")],
                            idempotent: true,
-                           manualReason: "legacy_release_promote")]
+                           manualReason: "release_promote_required")]
     }
   }
 
@@ -454,7 +454,7 @@ struct ReportAgent: CreativeOS.Agent {
                            description: "Run: \(cmd)",
                            effects: [CreativeOS.Effect(id: "report_generate", kind: .process, target: cmd, description: "Generate run report")],
                            idempotent: true,
-                           manualReason: "legacy_report_generate")]
+                           manualReason: "report_generate_required")]
     }
   }
 
@@ -478,7 +478,7 @@ struct RepairAgent: CreativeOS.Agent {
                            description: "Run: \(cmd)",
                            effects: [CreativeOS.Effect(id: "repair_run", kind: .process, target: cmd, description: "Run repair recipe")],
                            idempotent: true,
-                           manualReason: "legacy_repair_run")]
+                           manualReason: "repair_run_required")]
     }
   }
 
