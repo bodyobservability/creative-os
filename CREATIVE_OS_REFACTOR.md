@@ -108,7 +108,7 @@ PR 1 progress:
 - [x] Gate execution by allowlist + ServiceExecutor support for actionRef steps.
 - [x] Default `state-setup`/`setup` to dry-run; add explicit `--apply`.
 - [x] Ensure `state-setup` never executes `.process` effects.
-- [ ] Update agent plan steps with `actionRef` to use `.automated`.
+- [x] Update agent plan steps with `actionRef` to use `.automated`.
 
 **Acceptance criteria:**
 

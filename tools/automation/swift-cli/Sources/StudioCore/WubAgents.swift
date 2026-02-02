@@ -171,7 +171,7 @@ struct SweeperAgent: CreativeOS.Agent {
     p.register(id: "sweep_maintenance") {
       [CreativeOS.PlanStep(id: "sweep_maintenance",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(cmd)",
                            effects: [
                              cfg,
@@ -230,7 +230,7 @@ struct DriftAgent: CreativeOS.Agent {
     p.register(id: "drift_check") {
       [CreativeOS.PlanStep(id: "drift_check",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(checkCmd)",
                            effects: [cfg, CreativeOS.Effect(id: "drift_check", kind: .process, target: checkCmd, description: "Run drift check")],
                            idempotent: true,
@@ -249,7 +249,7 @@ struct DriftAgent: CreativeOS.Agent {
     p.register(id: "drift_fix") {
       [CreativeOS.PlanStep(id: "drift_fix",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(fixCmd)",
                            effects: [cfg, CreativeOS.Effect(id: "drift_fix", kind: .process, target: fixCmd, description: "Run drift fix (dry run)")],
                            idempotent: true,
@@ -276,7 +276,7 @@ struct ReadyAgent: CreativeOS.Agent {
     p.register(id: "ready_check") {
       [CreativeOS.PlanStep(id: "ready_check",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(cmd)",
                            effects: [cfg, CreativeOS.Effect(id: "ready_check", kind: .process, target: cmd, description: "Run ready check")],
                            idempotent: true,
@@ -307,7 +307,7 @@ struct StationAgent: CreativeOS.Agent {
     p.register(id: "station_status") {
       [CreativeOS.PlanStep(id: "station_status",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(cmd)",
                            effects: [cfg, CreativeOS.Effect(id: "station_status", kind: .process, target: cmd, description: "Check station status")],
                            idempotent: true,
@@ -339,7 +339,7 @@ struct AssetsAgent: CreativeOS.Agent {
     p.register(id: "assets_export_all") {
       [CreativeOS.PlanStep(id: "assets_export_all",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(cmd)",
                            effects: [cfg, CreativeOS.Effect(id: "assets_export_all", kind: .process, target: cmd, description: "Run assets export-all")],
                            idempotent: true,
@@ -400,7 +400,7 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
     p.register(id: "voice_run") {
       [CreativeOS.PlanStep(id: "voice_run",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(voiceCmd)",
                            effects: [
                              vrsCfg,
@@ -413,7 +413,7 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
     p.register(id: "rack_install") {
       [CreativeOS.PlanStep(id: "rack_install",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(rackInstallCmd)",
                            effects: [
                              vrsCfg,
@@ -426,7 +426,7 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
     p.register(id: "rack_verify") {
       [CreativeOS.PlanStep(id: "rack_verify",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(rackVerifyCmd)",
                            effects: [
                              vrsCfg,
@@ -439,7 +439,7 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
     p.register(id: "session_compile") {
       [CreativeOS.PlanStep(id: "session_compile",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(sessionCmd)",
                            effects: [sessionCfg, CreativeOS.Effect(id: "session_compile", kind: .process, target: sessionCmd, description: "Compile session")],
                            idempotent: true,
@@ -470,7 +470,7 @@ struct IndexAgent: CreativeOS.Agent {
     p.register(id: "index_build") {
       [CreativeOS.PlanStep(id: "index_build",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(cmd)",
                            effects: [
                              cfg,
@@ -516,7 +516,7 @@ struct ReleaseAgent: CreativeOS.Agent {
     p.register(id: "release_promote_profile") {
       [CreativeOS.PlanStep(id: "release_promote_profile",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(cmd)",
                            effects: [
                              cfg,
@@ -548,7 +548,7 @@ struct ReportAgent: CreativeOS.Agent {
     p.register(id: "report_generate") {
       [CreativeOS.PlanStep(id: "report_generate",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(cmd)",
                            effects: [
                              cfg,
@@ -581,7 +581,7 @@ struct RepairAgent: CreativeOS.Agent {
     p.register(id: "repair_run") {
       [CreativeOS.PlanStep(id: "repair_run",
                            agent: id,
-                           type: .manualRequired,
+                           type: .automated,
                            description: "Run: \(cmd)",
                            effects: [
                              cfg,
