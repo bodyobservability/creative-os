@@ -218,4 +218,21 @@ enum CreativeOS {
       case requiresExplicitApply = "requires_explicit_apply"
     }
   }
+
+  struct ServiceResult {
+    let observed: ObservedStateSlice?
+    let desired: DesiredStateSlice?
+    let checks: [CheckResult]
+    let steps: [PlanStep]
+
+    init(observed: ObservedStateSlice? = nil,
+         desired: DesiredStateSlice? = nil,
+         checks: [CheckResult] = [],
+         steps: [PlanStep] = []) {
+      self.observed = observed
+      self.desired = desired
+      self.checks = checks
+      self.steps = steps
+    }
+  }
 }

@@ -24,20 +24,9 @@ struct Index: ParsableCommand {
     var runsDir: String = "runs"
 
     func run() throws {
-      try IndexIO.ensureDir(outDir)
-
-      let receiptIndex = ReceiptIndexBuilder.build(runsDir: runsDir)
-      let expected = try ExpectedArtifactsParser.parseAll()
-      let artifactIndex = ArtifactIndexBuilder.build(repoVersion: repoVersion, expected: expected, receiptIndex: receiptIndex)
-
-      let receiptPath = URL(fileURLWithPath: outDir).appendingPathComponent("receipt_index.v1.json")
-      let artifactPath = URL(fileURLWithPath: outDir).appendingPathComponent("artifact_index.v1.json")
-
-      try JSONIO.save(receiptIndex, to: receiptPath)
-      try JSONIO.save(artifactIndex, to: artifactPath)
-
-      print("Wrote: \(receiptPath.path)")
-      print("Wrote: \(artifactPath.path)")
+      let result = try IndexService.build(config: .init(repoVersion: repoVersion, outDir: outDir, runsDir: runsDir))
+      print("Wrote: \(result.receiptPath)")
+      print("Wrote: \(result.artifactPath)")
     }
   }
 
@@ -51,14 +40,10 @@ struct Index: ParsableCommand {
     var path: String = "checksums/index/artifact_index.v1.json"
 
     func run() throws {
-      let idx = try JSONIO.load(ArtifactIndexV1.self, from: URL(fileURLWithPath: path))
-      var counts: [String: Int] = [:]
-      for a in idx.artifacts {
-        counts[a.status.state, default: 0] += 1
-      }
-      print("ArtifactIndex v1: \(idx.artifacts.count) artifacts")
+      let result = try IndexService.status(path: path)
+      print("ArtifactIndex v1: \(result.total) artifacts")
       for k in ["current","placeholder","missing","stale","unknown"] {
-        if let c = counts[k] { print("  \(k): \(c)") }
+        if let c = result.counts[k] { print("  \(k): \(c)") }
       }
     }
   }

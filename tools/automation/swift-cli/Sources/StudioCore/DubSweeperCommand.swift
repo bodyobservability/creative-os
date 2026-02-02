@@ -16,89 +16,55 @@ struct DubSweeper: AsyncParsableCommand {
   @Flag(name: .long, help: "Output JSON.") var json: Bool = false
 
   func run() async throws {
-    let ctx = RunContext(common: common)
-    try ctx.ensureRunDir()
-    let runDir = ctx.runDir
+    let serviceConfig = SweeperService.Config(anchorsPack: anchorsPack,
+                                             modalTest: modalTest,
+                                             requiredControllers: requireController,
+                                             allowOcrFallback: allowOcrFallback,
+                                             fix: fix,
+                                             regionsConfig: common.regionsConfig,
+                                             runsDir: common.runsDir)
+    let result = try await SweeperService.run(config: serviceConfig)
 
-    let artifactsDir = runDir.appendingPathComponent("sweeper", isDirectory: true)
-    try FileManager.default.createDirectory(at: artifactsDir, withIntermediateDirectories: true)
-
-    let mode = ModalTestMode(rawValue: modalTest) ?? .detect
-    let context = DubSweeperContext(runId: ctx.runId,
-                                runDir: runDir,
-                                artifactsDir: artifactsDir,
-                                regionsPath: common.regionsConfig,
-                                anchorsPackPath: anchorsPack,
-                                modalTestMode: mode,
-                                requiredControllers: requireController,
-                                allowOcrFallback: allowOcrFallback)
-
-    if fix {
-      let actions = await DubSweeperFix.run(context: context)
-      for a in actions { print(a) }
-    }
-
-    let checks: [DubSweeperCheck] = [
-      RegionsSanityCheck(),
-      AbletonLivenessCheck(),
-      ModalGuardCheck(),
-      AnchorValidationCheck(),
-      ControllersCheck()
-    ]
-
-    var entries: [DubSweeperCheckEntry] = []
-    for c in checks {
-      let res = try await c.run(context: context)
-      entries.append(DubSweeperCheckEntry(id: res.id, status: res.status, details: res.details, artifacts: res.artifacts))
-    }
-
-    let anyFail = entries.contains { $0.status == .fail }
-    let anyPass = entries.contains { $0.status == .pass }
-    let status: DubSweeperStatus = anyFail ? .fail : (anyPass ? .pass : .skip)
-
-    var safeSteps: [DubSweeperStep] = []
-    if fix {
-      safeSteps.append(DubSweeperStep(id: "auto_fix_modal", description: "ESC + OCR cancel modal cleanup"))
-    }
-
-    let baseReport = DubSweeperReportV1(schemaVersion: 1,
-                                         runId: ctx.runId,
-                                         timestamp: context.nowISO8601(),
-                                         status: status,
-                                         checks: entries,
-                                         safeSteps: safeSteps,
-                                         manualSteps: [],
-                                         artifactsDir: "runs/\(ctx.runId)/sweeper")
-
-    let hints = DubSweeperHints.nextActions(from: baseReport)
-    let manualSteps = hints.enumerated().map { DubSweeperStep(id: "manual_\($0.offset + 1)", description: $0.element) }
-
-    let report = DubSweeperReportV1(schemaVersion: 1,
-                                     runId: baseReport.runId,
-                                     timestamp: baseReport.timestamp,
-                                     status: baseReport.status,
-                                     checks: baseReport.checks,
-                                     safeSteps: baseReport.safeSteps,
-                                     manualSteps: manualSteps,
-                                     artifactsDir: baseReport.artifactsDir)
-
-    try JSONIO.save(report, to: runDir.appendingPathComponent("sweeper_report.v1.json"))
-
+    let reportPath = latestReportPath(in: common.runsDir)
     if json {
-      let enc = JSONEncoder()
-      enc.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-      let data = try enc.encode(report)
-      if let out = String(data: data, encoding: .utf8) { print(out) }
+      if let reportPath,
+         let report = try? JSONIO.load(DubSweeperReportV1.self, from: URL(fileURLWithPath: reportPath)) {
+        let enc = JSONEncoder()
+        enc.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        let data = try enc.encode(report)
+        if let out = String(data: data, encoding: .utf8) { print(out) }
+      }
       return
     }
 
-    DubSweeperSummaryPrinter.printSummary(report)
-    if !hints.isEmpty {
-      print("Next actions:")
-      for h in hints { print("- \(h)") }
-      print("")
+    if let reportPath,
+       let report = try? JSONIO.load(DubSweeperReportV1.self, from: URL(fileURLWithPath: reportPath)) {
+      DubSweeperSummaryPrinter.printSummary(report)
+      let hints = DubSweeperHints.nextActions(from: report)
+      if !hints.isEmpty {
+        print("Next actions:")
+        for h in hints { print("- \(h)") }
+        print("")
+      }
+      if report.status == .pass { DubSweeperReadyMessage.printIfReady(report: report) }
+      if report.status == .fail { throw ExitCode(1) }
     }
-    if status == .pass { DubSweeperReadyMessage.printIfReady(report: report) }
-    if status == .fail { throw ExitCode(1) }
+    _ = result
+  }
+
+  private func latestReportPath(in runsDir: String) -> String? {
+    let fm = FileManager.default
+    guard fm.fileExists(atPath: runsDir) else { return nil }
+    guard let entries = try? fm.contentsOfDirectory(atPath: runsDir) else { return nil }
+    let dirs = entries.sorted().reversed()
+    for name in dirs {
+      let path = "\(runsDir)/\(name)"
+      var isDir: ObjCBool = false
+      if fm.fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue {
+        let report = "\(path)/sweeper_report.v1.json"
+        if fm.fileExists(atPath: report) { return report }
+      }
+    }
+    return nil
   }
 }

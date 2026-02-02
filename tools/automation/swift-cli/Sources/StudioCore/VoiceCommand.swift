@@ -87,87 +87,16 @@ struct Voice: ParsableCommand {
     var fix: Bool = false
 
     func run() async throws {
-      let runId = RunContext.makeRunId()
-      let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
-      try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
-      try FileManager.default.createDirectory(at: runDir.appendingPathComponent("voice", isDirectory: true), withIntermediateDirectories: true)
-
-      // 1) Write prompt card
-      let cardPath = runDir.appendingPathComponent("voice/voice_card.md").path
-      _ = try VoicePrint.renderMarkdown(scriptPath: script,
-                                        anchorsPack: anchorsPack,
-                                        displayProfile: nil,
-                                        abletonVersion: nil,
-                                        abletonTheme: nil,
-                                        outPath: cardPath)
-
-      // 2) Generate verification plan into run folder
-      let verifyPlanPath = runDir.appendingPathComponent("voice/verify_abi.plan.json").path
-      try VoiceVerify.generatePlan(abiPath: abi, outPath: verifyPlanPath, includeMacroNameOCR: macroOcr, macroRegionId: macroRegion)
-
-      // 3) Prompt human to run voice compile
-      print("\nVoice prompt card written to: \(cardPath)")
-      print("Open it, run the voice compile script, then press Enter to continue. Type 'q' then Enter to abort.")
-      let resp = readLine() ?? ""
-      if resp.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == "q" {
-        let receipt = VoiceReceiptV1.failed(runId: runId, script: script, abi: abi, card: "runs/\(runId)/voice/voice_card.md",
-                                            verifyPlan: "runs/\(runId)/voice/verify_abi.plan.json",
-                                            sweeperReport: nil, applyReceipt: nil, applyTrace: nil,
-                                            reasons: ["aborted_by_user"])
-        try JSONIO.save(receipt, to: runDir.appendingPathComponent("voice_receipt.v1.json"))
-        throw ExitCode(3)
-      }
-
-      // 4) Run sweep (spawn self)
-      let exe = CommandLine.arguments.first ?? "wub"
-      var sweeperArgs = ["sweep", "--anchors-pack", anchorsPack, "--modal-test", "detect", "--allow-ocr-fallback"]
-      if fix { sweeperArgs.insert("--fix", at: 1) }
-      sweeperArgs += ["--require-controller", "MPK mini IV"]
-      let sweeperExit = try await runProcess(exe: exe, args: sweeperArgs, cwd: FileManager.default.currentDirectoryPath)
-      let sweeperReport = "runs/\(runId)/sweeper_report.v1.json"
-
-      // 5) Run apply verification plan
-      let applyArgs = ["apply", "--plan", verifyPlanPath, "--anchors-pack", anchorsPack, "--allow-cgevent"]
-      let applyExit = try await runProcess(exe: exe, args: applyArgs, cwd: FileManager.default.currentDirectoryPath)
-      let applyReceipt = "runs/\(runId)/receipt.v1.json"
-      let applyTrace = "runs/\(runId)/trace.v1.json"
-
-      // 6) Emit voice receipt
-      let status: String = (sweeperExit == 0 && applyExit == 0) ? "pass" : "fail"
-      let compliance = VoiceCompliance(structural: (applyExit == 0) ? "pass" : "fail",
-                                       macroNames: macroOcr ? ((applyExit == 0) ? "pass" : "fail") : "skip",
-                                       ranges: "skip")
-      let receipt = VoiceReceiptV1(schemaVersion: 1,
-                                   runId: runId,
-                                   timestamp: ISO8601DateFormatter().string(from: Date()),
-                                   script: script,
-                                   abi: abi,
-                                   status: status,
-                                   compliance: compliance,
-                                   artifacts: VoiceArtifacts(promptCard: "runs/\(runId)/voice/voice_card.md",
-                                                            verifyPlan: "runs/\(runId)/voice/verify_abi.plan.json",
-                                                            sweeperReport: sweeperReport,
-                                                            applyReceipt: applyReceipt,
-                                                            applyTrace: applyTrace),
-                                   reasons: (status == "pass") ? [] : ["sweeper_exit=\(sweeperExit)", "apply_exit=\(applyExit)"])
-      try JSONIO.save(receipt, to: runDir.appendingPathComponent("voice_receipt.v1.json"))
-      print("\nvoice_receipt: runs/\(runId)/voice_receipt.v1.json")
-      if status != "pass" { throw ExitCode(1) }
-    }
-
-    private func runProcess(exe: String, args: [String], cwd: String) async throws -> Int32 {
-      return try await withCheckedThrowingContinuation { cont in
-        let p = Process()
-        p.executableURL = URL(fileURLWithPath: exe)
-        p.arguments = args
-        p.currentDirectoryURL = URL(fileURLWithPath: cwd)
-        p.standardOutput = FileHandle.standardOutput
-        p.standardError = FileHandle.standardError
-        p.terminationHandler = { proc in
-          cont.resume(returning: proc.terminationStatus)
-        }
-        do { try p.run() } catch { cont.resume(throwing: error) }
-      }
+      let receipt = try await VoiceService.run(config: .init(script: script,
+                                                             abi: abi,
+                                                             anchorsPack: anchorsPack,
+                                                             regions: regions,
+                                                             macroOcr: macroOcr,
+                                                             macroRegion: macroRegion,
+                                                             fix: fix,
+                                                             runsDir: "runs"))
+      print("\nvoice_receipt: runs/\(receipt.runId)/voice_receipt.v1.json")
+      if receipt.status != "pass" { throw ExitCode(1) }
     }
   }
 }

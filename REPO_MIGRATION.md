@@ -10,6 +10,19 @@ The migration **must be followed in order**. Deviations require updating this fi
 
 ---
 
+## Current Status (as of 2026-02-01)
+- Phase 0 — Schemas & Contracts: **Complete** (CreativeOS models + JSONValue + agent contract in `StudioCore`).
+- Phase 1 — Execution Bridge: **Complete** (legacy reports map into CreativeOS checks/plans with deterministic tests).
+- Phase 2 — Core Runtime + Agent Interface: **Complete** (runtime merges observed/desired slices; `wub` uses it).
+- Phase 3 — `wub` CLI: **Complete** (sweep/state-sweep/state-plan/state-setup/profile use available).
+- Phase 4 — Profile + Pack Manifests + Selection Store: **Complete** (`profiles/`, `packs/`, `notes/WUB_CONFIG.json`).
+- Phase 5 — Asset + Spec Migration Mapping: **In progress** (mapping table still needs codifying in docs + runtime validation).
+- Phase 6 — Testing & CI: **Complete** (`swift test` green; snapshot + mapping tests present).
+- Phase 7 — Identity Hard Cut: **Mostly complete** (repo renamed to `studio-operator`; `wub` is the only CLI; lingering legacy docs/labels may remain).
+
+Notes:
+- Legacy command internals are being moved into services so `wub` and agents share the same logic (Phase B refactor in progress).
+
 ## Principles (Locked)
 
 1) **Hard‑cut identity, not functionality**  

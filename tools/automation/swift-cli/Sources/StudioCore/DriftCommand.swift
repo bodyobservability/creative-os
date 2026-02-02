@@ -29,70 +29,32 @@ struct Drift: ParsableCommand {
     var onlyFail: Bool = false
 
     func run() throws {
-      let aidx = try JSONIO.load(ArtifactIndexV1.self, from: URL(fileURLWithPath: artifactIndex))
-      let ridx = try JSONIO.load(ReceiptIndexV1.self, from: URL(fileURLWithPath: receiptIndex))
-
-      let budgets = DriftEvaluator.Budgets(staleWarnAfterS: 24*3600, staleFailAfterS: 7*24*3600, placeholderFail: true)
-      let fixes = FixCatalog(anchorsPackHint: anchorsPackHint)
-
-      // Produce v2 report
-      let base = DriftEvaluator.evaluate(artifactIndex: aidx, receiptIndex: ridx, budgets: budgets, suggestedFixes: fixes)
-
-      // Convert v1 findings -> v2 findings
-      let findingsV2: [DriftReportV2.Finding] = base.findings.map { f in
-        DriftReportV2.Finding(id: f.id,
-                              severity: f.severity,
-                              kind: f.kind,
-                              artifactPath: f.artifactPath,
-                              title: f.title,
-                              why: f.why,
-                              fix: f.fix,
-                              details: f.details)
-      }
-
-      let filtered = findingsV2.filter { f in
-        if onlyFail { return f.severity == "fail" }
-        return true
-      }
-
-      let recommended = DriftPlanner.recommendFixes(findings: findingsV2)
-
-      let runId = RunContext.makeRunId()
-      let ts = ISO8601DateFormatter().string(from: Date())
-      let status: String = filtered.contains(where: { $0.severity == "fail" }) ? "fail"
-                       : (filtered.contains(where: { $0.severity == "warn" }) ? "warn" : "pass")
-      let summary = "status=\(status) findings=\(filtered.count) fixes=\(recommended.count)"
-
-      let report = DriftReportV2(schemaVersion: 2,
-                                 runId: runId,
-                                 timestamp: ts,
-                                 status: status,
-                                 summary: summary,
-                                 findings: filtered,
-                                 reasons: base.reasons,
-                                 recommendedFixes: recommended)
-
-      let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
-      try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
-      let outPath = out ?? runDir.appendingPathComponent("drift_report.v2.json").path
-      try JSONIO.save(report, to: URL(fileURLWithPath: outPath))
+      let result = try DriftService.check(config: .init(artifactIndex: artifactIndex,
+                                                        receiptIndex: receiptIndex,
+                                                        anchorsPackHint: anchorsPackHint,
+                                                        out: out,
+                                                        format: format,
+                                                        groupByFix: groupByFix,
+                                                        onlyFail: onlyFail))
+      let report = result.report
+      let outPath = result.outPath
 
       if format == "json" {
         print(outPath)
-        if status == "fail" { throw ExitCode(1) }
+        if report.status == "fail" { throw ExitCode(1) }
         return
       }
 
       // Human output
       print("DRIFT CHECK (v1.8.3)")
-      print("status: \(status)")
-      print(summary)
+      print("status: \(report.status)")
+      print(report.summary)
       print("")
 
       if report.findings.isEmpty {
         print("No drift detected.")
       } else if groupByFix {
-        for fx in recommended {
+        for fx in report.recommendedFixes {
           // show the strongest severity among covered findings
           let covered = report.findings.filter { fx.covers.contains($0.artifactPath) }
           let top = covered.map(\.severity).contains("fail") ? "FAIL" : (covered.map(\.severity).contains("warn") ? "WARN" : "INFO")
@@ -113,7 +75,7 @@ struct Drift: ParsableCommand {
       }
 
       print("\nreport: \(outPath)")
-      if status == "fail" { throw ExitCode(1) }
+      if report.status == "fail" { throw ExitCode(1) }
     }
   }
 
