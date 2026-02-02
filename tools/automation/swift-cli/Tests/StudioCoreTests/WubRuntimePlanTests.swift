@@ -3,9 +3,14 @@ import XCTest
 
 final class WubRuntimePlanTests: XCTestCase {
   private func fixtureURL(name: String, ext: String, subdir: String) throws -> URL {
-    let url = Bundle.module.url(forResource: name, withExtension: ext, subdirectory: subdir)
-    XCTAssertNotNil(url, "Missing fixture: \(subdir)/\(name).\(ext)")
-    return url!
+    let candidates: [String?] = [subdir, nil]
+    for candidate in candidates {
+      if let url = Bundle.module.url(forResource: name, withExtension: ext, subdirectory: candidate) {
+        return url
+      }
+    }
+    XCTFail("Missing fixture: \(subdir)/\(name).\(ext)")
+    throw NSError(domain: "fixtures", code: 1)
   }
 
   private func writeFixture(name: String, ext: String, subdir: String, to destination: URL) throws {
