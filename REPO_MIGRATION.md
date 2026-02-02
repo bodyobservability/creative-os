@@ -77,6 +77,26 @@ Key outcomes:
 - Voice/rack/session, assets/index/repair, sonic/pipeline, and release/drift-fix paths now call services directly.
 - Legacy `plan-legacy` and `sweep-legacy` emit deprecation messaging.
 
+### Phase D — Legacy Surface Removal + Doc Cleanup
+**Goal:** fully remove compatibility command surfaces and update docs to the post‑migration CLI.
+
+Status: **Planned**
+
+Scope:
+1) **Remove legacy commands**  
+   Delete `plan-legacy` + `sweep-legacy` command implementations and any command registration references.
+2) **Update fallback process effects**  
+   Replace any remaining references to `sweep-legacy` in plan descriptions/effects with `wub sweep` (or service‑only execution).
+3) **Doc + reference cleanup**  
+   Remove `plan-legacy`/`sweep-legacy` mentions from README + CLI reference + checklists.
+4) **Audit “compat” language**  
+   Replace “legacy/compat” copy with current runtime terminology.
+
+Acceptance gate:
+- No `plan-legacy`/`sweep-legacy` command names remain in source or docs.
+- `wub` CLI help reflects only current commands.
+- `swift test` green.
+
 ## Principles (Locked)
 
 1) **Hard‑cut identity, not functionality**  
