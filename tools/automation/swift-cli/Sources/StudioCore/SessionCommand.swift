@@ -136,8 +136,12 @@ struct Session: AsyncParsableCommand {
         return cur ?? defaultVal
       }
 
-      let voiceScript = get(["voice","script"]) as? String ?? WubDefaults.profileSpecPath("voice/scripts/bass_template_build.v1.yaml")
-      let voiceAbi = get(["voice","abi"]) as? String ?? WubDefaults.profileSpecPath("voice/abi/hvlien_macro_abi.v1.yaml")
+      guard let voiceScript = get(["voice","script"]) as? String, !voiceScript.isEmpty else {
+        throw ValidationError("Profile missing voice.script")
+      }
+      guard let voiceAbi = get(["voice","abi"]) as? String, !voiceAbi.isEmpty else {
+        throw ValidationError("Profile missing voice.abi")
+      }
       let voiceMacroOCR = get(["voice","macro_ocr"]) as? Bool ?? true
       let voiceMacroRegion = get(["voice","macro_region"]) as? String ?? "rack.macros"
 

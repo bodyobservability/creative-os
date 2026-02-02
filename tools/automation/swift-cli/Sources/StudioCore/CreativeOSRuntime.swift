@@ -6,6 +6,7 @@ extension CreativeOS {
     func registerChecks(_ r: inout CheckRegistry)
     func registerPlans(_ p: inout PlanRegistry)
     func observeState() throws -> ObservedStateSlice
+    func desiredState() throws -> DesiredStateSlice?
   }
 
   struct CheckRegistry {
@@ -87,8 +88,14 @@ extension CreativeOS {
 
     func plan() throws -> PlanReport {
       let sweep = try sweep()
-      let steps = diff(observed: sweep.observed, desired: sweep.desired)
-      return PlanReport(observed: sweep.observed, desired: sweep.desired, steps: steps)
+      var steps = diff(observed: sweep.observed, desired: sweep.desired)
+      var registry = PlanRegistry()
+      for agent in agents { agent.registerPlans(&registry) }
+      for entry in registry.entries {
+        steps.append(contentsOf: try entry.run())
+      }
+      let ordered = steps.sorted { ($0.agent, $0.id) < ($1.agent, $1.id) }
+      return PlanReport(observed: sweep.observed, desired: sweep.desired, steps: ordered)
     }
 
     private func observeState() throws -> ObservedState {
@@ -100,6 +107,11 @@ extension CreativeOS {
       var slices: [DesiredStateSlice] = []
       if let profile {
         slices.append(profileSlice(from: profile))
+      }
+      for agent in agents {
+        if let slice = try? agent.desiredState() {
+          slices.append(slice)
+        }
       }
       return DesiredState(slices: slices)
     }
@@ -187,4 +199,8 @@ extension CreativeOS {
       return try runtime.plan()
     }
   }
+}
+
+extension CreativeOS.Agent {
+  func desiredState() throws -> CreativeOS.DesiredStateSlice? { nil }
 }

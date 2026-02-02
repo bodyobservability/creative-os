@@ -3,8 +3,8 @@ import ArgumentParser
 
 struct DubSweeper: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
-    commandName: "sweep",
-    abstract: "Run a maintenance sweep (regions, anchors, controllers, modal guard, Ableton liveness)."
+    commandName: "sweep-legacy",
+    abstract: "Run a maintenance sweep (legacy)."
   )
 
   @OptionGroup var common: CommonOptions

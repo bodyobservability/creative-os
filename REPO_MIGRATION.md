@@ -271,6 +271,23 @@ Any shortcut must be documented as a deliberate exception.
 
 ---
 
+## Status Update (2026-02-01)
+
+Completed or in place:
+- Phase 0–2: Creative OS schemas, bridge, and runtime exist; build/test gates are green.
+- Phase 3 (partial): `wub` is the only executable target; `sweep/plan` now route to Creative OS state outputs (legacy commands renamed).
+- Phase 4: profiles + pack manifests exist; selection persists to `notes/WUB_CONFIG.json`.
+- Phase 5: mapping table exists in `docs/creative_os_mapping.md` and is referenced at runtime.
+- Phase 6: snapshot tests for `state-sweep/state-plan` are present and passing.
+- `wub setup` exists and executes automated plan steps (previewable via `--dry-run`).
+- Core no longer hard-codes HVLIEN defaults (identity moved to profiles).
+
+Remaining gaps before completion:
+- CLI still contains domain logic beyond orchestration.
+- Agentization is incomplete (only profile/pack agents wired to runtime).
+
+---
+
 ## Migration Completion Statement
 
 Migration is complete when all are true:

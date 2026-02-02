@@ -13,10 +13,14 @@ swift build -c release
 Run the core commands:
 ```bash
 tools/automation/swift-cli/.build/release/wub sweep
-  # or for Creative OS state snapshots:
-  tools/automation/swift-cli/.build/release/wub state-sweep --json
 tools/automation/swift-cli/.build/release/wub plan --json
 tools/automation/swift-cli/.build/release/wub setup --show-manual
+```
+
+Legacy automation commands:
+```bash
+tools/automation/swift-cli/.build/release/wub sweep-legacy
+tools/automation/swift-cli/.build/release/wub plan-legacy --spec <spec.yaml> --resolve <resolve_report.json>
 ```
 
 Select a profile:

@@ -7,20 +7,25 @@ This repo is already wired; historical toolchain zips are not included.
 
 ## Core commands
 
+Creative OS state:
+  .build/release/wub sweep
+  .build/release/wub plan --json
+  .build/release/wub setup --show-manual
+
 A0 (safe‑mode manual inventory):
   .build/release/wub a0 --spec profiles/hvlien/specs/automation/examples/HVLIEN_RECORDING_BAY_v1.yaml --interactive
 
 Resolve‑only:
   .build/release/wub resolve --spec <spec.yaml> --inventory <inventory.v1.json> --controllers <controllers_inventory.v1.json> --interactive
 
-Plan:
-  .build/release/wub plan --spec <spec.yaml> --resolve <resolve_report.json>
+Plan (legacy):
+  .build/release/wub plan-legacy --spec <spec.yaml> --resolve <resolve_report.json>
 
 Apply:
   .build/release/wub apply --plan runs/<run_id>/plan.v1.json --teensy /dev/cu.usbmodemXXXX --evidence=fail --interactive
 
-DubSweeper (station readiness):
-  .build/release/wub sweep --modal-test detect --allow-ocr-fallback
+DubSweeper (station readiness, legacy):
+  .build/release/wub sweep-legacy --modal-test detect --allow-ocr-fallback
 
 ## UI automation utilities
 

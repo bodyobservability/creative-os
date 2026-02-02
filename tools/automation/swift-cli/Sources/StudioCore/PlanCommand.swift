@@ -1,8 +1,8 @@
 import Foundation
 import ArgumentParser
 
-struct Plan: ParsableCommand {
-  static let configuration = CommandConfiguration(commandName: "plan", abstract: "Generate plan.v1.json from spec + resolve_report.json")
+struct LegacyPlan: ParsableCommand {
+  static let configuration = CommandConfiguration(commandName: "plan-legacy", abstract: "Generate plan.v1.json from spec + resolve_report.json (legacy).")
 
   @OptionGroup var common: CommonOptions
 

@@ -28,6 +28,9 @@
           "policies": {},
           "requirements": {}
         }
+      },
+      {
+        "agent_id": "runtime"
       }
     ]
   },
