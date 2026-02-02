@@ -80,7 +80,7 @@ Key outcomes:
 ### Phase D — Legacy Surface Removal + Doc Cleanup
 **Goal:** fully remove compatibility command surfaces and update docs to the post‑migration CLI.
 
-Status: **Planned**
+Status: **Complete** (2026-02-02)
 
 Scope:
 1) **Remove legacy commands**  
@@ -96,6 +96,10 @@ Acceptance gate:
 - No `plan-legacy`/`sweep-legacy` command names remain in source or docs.
 - `wub` CLI help reflects only current commands.
 - `swift test` green.
+
+Key outcomes:
+- `plan-legacy` and `sweep-legacy` commands removed from the CLI.
+- Docs updated to reference current `wub` commands only.
 
 ## Principles (Locked)
 
