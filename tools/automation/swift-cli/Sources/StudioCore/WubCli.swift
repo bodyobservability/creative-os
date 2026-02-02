@@ -470,19 +470,19 @@ private func emit<T: Encodable>(_ value: T, json: Bool) throws {
   printSummary(value)
 }
 
-private let stateSetupAllowlist: Set<String> = [
+let stateSetupAllowlist: Set<String> = [
   "ready.check",
   "drift.check",
   "station.status"
 ]
 
-private struct SetupEvaluation {
+struct SetupEvaluation {
   let executable: [CreativeOS.PlanStep]
   let skipped: [(CreativeOS.PlanStep, String)]
   let manual: [CreativeOS.PlanStep]
 }
 
-private func evaluateSetupSteps(_ steps: [CreativeOS.PlanStep], allowlist: Set<String>) -> SetupEvaluation {
+func evaluateSetupSteps(_ steps: [CreativeOS.PlanStep], allowlist: Set<String>) -> SetupEvaluation {
   var executable: [CreativeOS.PlanStep] = []
   var skipped: [(CreativeOS.PlanStep, String)] = []
   var manual: [CreativeOS.PlanStep] = []
