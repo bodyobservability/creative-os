@@ -17,11 +17,6 @@ tools/automation/swift-cli/.build/release/wub plan --json
 tools/automation/swift-cli/.build/release/wub setup --show-manual
 ```
 
-Legacy automation commands:
-```bash
-tools/automation/swift-cli/.build/release/wub sweep
-```
-
 Select a profile:
 ```bash
 tools/automation/swift-cli/.build/release/wub profile use hvlien
@@ -46,10 +41,6 @@ tools/automation/swift-cli/.build/release/wub station status --format json --no-
 - `specs/` — specs, schemas, and runbooks
 - `docs/` — system docs and runbooks
 - `notes/` — operational notes and checklists
-
-## Status
-
-Migration milestones have been completed; the current architecture is documented throughout `docs/` and `profiles/`.
 
 ## Roadmap (Studio Operator)
 
