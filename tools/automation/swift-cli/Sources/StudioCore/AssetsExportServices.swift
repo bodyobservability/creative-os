@@ -2,6 +2,21 @@ import Foundation
 import ArgumentParser
 import Yams
 
+private func applyPlan(planPath: String,
+                       anchorsPack: String?,
+                       force: Bool,
+                       runsDir: String,
+                       regionsConfig: String) async throws -> ApplyService.Result {
+  try await ApplyService.run(config: .init(planPath: planPath,
+                                          anchorsPack: anchorsPack,
+                                          allowCgevent: false,
+                                          force: force,
+                                          runsDir: runsDir,
+                                          regionsConfig: regionsConfig,
+                                          evidence: "fail",
+                                          watchdogMs: 30000))
+}
+
 struct AssetsExportRacksService {
   struct Config {
     let force: Bool
@@ -49,8 +64,6 @@ struct AssetsExportRacksService {
     var reasons: [String] = []
     var warn = false
 
-    let exe = CommandLine.arguments.first ?? "wub"
-
     for rack in mf.racks {
       let targetTrack = rack.targetTrack ?? RackVerify.guessTrackHint(rack: rack)
       let fileName = sanitizeFileName(rack.displayName) + ".adg"
@@ -87,12 +100,14 @@ struct AssetsExportRacksService {
         continue
       }
 
-      var args = ["apply", "--plan", planPath.path]
-      if let ap = config.anchorsPack { args += ["--anchors-pack", ap] }
-      let code = try await runProcess(exe: exe, args: args)
-      if code != 0 {
-        items.append(.init(rackId: rack.rackId, displayName: rack.displayName, targetTrack: targetTrack, targetPath: targetPath, bytes: nil, result: "failed", notes: "apply_exit=\(code)"))
-        reasons.append("apply failed for \(rack.rackId) exit=\(code)")
+      let result = try await applyPlan(planPath: planPath.path,
+                                       anchorsPack: config.anchorsPack,
+                                       force: config.force,
+                                       runsDir: config.runsDir,
+                                       regionsConfig: config.regionsConfig)
+      if result.status != "success" {
+        items.append(.init(rackId: rack.rackId, displayName: rack.displayName, targetTrack: targetTrack, targetPath: targetPath, bytes: nil, result: "failed", notes: "apply_status=\(result.status)"))
+        reasons.append("apply failed for \(rack.rackId) status=\(result.status)")
         continue
       }
 
@@ -131,18 +146,6 @@ struct AssetsExportRacksService {
 
     try JSONIO.save(receipt, to: runDir.appendingPathComponent("racks_export_receipt.v1.json"))
     return receipt
-  }
-
-  private static func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
   }
 
   private static func sanitizeFileName(_ s: String) -> String {
@@ -224,11 +227,12 @@ struct AssetsExportPerformanceSetService {
                                            reasons: ["dry_run"])
     }
 
-    let exe = CommandLine.arguments.first ?? "wub"
-    var args = ["apply", "--plan", planPath.path]
-    if let ap = config.anchorsPack { args += ["--anchors-pack", ap] }
-    let code = try await runProcess(exe: exe, args: args)
-    if code != 0 {
+    let result = try await applyPlan(planPath: planPath.path,
+                                     anchorsPack: config.anchorsPack,
+                                     force: config.force,
+                                     runsDir: config.runsDir,
+                                     regionsConfig: config.regionsConfig)
+    if result.status != "success" {
       let receipt = PerformanceSetExportReceiptV1(schemaVersion: 1,
                                                   runId: runId,
                                                   timestamp: ISO8601DateFormatter().string(from: Date()),
@@ -236,9 +240,9 @@ struct AssetsExportPerformanceSetService {
                                                   status: "fail",
                                                   targetPath: config.out,
                                                   bytes: nil,
-                                                  reasons: ["apply_exit=\(code)"])
+                                                  reasons: ["apply_status=\(result.status)"])
       try JSONIO.save(receipt, to: runDir.appendingPathComponent("performance_set_export_receipt.v1.json"))
-      throw ExitCode(code)
+      throw ExitCode(1)
     }
 
     var reasons: [String] = []
@@ -266,17 +270,6 @@ struct AssetsExportPerformanceSetService {
     return receipt
   }
 
-  private static func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
-  }
 }
 
 struct AssetsExportFinishingBaysService {
@@ -319,7 +312,6 @@ struct AssetsExportFinishingBaysService {
     let doc = try (Yams.load(yaml: specText) as? [String: Any]) ?? [:]
     let bays = doc["bays"] as? [[String: Any]] ?? []
 
-    let exe = CommandLine.arguments.first ?? "wub"
     var items: [FinishingBayExportItemV1] = []
     var reasons: [String] = []
     var warn = false
@@ -365,12 +357,14 @@ struct AssetsExportFinishingBaysService {
       let planData = try JSONSerialization.data(withJSONObject: plan, options: [.prettyPrinted, .sortedKeys])
       try planData.write(to: planPath)
 
-      var args = ["apply", "--plan", planPath.path]
-      if let ap = config.anchorsPack { args += ["--anchors-pack", ap] }
-      let code = try await runProcess(exe: exe, args: args)
-      if code != 0 {
-        items.append(.init(bayId: bayId, name: name, targetPath: outPath, bytes: nil, result: "failed", notes: "apply_exit=\(code)"))
-        reasons.append("apply failed for \(bayId) exit=\(code)")
+      let result = try await applyPlan(planPath: planPath.path,
+                                       anchorsPack: config.anchorsPack,
+                                       force: config.force,
+                                       runsDir: config.runsDir,
+                                       regionsConfig: config.regionsConfig)
+      if result.status != "success" {
+        items.append(.init(bayId: bayId, name: name, targetPath: outPath, bytes: nil, result: "failed", notes: "apply_status=\(result.status)"))
+        reasons.append("apply failed for \(bayId) status=\(result.status)")
         continue
       }
 
@@ -407,18 +401,6 @@ struct AssetsExportFinishingBaysService {
                                                reasons: reasons)
     try JSONIO.save(receipt, to: runDir.appendingPathComponent("finishing_bays_export_receipt.v1.json"))
     return receipt
-  }
-
-  private static func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
   }
 
   private static func fileSize(_ path: String) -> Int? {
@@ -474,11 +456,12 @@ struct AssetsExportSerumBaseService {
     let data = try Data(contentsOf: URL(fileURLWithPath: planSrc))
     try data.write(to: planDst)
 
-    let exe = CommandLine.arguments.first ?? "wub"
-    var args = ["apply", "--plan", planDst.path]
-    if let ap = config.anchorsPack { args += ["--anchors-pack", ap] }
-    let code = try await runProcess(exe: exe, args: args)
-    if code != 0 {
+    let result = try await applyPlan(planPath: planDst.path,
+                                     anchorsPack: config.anchorsPack,
+                                     force: config.force,
+                                     runsDir: config.runsDir,
+                                     regionsConfig: config.regionsConfig)
+    if result.status != "success" {
       let receipt = SerumBaseExportReceiptV1(schemaVersion: 1,
                                              runId: runId,
                                              timestamp: ISO8601DateFormatter().string(from: Date()),
@@ -486,9 +469,9 @@ struct AssetsExportSerumBaseService {
                                              status: "fail",
                                              targetPath: config.out,
                                              bytes: nil,
-                                             reasons: ["apply_exit=\(code)"])
+                                             reasons: ["apply_status=\(result.status)"])
       try JSONIO.save(receipt, to: runDir.appendingPathComponent("serum_base_export_receipt.v1.json"))
-      throw ExitCode(code)
+      throw ExitCode(1)
     }
 
     var reasons: [String] = []
@@ -513,17 +496,6 @@ struct AssetsExportSerumBaseService {
     return receipt
   }
 
-  private static func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
-  }
 }
 
 struct AssetsExportExtrasService {
@@ -565,7 +537,6 @@ struct AssetsExportExtrasService {
     let doc = try (Yams.load(yaml: specText) as? [String: Any]) ?? [:]
     let exports = doc["exports"] as? [[String: Any]] ?? []
 
-    let exe = CommandLine.arguments.first ?? "wub"
     var items: [ExtraExportItemV1] = []
     var reasons: [String] = []
     var warn = false
@@ -601,12 +572,14 @@ struct AssetsExportExtrasService {
       let planData = try JSONSerialization.data(withJSONObject: plan, options: [.prettyPrinted, .sortedKeys])
       try planData.write(to: planPath)
 
-      var args = ["apply", "--plan", planPath.path]
-      if let ap = config.anchorsPack { args += ["--anchors-pack", ap] }
-      let code = try await runProcess(exe: exe, args: args)
-      if code != 0 {
-        items.append(.init(id: id, outputPath: outPath, bytes: nil, result: "failed", notes: "apply_exit=\(code)"))
-        reasons.append("apply failed for \(id) exit=\(code)")
+      let result = try await applyPlan(planPath: planPath.path,
+                                       anchorsPack: config.anchorsPack,
+                                       force: config.force,
+                                       runsDir: config.runsDir,
+                                       regionsConfig: config.regionsConfig)
+      if result.status != "success" {
+        items.append(.init(id: id, outputPath: outPath, bytes: nil, result: "failed", notes: "apply_status=\(result.status)"))
+        reasons.append("apply failed for \(id) status=\(result.status)")
         continue
       }
 
@@ -643,18 +616,6 @@ struct AssetsExportExtrasService {
                                         reasons: reasons)
     try JSONIO.save(receipt, to: runDir.appendingPathComponent("extra_exports_receipt.v1.json"))
     return receipt
-  }
-
-  private static func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
   }
 
   private static func fileSize(_ path: String) -> Int? {

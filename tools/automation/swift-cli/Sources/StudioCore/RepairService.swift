@@ -19,17 +19,11 @@ struct RepairService {
     let runDir = URL(fileURLWithPath: config.runsDir).appendingPathComponent(runId, isDirectory: true)
     try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
 
-    let hv = CommandLine.arguments.first ?? "wub"
-    let exportArgs = [hv, "assets", "export-all", "--anchors-pack", config.anchorsPackHint] + (config.overwrite ? ["--overwrite"] : [])
-    let indexArgs = [hv, "index", "build"]
-    let driftCheckArgs = [hv, "drift", "check", "--anchors-pack-hint", config.anchorsPackHint]
-    let driftFixArgs = [hv, "drift", "fix", "--anchors-pack-hint", config.anchorsPackHint]
-
     let plan = [
-      exportArgs.joined(separator: " "),
-      indexArgs.joined(separator: " "),
-      driftCheckArgs.joined(separator: " "),
-      driftFixArgs.joined(separator: " ")
+      "service: assets.export_all",
+      "service: index.build",
+      "service: drift.check",
+      "service: drift.fix"
     ]
 
     print("REPAIR PLAN (v1)")
@@ -46,17 +40,16 @@ struct RepairService {
     var status: String = "pass"
 
     @discardableResult
-    func step(_ id: String, _ args: [String]) async -> Int32 {
-      let cmd = args.joined(separator: " ")
+    func step(_ id: String, _ command: String, _ action: () async throws -> Int32) async -> Int32 {
       let code: Int32
-      do { code = try await runProcess(exe: args[0], args: Array(args.dropFirst())) }
+      do { code = try await action() }
       catch {
-        steps.append(.init(id: id, command: cmd, exitCode: 999))
-        reasons.append("\(id): error")
+        steps.append(.init(id: id, command: command, exitCode: 999))
+        reasons.append("\(id): \(error.localizedDescription)")
         status = "fail"
         return 999
       }
-      steps.append(.init(id: id, command: cmd, exitCode: Int(code)))
+      steps.append(.init(id: id, command: command, exitCode: Int(code)))
       if code != 0 {
         reasons.append("\(id): exit=\(code)")
         if status == "pass" { status = "fail" }
@@ -64,19 +57,60 @@ struct RepairService {
       return code
     }
 
-    let exportCode = await step("export_all", exportArgs)
+    let exportCode = await step("export_all", "service: assets.export_all") {
+      let receipt = try await AssetsService.exportAll(config: .init(anchorsPack: config.anchorsPackHint,
+                                                                    overwrite: config.overwrite,
+                                                                    nonInteractive: true,
+                                                                    preflight: true,
+                                                                    runsDir: config.runsDir,
+                                                                    regionsConfig: "tools/automation/swift-cli/config/regions.v1.json",
+                                                                    racksOut: WubDefaults.packPath("ableton/racks/BASS_RACKS_v1.0"),
+                                                                    performanceOut: WubDefaults.packPath("ableton/performance-sets/BASS_PERFORMANCE_SET_v1.0.als"),
+                                                                    baysSpec: WubDefaults.profileSpecPath("assets/export/finishing_bays_export.v1.yaml"),
+                                                                    serumOut: "library/serum/SERUM_BASE_v1.0.fxp",
+                                                                    extrasSpec: WubDefaults.profileSpecPath("assets/export/extra_exports.v1.yaml"),
+                                                                    postcheck: true,
+                                                                    rackVerifyManifest: WubDefaults.profileSpecPath("library/racks/rack_pack_manifest.v1.json"),
+                                                                    vrlMapping: WubDefaults.profileSpecPath("voice_runtime/v9_3_ableton_mapping.v1.yaml"),
+                                                                    force: config.force))
+      return receipt.status == "fail" ? 1 : 0
+    }
     if exportCode != 0 {
       return finalize(runId: runId, runDir: runDir, steps: steps, reasons: reasons, status: status, runsDir: config.runsDir)
     }
 
-    let indexCode = await step("index_build", indexArgs)
+    let indexCode = await step("index_build", "service: index.build") {
+      _ = try IndexService.build(config: .init(repoVersion: "v1.8.4",
+                                               outDir: "checksums/index",
+                                               runsDir: config.runsDir))
+      return 0
+    }
     if indexCode != 0 {
       return finalize(runId: runId, runDir: runDir, steps: steps, reasons: reasons, status: status, runsDir: config.runsDir)
     }
 
-    let driftCode = await step("drift_check", driftCheckArgs)
+    let driftCode = await step("drift_check", "service: drift.check") {
+      _ = try DriftService.check(config: .init(artifactIndex: "checksums/index/artifact_index.v1.json",
+                                               receiptIndex: "checksums/index/receipt_index.v1.json",
+                                               anchorsPackHint: config.anchorsPackHint,
+                                               out: nil,
+                                               format: "human",
+                                               groupByFix: true,
+                                               onlyFail: false))
+      return 0
+    }
     if driftCode != 0 {
-      let fixCode = await step("drift_fix", driftFixArgs)
+      let fixCode = await step("drift_fix", "service: drift.fix") {
+        let receipt = try await DriftFixService.run(config: .init(force: config.force,
+                                                                  artifactIndex: "checksums/index/artifact_index.v1.json",
+                                                                  receiptIndex: "checksums/index/receipt_index.v1.json",
+                                                                  anchorsPackHint: config.anchorsPackHint,
+                                                                  yes: config.yes,
+                                                                  dryRun: false,
+                                                                  out: nil,
+                                                                  runsDir: config.runsDir))
+        return receipt.status == "fail" ? 1 : 0
+      }
       if fixCode == 0 && status == "fail" { status = "warn" }
     }
 
@@ -100,15 +134,4 @@ struct RepairService {
     return receipt
   }
 
-  private static func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
-  }
 }

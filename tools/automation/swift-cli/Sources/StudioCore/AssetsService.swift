@@ -38,71 +38,162 @@ struct AssetsService {
       if report.status == "fail" { throw ExitCode(2) }
     }
 
-    let exe = CommandLine.arguments.first ?? "wub"
     var steps: [AssetsExportStepV1] = []
     var reasons: [String] = []
     var artifacts: [String: String] = [:]
 
-    @discardableResult
-    func step(_ id: String, _ args: [String]) async -> Int32 {
-      let cmd = ([exe] + args).joined(separator: " ")
-      let code: Int32
-      do { code = try await runProcess(exe: exe, args: args) }
-      catch { steps.append(.init(id: id, command: cmd, exitCode: 999)); reasons.append("\(id): error"); return 999 }
-      steps.append(.init(id: id, command: cmd, exitCode: Int(code)))
-      if code != 0 { reasons.append("\(id): exit=\(code)") }
-      return code
+    func recordStep(id: String, command: String, exitCode: Int) {
+      steps.append(.init(id: id, command: command, exitCode: exitCode))
+      if exitCode != 0 { reasons.append("\(id): exit=\(exitCode)") }
     }
 
-    var racksArgs = ["assets","export-racks","--out-dir", config.racksOut]
-    if let ap = config.anchorsPack { racksArgs += ["--anchors-pack", ap] }
-    if config.overwrite { racksArgs += ["--overwrite", "always"] } else { racksArgs += ["--overwrite", config.nonInteractive ? "never" : "ask"] }
-    if config.nonInteractive { racksArgs += ["--interactive=false"] }
-    _ = await step("export_racks", racksArgs)
+    let racksExit: Int
+    do {
+      let receipt = try await AssetsExportRacksService.run(config: .init(force: config.force,
+                                                                          manifest: config.rackVerifyManifest,
+                                                                          outDir: config.racksOut,
+                                                                          anchorsPack: config.anchorsPack,
+                                                                          minBytes: 20000,
+                                                                          warnBytes: 80000,
+                                                                          overwrite: config.overwrite ? "always" : (config.nonInteractive ? "never" : "ask"),
+                                                                          dryRun: false,
+                                                                          interactive: !config.nonInteractive,
+                                                                          preflight: config.preflight,
+                                                                          runsDir: config.runsDir,
+                                                                          regionsConfig: config.regionsConfig))
+      racksExit = (receipt.status == "fail") ? 1 : 0
+      if racksExit != 0 { reasons.append("export_racks: status=\(receipt.status)") }
+    } catch {
+      reasons.append("export_racks: \(error.localizedDescription)")
+      racksExit = 999
+    }
+    recordStep(id: "export_racks", command: "service: assets.export_racks", exitCode: racksExit)
     artifacts["racks_out_dir"] = config.racksOut
 
     if config.postcheck {
       if FileManager.default.fileExists(atPath: config.rackVerifyManifest) {
-        var verifyArgs = ["rack","verify","--manifest", config.rackVerifyManifest]
-        if let ap = config.anchorsPack { verifyArgs += ["--anchors-pack", ap] }
-        _ = await step("verify_racks", verifyArgs)
+        let verifyExit: Int
+        do {
+          let receipt = try await RackVerifyService.verify(config: .init(manifest: config.rackVerifyManifest,
+                                                                         macroRegion: "rack.macros",
+                                                                         runApply: true,
+                                                                         anchorsPack: config.anchorsPack,
+                                                                         runsDir: config.runsDir))
+          verifyExit = (receipt.status == "pass") ? 0 : 1
+          if verifyExit != 0 { reasons.append("verify_racks: status=\(receipt.status)") }
+        } catch {
+          reasons.append("verify_racks: \(error.localizedDescription)")
+          verifyExit = 999
+        }
+        recordStep(id: "verify_racks", command: "service: rack.verify", exitCode: verifyExit)
       } else {
         reasons.append("verify_racks: missing manifest \(config.rackVerifyManifest)")
+        recordStep(id: "verify_racks", command: "service: rack.verify", exitCode: 1)
       }
     }
 
-    var perfArgs = ["assets","export-performance-set","--out", config.performanceOut]
-    if let ap = config.anchorsPack { perfArgs += ["--anchors-pack", ap] }
-    if config.overwrite { perfArgs += ["--overwrite"] }
-    _ = await step("export_performance_set", perfArgs)
+    let perfExit: Int
+    do {
+      let receipt = try await AssetsExportPerformanceSetService.run(config: .init(force: config.force,
+                                                                                  out: config.performanceOut,
+                                                                                  anchorsPack: config.anchorsPack,
+                                                                                  minBytes: 200000,
+                                                                                  warnBytes: 1000000,
+                                                                                  dryRun: false,
+                                                                                  overwrite: config.overwrite,
+                                                                                  preflight: config.preflight,
+                                                                                  runsDir: config.runsDir,
+                                                                                  regionsConfig: config.regionsConfig))
+      perfExit = (receipt.status == "fail") ? 1 : 0
+      if perfExit != 0 { reasons.append("export_performance_set: status=\(receipt.status)") }
+    } catch {
+      reasons.append("export_performance_set: \(error.localizedDescription)")
+      perfExit = 999
+    }
+    recordStep(id: "export_performance_set", command: "service: assets.export_performance_set", exitCode: perfExit)
     artifacts["performance_set_out"] = config.performanceOut
 
     if config.postcheck {
       if FileManager.default.fileExists(atPath: config.vrlMapping) {
-        let vrlArgs = ["vrl","validate","--mapping", config.vrlMapping, "--regions", config.regionsConfig]
-        _ = await step("vrl_validate", vrlArgs)
+        let vrlExit: Int
+        do {
+          let receipt = try await VRLService.validate(config: .init(mapping: config.vrlMapping,
+                                                                    regions: config.regionsConfig,
+                                                                    out: nil,
+                                                                    dump: false,
+                                                                    runsDir: config.runsDir))
+          vrlExit = (receipt.status == "fail") ? 1 : 0
+          if vrlExit != 0 { reasons.append("vrl_validate: status=\(receipt.status)") }
+        } catch {
+          reasons.append("vrl_validate: \(error.localizedDescription)")
+          vrlExit = 999
+        }
+        recordStep(id: "vrl_validate", command: "service: vrl.validate", exitCode: vrlExit)
       } else {
         reasons.append("vrl_validate: missing mapping \(config.vrlMapping)")
+        recordStep(id: "vrl_validate", command: "service: vrl.validate", exitCode: 1)
       }
     }
 
-    var baysArgs = ["assets","export-finishing-bays","--spec", config.baysSpec]
-    if let ap = config.anchorsPack { baysArgs += ["--anchors-pack", ap] }
-    if config.overwrite { baysArgs += ["--overwrite"] }
-    if config.nonInteractive { baysArgs += ["--prompt-each=false"] }
-    _ = await step("export_finishing_bays", baysArgs)
+    let baysExit: Int
+    do {
+      let receipt = try await AssetsExportFinishingBaysService.run(config: .init(force: config.force,
+                                                                                spec: config.baysSpec,
+                                                                                anchorsPack: config.anchorsPack,
+                                                                                minBytes: 200000,
+                                                                                warnBytes: 1000000,
+                                                                                overwrite: config.overwrite,
+                                                                                promptEach: !config.nonInteractive,
+                                                                                preflight: config.preflight,
+                                                                                runsDir: config.runsDir,
+                                                                                regionsConfig: config.regionsConfig))
+      baysExit = (receipt.status == "fail") ? 1 : 0
+      if baysExit != 0 { reasons.append("export_finishing_bays: status=\(receipt.status)") }
+    } catch {
+      reasons.append("export_finishing_bays: \(error.localizedDescription)")
+      baysExit = 999
+    }
+    recordStep(id: "export_finishing_bays", command: "service: assets.export_finishing_bays", exitCode: baysExit)
     artifacts["finishing_bays_spec"] = config.baysSpec
 
-    var serumArgs = ["assets","export-serum-base","--out", config.serumOut]
-    if let ap = config.anchorsPack { serumArgs += ["--anchors-pack", ap] }
-    if config.overwrite { serumArgs += ["--overwrite"] }
-    _ = await step("export_serum_base", serumArgs)
+    let serumExit: Int
+    do {
+      let receipt = try await AssetsExportSerumBaseService.run(config: .init(force: config.force,
+                                                                             out: config.serumOut,
+                                                                             anchorsPack: config.anchorsPack,
+                                                                             minBytes: 5000,
+                                                                             warnBytes: 20000,
+                                                                             overwrite: config.overwrite,
+                                                                             preflight: config.preflight,
+                                                                             runsDir: config.runsDir,
+                                                                             regionsConfig: config.regionsConfig))
+      serumExit = (receipt.status == "fail") ? 1 : 0
+      if serumExit != 0 { reasons.append("export_serum_base: status=\(receipt.status)") }
+    } catch {
+      reasons.append("export_serum_base: \(error.localizedDescription)")
+      serumExit = 999
+    }
+    recordStep(id: "export_serum_base", command: "service: assets.export_serum_base", exitCode: serumExit)
     artifacts["serum_base_out"] = config.serumOut
 
-    var extrasArgs = ["assets","export-extras","--spec", config.extrasSpec]
-    if let ap = config.anchorsPack { extrasArgs += ["--anchors-pack", ap] }
-    if config.overwrite { extrasArgs += ["--overwrite"] }
-    _ = await step("export_extras", extrasArgs)
+    let extrasExit: Int
+    do {
+      let receipt = try await AssetsExportExtrasService.run(config: .init(force: config.force,
+                                                                          spec: config.extrasSpec,
+                                                                          anchorsPack: config.anchorsPack,
+                                                                          minBytes: 20000,
+                                                                          warnBytes: 80000,
+                                                                          overwrite: config.overwrite,
+                                                                          preflight: config.preflight,
+                                                                          runsDir: config.runsDir,
+                                                                          regionsConfig: config.regionsConfig))
+      extrasExit = (receipt.status == "fail") ? 1 : 0
+      if extrasExit != 0 { reasons.append("export_extras: status=\(receipt.status)") }
+    } catch {
+      reasons.append("export_extras: \(error.localizedDescription)")
+      extrasExit = 999
+    }
+    recordStep(id: "export_extras", command: "service: assets.export_extras", exitCode: extrasExit)
     artifacts["extras_spec"] = config.extrasSpec
 
     let hasFail = reasons.contains(where: { $0.contains("exit=") && !$0.contains("exit=0") })
@@ -120,15 +211,4 @@ struct AssetsService {
     return receipt
   }
 
-  private static func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
-  }
 }
