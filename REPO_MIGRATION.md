@@ -48,7 +48,7 @@ Key outcomes:
 ### Phase C — Agent Execution Refactor (Legacy Command Removal)
 **Goal:** remove remaining CLI shell-outs by wiring agents to service execution and deprecating legacy command surfaces.
 
-Status: **Planned**
+Status: **Complete** (2026-02-02)
 
 Scope:
 1) **Service Execution Layer**  
@@ -71,6 +71,11 @@ Suggested execution order:
 Acceptance gate:
 - Agents can execute automated steps without spawning `wub`
 - `swift test` green
+
+Key outcomes:
+- `ServiceExecutor` executes `PlanStep` action refs; `setup` prefers service execution with process fallback.
+- Voice/rack/session, assets/index/repair, sonic/pipeline, and release/drift-fix paths now call services directly.
+- Legacy `plan-legacy` and `sweep-legacy` emit deprecation messaging.
 
 ## Principles (Locked)
 
