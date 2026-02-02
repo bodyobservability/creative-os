@@ -10,18 +10,59 @@ The migration **must be followed in order**. Deviations require updating this fi
 
 ---
 
-## Current Status (as of 2026-02-01)
+## Current Status (as of 2026-02-02)
 - Phase 0 — Schemas & Contracts: **Complete** (CreativeOS models + JSONValue + agent contract in `StudioCore`).
 - Phase 1 — Execution Bridge: **Complete** (legacy reports map into CreativeOS checks/plans with deterministic tests).
 - Phase 2 — Core Runtime + Agent Interface: **Complete** (runtime merges observed/desired slices; `wub` uses it).
 - Phase 3 — `wub` CLI: **Complete** (sweep/state-sweep/state-plan/state-setup/profile use available).
 - Phase 4 — Profile + Pack Manifests + Selection Store: **Complete** (`profiles/`, `packs/`, `notes/WUB_CONFIG.json`).
-- Phase 5 — Asset + Spec Migration Mapping: **In progress** (mapping table still needs codifying in docs + runtime validation).
+- Phase 5 — Asset + Spec Migration Mapping: **Complete** (mapping table in code + runtime validation wired).
 - Phase 6 — Testing & CI: **Complete** (`swift test` green; snapshot + mapping tests present).
 - Phase 7 — Identity Hard Cut: **Mostly complete** (repo renamed to `studio-operator`; `wub` is the only CLI; lingering legacy docs/labels may remain).
 
 Notes:
-- Legacy command internals are being moved into services so `wub` and agents share the same logic (Phase B refactor in progress).
+- Legacy command internals have been moved into services so `wub` and agents share the same logic (Phase B refactor complete).
+
+## Internal Lettered Phases (Tracking)
+These phases were used to sequence work that spans multiple numbered phases above.
+
+### Phase A — Agent Contract + Runtime Parity
+**Goal:** land the CreativeOS schemas, agent contract, runtime bridge, and `wub` parity without changing behavior.
+
+Status: **Complete**
+
+Key outcomes:
+- CreativeOS models + JSONValue + agent contract in `StudioCore`
+- Runtime merges observed/desired slices and emits `sweep`/`plan`
+- `wub` CLI uses runtime/bridge with JSON + human output
+
+### Phase B — Service Refactor (Legacy Command Internals)
+**Goal:** move deep CLI logic into service modules so commands and agents share a single implementation surface.
+
+Status: **Complete**
+
+Key outcomes:
+- Service modules cover sweeper, drift, ready, station, assets, voice/rack/session, index, release/report/repair, sonic/pipeline/drift-fix, VRL, station status, operator shell, and audio analysis utilities
+- Commands delegate to services; behavior preserved
+
+### Phase C — Agent Execution Refactor (Legacy Command Removal)
+**Goal:** remove remaining CLI shell-outs by wiring agents to service execution and deprecating legacy command surfaces.
+
+Status: **Planned**
+
+Scope:
+1) **Service Execution Layer**  
+   Add a central executor that can invoke services directly and map `PlanStep` actions to service calls (no `Process`/shell).
+2) **Replace Shell-Outs in Services**  
+   Move orchestration from `wub` subprocesses to direct service calls (voice/session/assets/sonic/pipeline/repair/release/drift-fix).
+3) **Agent Plan Steps → Service Actions**  
+   Update `WubAgents` to emit structured action refs instead of CLI strings; `setup` uses executor.
+4) **Deprecate Legacy CLI Surfaces**  
+   Mark `plan-legacy` and `sweep-legacy` as compatibility-only and add deprecation messaging.
+
+Acceptance gate:
+- Agents can execute automated steps without spawning `wub`
+- `swift test` green
 
 ## Principles (Locked)
 
