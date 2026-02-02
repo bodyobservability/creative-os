@@ -1,7 +1,7 @@
 import Foundation
 
 enum CreativeOSBridge {
-  // Mapping tables from legacy report enums/strings to CreativeOS enums.
+  // Mapping tables from report enums/strings to CreativeOS enums.
   static let sweeperStatusMap: [DubSweeperStatus: CreativeOS.CheckSeverity] = [
     .pass: .pass,
     .fail: .fail,
