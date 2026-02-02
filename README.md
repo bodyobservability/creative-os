@@ -49,7 +49,7 @@ tools/automation/swift-cli/.build/release/wub station status --format json --no-
 
 ## Status
 
-Migration progress is tracked in `REPO_MIGRATION.md`.
+Migration milestones have been completed; the current architecture is documented throughout `docs/` and `profiles/`.
 
 ## Roadmap (Studio Operator)
 
