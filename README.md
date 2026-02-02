@@ -17,6 +17,13 @@ tools/automation/swift-cli/.build/release/wub plan --json
 tools/automation/swift-cli/.build/release/wub setup --show-manual
 ```
 
+Launch the Operator Shell (TUI):
+```bash
+make studio
+# or
+tools/automation/swift-cli/.build/release/wub ui
+```
+
 Select a profile:
 ```bash
 tools/automation/swift-cli/.build/release/wub profile use hvlien
