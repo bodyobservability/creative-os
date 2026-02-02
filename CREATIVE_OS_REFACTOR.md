@@ -55,7 +55,7 @@ These invariants should be true after every PR:
   - [x] Add injectable Wub store root for tests (no behavior change).
   - [x] Add minimal fixtures for profiles + WUB_CONFIG.
   - [x] Test WubContext plan report ordering is deterministic.
-  - [ ] Test ServiceExecutor rejects unsupported action IDs.
+  - [x] Test ServiceExecutor rejects unsupported action IDs.
 
 **Acceptance criteria:**
 
