@@ -16,7 +16,7 @@ This is the full CLI reference for automation operations. If you are operating i
 
 ## Plan/apply
 ```bash
-.build/release/wub plan-legacy --in /path/to/specs --out /tmp/plan.json
+.build/release/wub plan --json
 .build/release/wub apply --plan /tmp/plan.json
 ```
 

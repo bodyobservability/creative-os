@@ -19,8 +19,7 @@ tools/automation/swift-cli/.build/release/wub setup --show-manual
 
 Legacy automation commands:
 ```bash
-tools/automation/swift-cli/.build/release/wub sweep-legacy
-tools/automation/swift-cli/.build/release/wub plan-legacy --spec <spec.yaml> --resolve <resolve_report.json>
+tools/automation/swift-cli/.build/release/wub sweep
 ```
 
 Select a profile:

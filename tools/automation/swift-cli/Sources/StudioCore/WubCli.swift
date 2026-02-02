@@ -13,7 +13,6 @@ struct WubCli: AsyncParsableCommand {
       Drift.self,
       WubSweep.self,
       WubPlan.self,
-      LegacyPlan.self,
       Apply.self,
       WubSetup.self,
 
@@ -24,7 +23,6 @@ struct WubCli: AsyncParsableCommand {
       RegionsSelect.self,
 
       // Safety + ops
-      DubSweeper.self,
       MidiList.self,
 
       // Voice + racks + sessions

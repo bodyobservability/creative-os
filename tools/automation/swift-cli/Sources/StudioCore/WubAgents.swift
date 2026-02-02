@@ -188,7 +188,7 @@ struct SweeperAgent: CreativeOS.Agent {
   }
 
   private func buildCommand() -> String {
-    var args: [String] = ["wub", "sweep-legacy"]
+    var args: [String] = ["wub", "sweep"]
     if let anchorsPack = config.anchorsPack, !anchorsPack.isEmpty {
       args += ["--anchors-pack", anchorsPack]
     }
