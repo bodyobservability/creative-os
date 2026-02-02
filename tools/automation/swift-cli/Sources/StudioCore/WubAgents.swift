@@ -381,6 +381,15 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
     let rackInstallCmd = "wub rack install" + apArgs + macroArgs + cgArg
     let rackVerifyCmd = "wub rack verify" + apArgs + macroArgs
     let sessionCmd = "wub session compile --profile \(config.sessionProfile)" + (anchorsFlag.isEmpty ? "" : " --anchors-pack \(anchorsFlag)")
+    let vrsCfg = configEffect(id: "voice_rack_session_config",
+                              payload: [
+                                "session_profile": config.sessionProfile,
+                                "session_profile_path": WubDefaults.profileSpecPath("session/profiles/\(config.sessionProfile).yaml"),
+                                "anchors_pack": anchorsFlag,
+                                "macro_region": config.macroRegion,
+                                "allow_cgevent": config.allowCgevent,
+                                "fix": config.fix
+                              ])
     let sessionCfg = configEffect(id: "session_config",
                                   payload: [
                                     "profile": config.sessionProfile,
@@ -393,27 +402,39 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(voiceCmd)",
-                           effects: [CreativeOS.Effect(id: "voice_run", kind: .process, target: voiceCmd, description: "Run voice handshake")],
+                           effects: [
+                             vrsCfg,
+                             CreativeOS.Effect(id: "voice_run", kind: .process, target: voiceCmd, description: "Run voice handshake")
+                           ],
                            idempotent: true,
-                           manualReason: "voice_run_required")]
+                           manualReason: "voice_run_required",
+                           actionRef: .init(id: "voice.run", kind: .setup, description: "Run voice handshake service"))]
     }
     p.register(id: "rack_install") {
       [CreativeOS.PlanStep(id: "rack_install",
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(rackInstallCmd)",
-                           effects: [CreativeOS.Effect(id: "rack_install", kind: .process, target: rackInstallCmd, description: "Install racks")],
+                           effects: [
+                             vrsCfg,
+                             CreativeOS.Effect(id: "rack_install", kind: .process, target: rackInstallCmd, description: "Install racks")
+                           ],
                            idempotent: true,
-                           manualReason: "rack_install_required")]
+                           manualReason: "rack_install_required",
+                           actionRef: .init(id: "rack.install", kind: .setup, description: "Run rack install service"))]
     }
     p.register(id: "rack_verify") {
       [CreativeOS.PlanStep(id: "rack_verify",
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(rackVerifyCmd)",
-                           effects: [CreativeOS.Effect(id: "rack_verify", kind: .process, target: rackVerifyCmd, description: "Verify racks")],
+                           effects: [
+                             vrsCfg,
+                             CreativeOS.Effect(id: "rack_verify", kind: .process, target: rackVerifyCmd, description: "Verify racks")
+                           ],
                            idempotent: true,
-                           manualReason: "rack_verify_required")]
+                           manualReason: "rack_verify_required",
+                           actionRef: .init(id: "rack.verify", kind: .setup, description: "Run rack verify service"))]
     }
     p.register(id: "session_compile") {
       [CreativeOS.PlanStep(id: "session_compile",

@@ -6,6 +6,10 @@ struct ServiceExecutor {
     let raw: [String: Any]
 
     func string(_ key: String) -> String? { raw[key] as? String }
+    func stringNonEmpty(_ key: String) -> String? {
+      guard let val = raw[key] as? String, !val.isEmpty else { return nil }
+      return val
+    }
     func bool(_ key: String) -> Bool? { raw[key] as? Bool }
     func int(_ key: String) -> Int? { raw[key] as? Int }
     func double(_ key: String) -> Double? { raw[key] as? Double }
@@ -82,36 +86,66 @@ struct ServiceExecutor {
       return receipt.status == "fail" ? 1 : 0
 
     case "voice.run":
-      guard let script = bag.string("script"), let abi = bag.string("abi"), let anchorsPack = bag.string("anchors_pack") else {
+      var script = bag.string("script")
+      var abi = bag.string("abi")
+      var anchorsPack = bag.stringNonEmpty("anchors_pack")
+      var regions = bag.string("regions")
+      var macroOcr = bag.bool("macro_ocr")
+      var macroRegion = bag.string("macro_region")
+      if let sessionProfile = try loadSessionProfile(from: bag) {
+        script = script ?? sessionProfile.voiceScript
+        abi = abi ?? sessionProfile.voiceAbi
+        anchorsPack = anchorsPack ?? sessionProfile.anchorsPack
+        regions = regions ?? sessionProfile.regionsPath
+        macroOcr = macroOcr ?? sessionProfile.voiceMacroOCR
+        macroRegion = macroRegion ?? sessionProfile.voiceMacroRegion
+      }
+      guard let script, let abi, let anchorsPack, let regions else {
         throw ExecutionError.missingConfig
       }
       let config = VoiceService.RunConfig(script: script,
                                           abi: abi,
                                           anchorsPack: anchorsPack,
-                                          regions: bag.string("regions") ?? "tools/automation/swift-cli/config/regions.v1.json",
-                                          macroOcr: bag.bool("macro_ocr") ?? false,
-                                          macroRegion: bag.string("macro_region") ?? "rack.macros",
+                                          regions: regions,
+                                          macroOcr: macroOcr ?? true,
+                                          macroRegion: macroRegion ?? "rack.macros",
                                           fix: bag.bool("fix") ?? false,
                                           runsDir: bag.string("runs_dir") ?? "runs")
       let receipt = try await VoiceService.run(config: config)
       return receipt.status == "fail" ? 1 : 0
 
     case "rack.install":
-      guard let manifest = bag.string("manifest") else { throw ExecutionError.missingConfig }
+      var manifest = bag.string("manifest")
+      var macroRegion = bag.string("macro_region")
+      var anchorsPack = bag.stringNonEmpty("anchors_pack")
+      if let sessionProfile = try loadSessionProfile(from: bag) {
+        manifest = manifest ?? sessionProfile.rackManifest
+        macroRegion = macroRegion ?? sessionProfile.rackMacroRegion
+        anchorsPack = anchorsPack ?? sessionProfile.anchorsPack
+      }
+      guard let manifest else { throw ExecutionError.missingConfig }
       let config = RackInstallService.Config(manifest: manifest,
-                                             macroRegion: bag.string("macro_region") ?? "rack.macros",
-                                             anchorsPack: bag.string("anchors_pack"),
+                                             macroRegion: macroRegion ?? "rack.macros",
+                                             anchorsPack: anchorsPack,
                                              allowCgevent: bag.bool("allow_cgevent") ?? false,
                                              runsDir: bag.string("runs_dir") ?? "runs")
       let receipt = try await RackInstallService.install(config: config)
       return receipt.status == "fail" ? 1 : 0
 
     case "rack.verify":
-      guard let manifest = bag.string("manifest") else { throw ExecutionError.missingConfig }
+      var manifest = bag.string("manifest")
+      var macroRegion = bag.string("macro_region")
+      var anchorsPack = bag.stringNonEmpty("anchors_pack")
+      if let sessionProfile = try loadSessionProfile(from: bag) {
+        manifest = manifest ?? sessionProfile.rackManifest
+        macroRegion = macroRegion ?? sessionProfile.rackMacroRegion
+        anchorsPack = anchorsPack ?? sessionProfile.anchorsPack
+      }
+      guard let manifest else { throw ExecutionError.missingConfig }
       let config = RackVerifyService.Config(manifest: manifest,
-                                            macroRegion: bag.string("macro_region") ?? "rack.macros",
+                                            macroRegion: macroRegion ?? "rack.macros",
                                             runApply: bag.bool("run_apply") ?? true,
-                                            anchorsPack: bag.string("anchors_pack"),
+                                            anchorsPack: anchorsPack,
                                             runsDir: bag.string("runs_dir") ?? "runs")
       let receipt = try await RackVerifyService.verify(config: config)
       return receipt.status == "fail" ? 1 : 0
@@ -188,5 +222,11 @@ struct ServiceExecutor {
       throw ExecutionError.missingConfig
     }
     return ConfigBag(raw: obj)
+  }
+
+  private static func loadSessionProfile(from bag: ConfigBag) throws -> SessionService.SessionProfileConfig? {
+    guard let profileId = bag.string("session_profile") ?? bag.string("profile") else { return nil }
+    let profilePath = bag.string("session_profile_path")
+    return try SessionService.loadProfileConfig(profile: profileId, profilePath: profilePath)
   }
 }
