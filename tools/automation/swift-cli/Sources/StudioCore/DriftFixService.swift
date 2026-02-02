@@ -82,9 +82,9 @@ struct DriftFixService {
         }
       }
 
-      let exit = try await runShell(cmd: cmd)
-      steps.append(.init(id: "step_\(i+1)", command: cmd, exitCode: Int(exit), notes: nil))
-      if exit != 0 {
+      let result = try await execute(command: cmd, config: config)
+      steps.append(.init(id: "step_\(i+1)", command: cmd, exitCode: result.exitCode, notes: result.notes))
+      if result.exitCode != 0 {
         reasons.append("command_failed(step_\(i+1))")
         overallStatus = "fail"
         break
@@ -97,15 +97,109 @@ struct DriftFixService {
     return receipt
   }
 
-  private static func runShell(cmd: String) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: "/bin/zsh")
-      p.arguments = ["-lc", cmd]
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
+  private struct CommandExecutionResult {
+    let exitCode: Int
+    let notes: String?
+  }
+
+  private static func execute(command: String, config: Config) async throws -> CommandExecutionResult {
+    let trimmed = command.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard trimmed.lowercased().hasPrefix("service:") else {
+      return CommandExecutionResult(exitCode: 1, notes: "unsupported_command")
     }
+
+    let parts = trimmed.split(separator: " ").map(String.init)
+    guard let head = parts.first else {
+      return CommandExecutionResult(exitCode: 1, notes: "empty_command")
+    }
+    let actionId = head.replacingOccurrences(of: "service:", with: "")
+    let flags = parseFlags(Array(parts.dropFirst()))
+
+    switch actionId {
+    case "assets.export_racks":
+      let receipt = try await AssetsExportRacksService.run(config: .init(force: config.force,
+                                                                          manifest: flags["manifest"] ?? WubDefaults.profileSpecPath("library/racks/rack_pack_manifest.v1.json"),
+                                                                          outDir: flags["out_dir"] ?? WubDefaults.packPath("ableton/racks/BASS_RACKS_v1.0"),
+                                                                          anchorsPack: flags["anchors_pack"],
+                                                                          minBytes: 20000,
+                                                                          warnBytes: 80000,
+                                                                          overwrite: flags["overwrite"] == "true" ? "always" : "ask",
+                                                                          dryRun: false,
+                                                                          interactive: false,
+                                                                          preflight: true,
+                                                                          runsDir: config.runsDir,
+                                                                          regionsConfig: "tools/automation/swift-cli/config/regions.v1.json"))
+      return CommandExecutionResult(exitCode: receipt.status == "fail" ? 1 : 0, notes: nil)
+
+    case "assets.export_performance_set":
+      let receipt = try await AssetsExportPerformanceSetService.run(config: .init(force: config.force,
+                                                                                  out: flags["out"] ?? WubDefaults.packPath("ableton/performance-sets/BASS_PERFORMANCE_SET_v1.0.als"),
+                                                                                  anchorsPack: flags["anchors_pack"],
+                                                                                  minBytes: 200000,
+                                                                                  warnBytes: 1000000,
+                                                                                  dryRun: false,
+                                                                                  overwrite: flags["overwrite"] == "true",
+                                                                                  preflight: true,
+                                                                                  runsDir: config.runsDir,
+                                                                                  regionsConfig: "tools/automation/swift-cli/config/regions.v1.json"))
+      return CommandExecutionResult(exitCode: receipt.status == "fail" ? 1 : 0, notes: nil)
+
+    case "assets.export_finishing_bays":
+      let receipt = try await AssetsExportFinishingBaysService.run(config: .init(force: config.force,
+                                                                                spec: flags["spec"] ?? WubDefaults.profileSpecPath("assets/export/finishing_bays_export.v1.yaml"),
+                                                                                anchorsPack: flags["anchors_pack"],
+                                                                                minBytes: 200000,
+                                                                                warnBytes: 1000000,
+                                                                                overwrite: flags["overwrite"] == "true",
+                                                                                promptEach: false,
+                                                                                preflight: true,
+                                                                                runsDir: config.runsDir,
+                                                                                regionsConfig: "tools/automation/swift-cli/config/regions.v1.json"))
+      return CommandExecutionResult(exitCode: receipt.status == "fail" ? 1 : 0, notes: nil)
+
+    case "assets.export_serum_base":
+      let receipt = try await AssetsExportSerumBaseService.run(config: .init(force: config.force,
+                                                                             out: flags["out"] ?? "library/serum/SERUM_BASE_v1.0.fxp",
+                                                                             anchorsPack: flags["anchors_pack"],
+                                                                             minBytes: 5000,
+                                                                             warnBytes: 20000,
+                                                                             overwrite: flags["overwrite"] == "true",
+                                                                             preflight: true,
+                                                                             runsDir: config.runsDir,
+                                                                             regionsConfig: "tools/automation/swift-cli/config/regions.v1.json"))
+      return CommandExecutionResult(exitCode: receipt.status == "fail" ? 1 : 0, notes: nil)
+
+    case "assets.export_all":
+      let receipt = try await AssetsService.exportAll(config: .init(anchorsPack: flags["anchors_pack"],
+                                                                    overwrite: flags["overwrite"] == "true",
+                                                                    nonInteractive: true,
+                                                                    preflight: true,
+                                                                    runsDir: config.runsDir,
+                                                                    regionsConfig: "tools/automation/swift-cli/config/regions.v1.json",
+                                                                    racksOut: WubDefaults.packPath("ableton/racks/BASS_RACKS_v1.0"),
+                                                                    performanceOut: WubDefaults.packPath("ableton/performance-sets/BASS_PERFORMANCE_SET_v1.0.als"),
+                                                                    baysSpec: WubDefaults.profileSpecPath("assets/export/finishing_bays_export.v1.yaml"),
+                                                                    serumOut: "library/serum/SERUM_BASE_v1.0.fxp",
+                                                                    extrasSpec: WubDefaults.profileSpecPath("assets/export/extra_exports.v1.yaml"),
+                                                                    postcheck: true,
+                                                                    rackVerifyManifest: WubDefaults.profileSpecPath("library/racks/rack_pack_manifest.v1.json"),
+                                                                    vrlMapping: WubDefaults.profileSpecPath("voice_runtime/v9_3_ableton_mapping.v1.yaml"),
+                                                                    force: config.force))
+      return CommandExecutionResult(exitCode: receipt.status == "fail" ? 1 : 0, notes: nil)
+
+    default:
+      return CommandExecutionResult(exitCode: 1, notes: "unsupported_service")
+    }
+  }
+
+  private static func parseFlags(_ tokens: [String]) -> [String: String] {
+    var out: [String: String] = [:]
+    for t in tokens {
+      let parts = t.split(separator: "=", maxSplits: 1).map(String.init)
+      if parts.count == 2 {
+        out[parts[0]] = parts[1]
+      }
+    }
+    return out
   }
 }

@@ -17,22 +17,43 @@ struct ReleaseService {
     let runDir = URL(fileURLWithPath: config.runsDir).appendingPathComponent(runId, isDirectory: true)
     try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
 
-    let exe = CommandLine.arguments.first ?? "wub"
     var gates: [PromotionGateResult] = []
     var reasons: [String] = []
 
     let profileId = inferProfileId(from: config.profile)
-    let certifyArgs = ["sonic", "certify", "--baseline", config.baseline, "--sweep", config.currentSweep,
-                       "--rack-id", config.rackId, "--profile-id", profileId, "--macro", config.macro]
-    let certifyExit = await runProcess(exe: exe, args: certifyArgs)
-    gates.append(.init(id: "sonic_certify", command: ([exe] + certifyArgs).joined(separator: " "), exitCode: Int(certifyExit)))
-    if certifyExit != 0 { reasons.append("sonic_certify failed") }
+    let certifyExit: Int
+    do {
+      let receipt = try await SonicCertifyService.run(config: .init(baseline: config.baseline,
+                                                                    sweep: config.currentSweep,
+                                                                    rackId: config.rackId,
+                                                                    profileId: profileId,
+                                                                    macro: config.macro,
+                                                                    runsDir: config.runsDir))
+      certifyExit = (receipt.status == "pass") ? 0 : 1
+      gates.append(.init(id: "sonic_certify", command: "service: sonic.certify", exitCode: certifyExit))
+      if certifyExit != 0 { reasons.append("sonic_certify failed") }
+    } catch {
+      certifyExit = 999
+      gates.append(.init(id: "sonic_certify", command: "service: sonic.certify", exitCode: certifyExit))
+      reasons.append("sonic_certify error: \(error.localizedDescription)")
+    }
 
     if FileManager.default.fileExists(atPath: config.rackManifest) {
-      let rvArgs = ["rack", "verify", "--manifest", config.rackManifest, "--macro-region", "rack.macros"]
-      let rvExit = await runProcess(exe: exe, args: rvArgs)
-      gates.append(.init(id: "rack_verify", command: ([exe] + rvArgs).joined(separator: " "), exitCode: Int(rvExit)))
-      if rvExit != 0 { reasons.append("rack_verify failed") }
+      let rvExit: Int
+      do {
+        let receipt = try await RackVerifyService.verify(config: .init(manifest: config.rackManifest,
+                                                                       macroRegion: "rack.macros",
+                                                                       runApply: true,
+                                                                       anchorsPack: nil,
+                                                                       runsDir: config.runsDir))
+        rvExit = (receipt.status == "pass") ? 0 : 1
+        gates.append(.init(id: "rack_verify", command: "service: rack.verify", exitCode: rvExit))
+        if rvExit != 0 { reasons.append("rack_verify failed") }
+      } catch {
+        rvExit = 999
+        gates.append(.init(id: "rack_verify", command: "service: rack.verify", exitCode: rvExit))
+        reasons.append("rack_verify error: \(error.localizedDescription)")
+      }
     } else {
       gates.append(.init(id: "rack_verify", command: "skipped (manifest missing)", exitCode: 0))
     }
@@ -69,15 +90,4 @@ struct ReleaseService {
     return WubDefaults.profileSpecPath("library/profiles/release/\(u.lastPathComponent)")
   }
 
-  private static func runProcess(exe: String, args: [String]) async -> Int32 {
-    await withCheckedContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(returning: 999) }
-    }
-  }
 }

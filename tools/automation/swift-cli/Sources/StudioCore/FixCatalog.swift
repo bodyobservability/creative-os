@@ -10,17 +10,17 @@ struct FixCatalog {
     let ap = anchorsPackHint ?? "specs/automation/anchors/<pack_id>"
 
     if p.contains("/ableton/racks/") {
-      return "wub assets export-racks --anchors-pack \(ap) --overwrite"
+      return "service: assets.export_racks anchors_pack=\(ap) overwrite=true"
     }
     if p.contains("/ableton/performance-sets/") {
-      return "wub assets export-performance-set --anchors-pack \(ap) --overwrite"
+      return "service: assets.export_performance_set anchors_pack=\(ap) overwrite=true"
     }
     if p.contains("/ableton/finishing-bays/") {
-      return "wub assets export-finishing-bays --anchors-pack \(ap) --overwrite"
+      return "service: assets.export_finishing_bays anchors_pack=\(ap) overwrite=true"
     }
     if p.contains("library/serum/") {
-      return "wub assets export-serum-base --anchors-pack \(ap) --overwrite"
+      return "service: assets.export_serum_base anchors_pack=\(ap) overwrite=true"
     }
-    return "wub assets export-all --anchors-pack \(ap) --overwrite"
+    return "service: assets.export_all anchors_pack=\(ap) overwrite=true"
   }
 }
