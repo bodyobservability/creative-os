@@ -2,6 +2,7 @@ import Foundation
 import Yams
 
 struct WubContext {
+  let storeRoot: URL
   let runDir: String?
   let runsDir: String
   let sweeperConfig: SweeperConfig?
@@ -15,6 +16,34 @@ struct WubContext {
   let reportConfig: ReportConfig?
   let repairConfig: RepairConfig?
 
+  init(runDir: String?,
+       runsDir: String,
+       sweeperConfig: SweeperConfig?,
+       driftConfig: DriftConfig?,
+       readyConfig: ReadyConfig?,
+       stationConfig: StationConfig?,
+       assetsConfig: AssetsConfig?,
+       voiceRackSessionConfig: VoiceRackSessionConfig?,
+       indexConfig: IndexConfig?,
+       releaseConfig: ReleaseConfig?,
+       reportConfig: ReportConfig?,
+       repairConfig: RepairConfig?,
+       storeRoot: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)) {
+    self.storeRoot = storeRoot
+    self.runDir = runDir
+    self.runsDir = runsDir
+    self.sweeperConfig = sweeperConfig
+    self.driftConfig = driftConfig
+    self.readyConfig = readyConfig
+    self.stationConfig = stationConfig
+    self.assetsConfig = assetsConfig
+    self.voiceRackSessionConfig = voiceRackSessionConfig
+    self.indexConfig = indexConfig
+    self.releaseConfig = releaseConfig
+    self.reportConfig = reportConfig
+    self.repairConfig = repairConfig
+  }
+
   func makeSweepReport() throws -> CreativeOS.SweepReport {
     let runtime = try buildRuntime()
     return try runtime.sweep()
@@ -26,7 +55,7 @@ struct WubContext {
   }
 
   private func buildRuntime() throws -> CreativeOS.Runtime {
-    let store = WubStore()
+    let store = WubStore(root: storeRoot)
     let profiles = try store.loadProfiles()
     let config = try store.loadOrCreateConfig(defaultProfileId: profiles.first?.id)
     guard let profile = profiles.first(where: { $0.id == config.activeProfileId }) else {
@@ -57,17 +86,32 @@ struct WubContext {
 }
 
 struct WubStore {
-  let profilesDir = "profiles"
-  let configPath = "notes/WUB_CONFIG.json"
-  let packsDir = "packs"
+  let root: URL
+  let profilesDir: String
+  let configPath: String
+  let packsDir: String
+
+  init(root: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath),
+       profilesDir: String = "profiles",
+       configPath: String = "notes/WUB_CONFIG.json",
+       packsDir: String = "packs") {
+    self.root = root
+    self.profilesDir = profilesDir
+    self.configPath = configPath
+    self.packsDir = packsDir
+  }
+
+  private var profilesURL: URL { root.appendingPathComponent(profilesDir, isDirectory: true) }
+  private var packsURL: URL { root.appendingPathComponent(packsDir, isDirectory: true) }
+  private var configURL: URL { root.appendingPathComponent(configPath) }
 
   func loadProfiles() throws -> [CreativeOS.Profile] {
-    guard FileManager.default.fileExists(atPath: profilesDir) else { return [] }
-    let entries = try FileManager.default.contentsOfDirectory(atPath: profilesDir)
+    guard FileManager.default.fileExists(atPath: profilesURL.path) else { return [] }
+    let entries = try FileManager.default.contentsOfDirectory(atPath: profilesURL.path)
     let files = entries.filter { $0.hasSuffix(".profile.yaml") }.sorted()
     var profiles: [CreativeOS.Profile] = []
     for name in files {
-      let path = "\(profilesDir)/\(name)"
+      let path = profilesURL.appendingPathComponent(name).path
       let yaml = try String(contentsOfFile: path, encoding: .utf8)
       let profile = try YAMLDecoder().decode(CreativeOS.Profile.self, from: yaml)
       profiles.append(profile)
@@ -76,12 +120,12 @@ struct WubStore {
   }
 
   func loadPackManifests() throws -> [CreativeOS.PackManifest] {
-    guard FileManager.default.fileExists(atPath: packsDir) else { return [] }
-    let entries = try FileManager.default.contentsOfDirectory(atPath: packsDir)
+    guard FileManager.default.fileExists(atPath: packsURL.path) else { return [] }
+    let entries = try FileManager.default.contentsOfDirectory(atPath: packsURL.path)
     var packPaths: [String] = []
 
     for name in entries.sorted() {
-      let path = "\(packsDir)/\(name)"
+      let path = packsURL.appendingPathComponent(name).path
       var isDir: ObjCBool = false
       if FileManager.default.fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue {
         let candidate = "\(path)/pack.yaml"
@@ -103,8 +147,8 @@ struct WubStore {
   }
 
   func loadOrCreateConfig(defaultProfileId: String?) throws -> WubConfig {
-    if FileManager.default.fileExists(atPath: configPath) {
-      return try JSONIO.load(WubConfig.self, from: URL(fileURLWithPath: configPath))
+    if FileManager.default.fileExists(atPath: configURL.path) {
+      return try JSONIO.load(WubConfig.self, from: configURL)
     }
     let fallbackId = defaultProfileId ?? "default"
     let config = WubConfig(activeProfileId: fallbackId,
@@ -115,7 +159,7 @@ struct WubStore {
   }
 
   func saveConfig(_ config: WubConfig) throws {
-    try JSONIO.save(config, to: URL(fileURLWithPath: configPath))
+    try JSONIO.save(config, to: configURL)
   }
 }
 
