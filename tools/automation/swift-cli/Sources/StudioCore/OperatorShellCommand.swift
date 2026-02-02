@@ -178,13 +178,13 @@ struct UI: AsyncParsableCommand {
                             lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
 
       case .openReceipt:
-        if let rp = lastReceiptPath { _ = try? await runProcess(["bash","-lc","open " + shellEscape(rp)]) }
+        if let rp = lastReceiptPath { _ = try? await OperatorShellService.openPath(rp) }
       case .openRun:
-        if let rd = lastRunDir { _ = try? await runProcess(["bash","-lc","open " + shellEscape(rd)]) }
+        if let rd = lastRunDir { _ = try? await OperatorShellService.openPath(rd) }
       case .openReport:
-        if let rp = latestReportPath() { _ = try? await runProcess(["bash","-lc","open " + shellEscape(rp)]) }
+        if let rp = latestReportPath() { _ = try? await OperatorShellService.openPath(rp) }
       case .openFailures:
-        if let fd = lastFailuresDir { _ = try? await runProcess(["bash","-lc","open " + shellEscape(fd)]) }
+        if let fd = lastFailuresDir { _ = try? await OperatorShellService.openPath(fd) }
 
       case .selectNumber(let n):
         // Voice Mode: allow direct numeric selection ("press 3")
@@ -371,7 +371,7 @@ struct UI: AsyncParsableCommand {
     if dryRun { lastExit = 0; return }
     stdinRaw.disable()
     print("\n> Running: \(action.command.joined(separator: " "))\n")
-    let code = try await runProcess(action.command)
+    let code = try await OperatorShellService.runProcess(action.command)
     lastExit = code
     lastRunDir = latestRunDir()
     lastReceipt = discoverLatestReceipt(inRunDir: lastRunDir)
@@ -443,38 +443,24 @@ struct UI: AsyncParsableCommand {
   // MARK: FS helpers
 
   func latestRunDir() -> String? {
-    let runs = URL(fileURLWithPath: "runs", isDirectory: true)
-    guard FileManager.default.fileExists(atPath: runs.path) else { return nil }
-    guard let items = try? FileManager.default.contentsOfDirectory(at: runs, includingPropertiesForKeys: [.contentModificationDateKey], options: [.skipsHiddenFiles]) else { return nil }
-    let dirs = items.filter { $0.hasDirectoryPath }
-    let sorted = dirs.sorted { (a, b) -> Bool in
-      let da = (try? a.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? Date.distantPast
-      let db = (try? b.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? Date.distantPast
-      return da > db
-    }
-    return sorted.first?.path
+    OperatorShellService.latestRunDirPath(runsDir: "runs")
   }
 
   func latestFailuresDir(inRunDir runDir: String?) -> String? {
-    guard let rd = runDir else { return nil }
-    let p = URL(fileURLWithPath: rd).appendingPathComponent("failures", isDirectory: true).path
-    return FileManager.default.fileExists(atPath: p) ? p : nil
+    if let rd = runDir {
+      let p = URL(fileURLWithPath: rd).appendingPathComponent("failures", isDirectory: true).path
+      if FileManager.default.fileExists(atPath: p) { return p }
+    }
+    return OperatorShellService.findFailures(in: "runs")
   }
 
   func latestReportPath() -> String? {
-    guard let rd = latestRunDir() else { return nil }
-    let p = URL(fileURLWithPath: rd).appendingPathComponent("report.md").path
-    return FileManager.default.fileExists(atPath: p) ? p : nil
+    OperatorShellService.findReport(in: "runs")
   }
 
   func discoverLatestReceipt(inRunDir runDir: String?) -> String? {
     guard let rd = runDir else { return nil }
-    let fm = FileManager.default
-    guard let files = try? fm.contentsOfDirectory(atPath: rd) else { return nil }
-    let receiptFiles = files.filter { $0.contains("receipt") && $0.hasSuffix(".json") }
-    guard !receiptFiles.isEmpty else { return nil }
-    let chosen = receiptFiles.sorted().last!
-    return URL(fileURLWithPath: rd).appendingPathComponent(chosen).path
+    return OperatorShellService.findReceipt(in: rd)
   }
 
   func latestReadyReport(inRunDir runDir: String?) -> ReadyReportV1? {
@@ -502,15 +488,7 @@ struct UI: AsyncParsableCommand {
   }
 
   func runProcess(_ args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: args[0])
-      p.arguments = Array(args.dropFirst())
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
+    try await OperatorShellService.runProcess(args)
   }
 
   func captureProcessOutput(_ args: [String]) async throws -> String {
@@ -580,10 +558,6 @@ struct UI: AsyncParsableCommand {
 
   private func asciiByte(_ s: String) -> UInt8 {
     return s.utf8.first ?? 0
-  }
-
-  func shellEscape(_ s: String) -> String {
-    return "'" + s.replacingOccurrences(of: "'", with: "'\\''") + "'"
   }
 
   // MARK: First-run wizard

@@ -41,68 +41,15 @@ struct SonicSweepRun: AsyncParsableCommand {
   var thresholds: String = WubDefaults.profileSpecPath("sonic/thresholds/bass_music_sweep_defaults.v1.json")
 
   func run() async throws {
-    let posList = parsePositions(positions)
-    if posList.count < 2 { throw ValidationError("Need at least 2 positions.") }
-
-    try FileManager.default.createDirectory(at: URL(fileURLWithPath: exportDir, isDirectory: true), withIntermediateDirectories: true)
-
-    let ctx = RunContext(common: common)
-    try ctx.ensureRunDir()
-
-    let exe = CommandLine.arguments.first ?? "wub"
-
-    print("\n== v7.3 sweep-run ==")
-    print("macro: \(macro)")
-    print("positions: \(posList.map { String(format: "%.2f",$0) }.joined(separator: ", "))")
-    print("export_dir: \(exportDir)\n")
-    print("Assumptions: Ableton frontmost; export chord works; save sheet reachable; export dir already selected.\n")
-
-    for p in posList {
-      let posTag = String(format: "pos%.2f", p)
-      let fname = "\(baseName)_\(macro)_\(posTag).wav"
-      let fullOut = (exportDir as NSString).appendingPathComponent(fname)
-
-      print("\n--- Position \(posTag) ---")
-      print("1) Set macro '\(macro)' to \(String(format: "%.2f", p)) using controller/voice.")
-      print("   When ready, press Enter. (Type 'q' then Enter to abort.)")
-      let resp = readLine() ?? ""
-      if resp.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == "q" { throw ExitCode(3) }
-
-      let planPath = ctx.runDir.appendingPathComponent("export_\(macro)_\(posTag).plan.v1.json")
-      let plan = ExportPlanBuilder.buildExportPlan(exportChord: exportChord, filename: fname)
-      let data = try JSONSerialization.data(withJSONObject: plan, options: [.prettyPrinted, .sortedKeys])
-      try data.write(to: planPath)
-
-      print("2) Trigger export + save as: \(fullOut)")
-      _ = try await runProcess(exe: exe, args: ["apply","--plan", planPath.path, "--allow-cgevent"])
-
-      print("3) Waiting \(waitSeconds)s for render...")
-      try await Task.sleep(nanoseconds: UInt64(waitSeconds * 1_000_000_000.0))
-    }
-
-    print("\n== Running sonic sweep ==")
-    var args = ["sonic","sweep","--macro", macro, "--dir", exportDir]
-    if !thresholds.isEmpty { args += ["--thresholds", thresholds] }
-    if let rackId = rackId { args += ["--rack-id", rackId] }
-    if let profileId = profileId { args += ["--profile-id", profileId] }
-
-    let code = try await runProcess(exe: exe, args: args)
-    if code != 0 { throw ExitCode(code) }
-  }
-
-  private func parsePositions(_ s: String) -> [Double] {
-    s.split(separator: ",").compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }.sorted()
-  }
-
-  private func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
+    try await SonicSweepRunService.run(config: .init(macro: macro,
+                                                     positions: positions,
+                                                     exportDir: exportDir,
+                                                     baseName: baseName,
+                                                     rackId: rackId,
+                                                     profileId: profileId,
+                                                     exportChord: exportChord,
+                                                     waitSeconds: waitSeconds,
+                                                     thresholds: thresholds,
+                                                     runsDir: common.runsDir))
   }
 }

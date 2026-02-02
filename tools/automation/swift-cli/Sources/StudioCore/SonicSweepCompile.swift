@@ -25,97 +25,20 @@ struct SonicSweepCompile: AsyncParsableCommand {
   @Option(name: .long) var profileId: String?
 
   func run() async throws {
-    let posList = parsePositions(positions)
-    if posList.count < 2 { throw ValidationError("Need at least 2 positions.") }
-
-    try FileManager.default.createDirectory(at: URL(fileURLWithPath: exportDir, isDirectory: true), withIntermediateDirectories: true)
-
-    let ctx = RunContext(common: common)
-    try ctx.ensureRunDir()
-    let runDir = ctx.runDir
-
-    let exe = CommandLine.arguments.first ?? "wub"
-
-    var steps: [SonicSweepCompileStep] = []
-    var reasons: [String] = []
-
-    // MIDI sender
-    let sender = try MidiCCSender(portNameContains: midiDest)
-    steps.append(.init(id: "midi_dest", detail: "Using MIDI dest contains='\(midiDest)' cc=\(cc) ch=\(channel)", exitCode: 0))
-
-    for p in posList {
-      let posTag = String(format: "pos%.2f", p)
-      let fname = "\(baseName)_\(macro)_\(posTag).wav"
-      let fullOut = (exportDir as NSString).appendingPathComponent(fname)
-
-      // Set macro via CC
-      let v = Int(round(p * 127.0))
-      try sender.sendCC(cc: cc, value: v, channel: channel)
-      steps.append(.init(id: "set_macro_\(posTag)", detail: "Sent CC\(cc)=\(v) ch=\(channel)", exitCode: 0))
-
-      // Small settle
-      try? await Task.sleep(nanoseconds: 200_000_000)
-
-      // Export plan
-      let planPath = runDir.appendingPathComponent("export_\(macro)_\(posTag).plan.v1.json")
-      let plan = ExportPlanBuilder.buildExportPlan(exportChord: exportChord, filename: fname)
-      let data = try JSONSerialization.data(withJSONObject: plan, options: [.prettyPrinted, .sortedKeys])
-      try data.write(to: planPath)
-
-      // Run apply to execute export flow
-      let code = try await runProcess(exe: exe, args: ["apply","--plan", planPath.path, "--allow-cgevent"])
-      steps.append(.init(id: "export_\(posTag)", detail: "Exported -> \(fullOut)", exitCode: Int(code)))
-      if code != 0 { reasons.append("export \(posTag) failed exit=\(code)") }
-
-      try await Task.sleep(nanoseconds: UInt64(waitSeconds * 1_000_000_000.0))
-    }
-
-    // Run sonic sweep
-    var sweepArgs = ["sonic","sweep","--macro", macro, "--dir", exportDir]
-    if !thresholds.isEmpty { sweepArgs += ["--thresholds", thresholds] }
-    if let rackId = rackId { sweepArgs += ["--rack-id", rackId] }
-    if let profileId = profileId { sweepArgs += ["--profile-id", profileId] }
-
-    let sweepCode = try await runProcess(exe: exe, args: sweepArgs)
-    steps.append(.init(id: "sonic_sweep", detail: "sonic sweep dir=\(exportDir)", exitCode: Int(sweepCode)))
-    if sweepCode != 0 { reasons.append("sonic sweep failed exit=\(sweepCode)") }
-
-    let status = (reasons.isEmpty && sweepCode == 0) ? "pass" : "fail"
-    let sweepReceiptPath = "runs/\(RunContext.makeRunId())/sonic_sweep_receipt.v1.json"
-
-    let receipt = SonicSweepCompileReceiptV1(
-      schemaVersion: 1,
-      runId: ctx.runId,
-      timestamp: ISO8601DateFormatter().string(from: Date()),
-      macro: macro,
-      positions: posList,
-      rackId: rackId,
-      profileId: profileId,
-      midi: SonicSweepCompileMidi(cc: cc, channel: channel, portNameContains: midiDest),
-      status: status,
-      artifacts: SonicSweepCompileArtifacts(exportDir: exportDir, sweepReceipt: sweepReceiptPath, runDir: "runs/\(ctx.runId)"),
-      steps: steps,
-      reasons: reasons
-    )
-
-    try JSONIO.save(receipt, to: runDir.appendingPathComponent("sonic_sweep_compile_receipt.v1.json"))
-    print("receipt: runs/\(ctx.runId)/sonic_sweep_compile_receipt.v1.json")
-    if status != "pass" { throw ExitCode(1) }
-  }
-
-  private func parsePositions(_ s: String) -> [Double] {
-    s.split(separator: ",").compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }.map { max(0.0, min(1.0, $0)) }.sorted()
-  }
-
-  private func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
+    let receipt = try await SonicSweepCompileService.run(config: .init(macro: macro,
+                                                                        positions: positions,
+                                                                        exportDir: exportDir,
+                                                                        baseName: baseName,
+                                                                        midiDest: midiDest,
+                                                                        cc: cc,
+                                                                        channel: channel,
+                                                                        exportChord: exportChord,
+                                                                        waitSeconds: waitSeconds,
+                                                                        thresholds: thresholds,
+                                                                        rackId: rackId,
+                                                                        profileId: profileId,
+                                                                        runsDir: common.runsDir))
+    print("receipt: \(common.runsDir)/\(receipt.runId)/sonic_sweep_compile_receipt.v1.json")
+    if receipt.status != "pass" { throw ExitCode(1) }
   }
 }

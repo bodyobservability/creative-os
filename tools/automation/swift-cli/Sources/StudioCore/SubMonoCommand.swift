@@ -20,37 +20,15 @@ struct SubMonoCommand: ParsableCommand {
   @Option(name: .long) var profileId: String?
 
   func run() throws {
-    let runId = RunContext.makeRunId()
-    let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
-    try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
-
-    let (bands, th) = SubMonoAnalyze.loadThresholds(path: thresholds.isEmpty ? nil : thresholds)
-    let subBand = bands["sub"] ?? [20,120]
-
-    let url = URL(fileURLWithPath: input)
-    let (sr, dur, subMid, subSide) = try SubMonoAnalyze.analyze(url: url, subBand: subBand)
-    let metrics = SubMonoAnalyze.computeMetrics(sr: sr, dur: dur, subMid: subMid, subSide: subSide)
-    let (status, reasons, thMap) = SubMonoAnalyze.classify(metrics: metrics, th: th)
-
-    let receipt = SubMonoSafetyReceiptV1(schemaVersion: 1,
-      runId: runId,
-      timestamp: ISO8601DateFormatter().string(from: Date()),
-      inputAudio: input,
-      rackId: rackId,
-      profileId: profileId,
-      status: status,
-      bandsHz: ["sub": subBand, "low": bands["low"] ?? [120,250]],
-      metrics: metrics,
-      thresholds: thMap,
-      reasons: reasons
-    )
-
-    let outPath = out ?? runDir.appendingPathComponent("sub_mono_safety_receipt.v1.json").path
-    try JSONIO.save(receipt, to: URL(fileURLWithPath: outPath))
-
-    print("status: \(status)")
-    if !reasons.isEmpty { print("reasons:"); for r in reasons { print(" - \(r)") } }
-    print("receipt: \(outPath)")
-    if status == "fail" { throw ExitCode(1) }
+    let result = try SubMonoService.run(config: .init(input: input,
+                                                      thresholds: thresholds,
+                                                      out: out,
+                                                      rackId: rackId,
+                                                      profileId: profileId,
+                                                      runsDir: "runs"))
+    print("status: \(result.receipt.status)")
+    if !result.receipt.reasons.isEmpty { print("reasons:"); for r in result.receipt.reasons { print(" - \(r)") } }
+    print("receipt: \(result.outPath)")
+    if result.receipt.status == "fail" { throw ExitCode(1) }
   }
 }

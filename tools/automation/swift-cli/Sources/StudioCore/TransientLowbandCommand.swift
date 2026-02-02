@@ -14,34 +14,15 @@ struct TransientLowbandCommand: ParsableCommand {
   @Option(name: .long) var profileId: String?
 
   func run() throws {
-    let runId = RunContext.makeRunId()
-    let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
-    try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
-
-    let (bands, th) = TransientLowbandAnalyze.load(path: thresholds.isEmpty ? nil : thresholds)
-    let url = URL(fileURLWithPath: input)
-    let (sr, dur, low, sub) = try TransientLowbandAnalyze.analyze(url: url, bands: bands)
-    let metrics = TransientLowbandAnalyze.metrics(sr: sr, dur: dur, low: low, sub: sub)
-    let (status, reasons, thMap) = TransientLowbandAnalyze.classify(m: metrics, th: th)
-
-    let receipt = TransientLowbandReceiptV1(schemaVersion: 1,
-      runId: runId,
-      timestamp: ISO8601DateFormatter().string(from: Date()),
-      inputAudio: input,
-      rackId: rackId,
-      profileId: profileId,
-      status: status,
-      bandsHz: bands.mapValues { $0 },
-      metrics: metrics,
-      thresholds: thMap,
-      reasons: reasons)
-
-    let outPath = out ?? runDir.appendingPathComponent("transient_lowband_receipt.v1.json").path
-    try JSONIO.save(receipt, to: URL(fileURLWithPath: outPath))
-
-    print("status: \(status)")
-    if !reasons.isEmpty { print("reasons:"); for r in reasons { print(" - \(r)") } }
-    print("receipt: \(outPath)")
-    if status == "fail" { throw ExitCode(1) }
+    let result = try TransientLowbandService.run(config: .init(input: input,
+                                                               thresholds: thresholds,
+                                                               out: out,
+                                                               rackId: rackId,
+                                                               profileId: profileId,
+                                                               runsDir: "runs"))
+    print("status: \(result.receipt.status)")
+    if !result.receipt.reasons.isEmpty { print("reasons:"); for r in result.receipt.reasons { print(" - \(r)") } }
+    print("receipt: \(result.outPath)")
+    if result.receipt.status == "fail" { throw ExitCode(1) }
   }
 }

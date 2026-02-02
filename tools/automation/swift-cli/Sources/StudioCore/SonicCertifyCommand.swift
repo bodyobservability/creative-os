@@ -39,45 +39,13 @@ struct SonicCertifyCommand: AsyncParsableCommand {
   }
 
   func run() async throws {
-    let runId = RunContext.makeRunId()
-    let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
-    try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
-
-    let exe = CommandLine.arguments.first ?? "wub"
-    let diffOut = runDir.appendingPathComponent("sonic_diff_receipt.v1.json").path
-
-    let code = try await runProcess(exe: exe, args: [
-      "sonic","diff-sweep",
-      "--baseline", baseline,
-      "--current", sweep,
-      "--out", diffOut
-    ])
-
-    let status = (code == 0) ? "pass" : "fail"
-    let receipt = SonicCertReceiptV1(schemaVersion: 1,
-                                     runId: runId,
-                                     timestamp: ISO8601DateFormatter().string(from: Date()),
-                                     rackId: rackId,
-                                     profileId: profileId,
-                                     macro: macro,
-                                     status: status,
-                                     artifacts: ["baseline": baseline, "current_sweep": sweep, "diff": diffOut],
-                                     reasons: (code == 0) ? [] : ["diff_failed"])
-
-    try JSONIO.save(receipt, to: runDir.appendingPathComponent("sonic_cert_receipt.v1.json"))
-    print("cert_receipt: runs/\(runId)/sonic_cert_receipt.v1.json")
-    if status != "pass" { throw ExitCode(1) }
-  }
-
-  private func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
+    let receipt = try await SonicCertifyService.run(config: .init(baseline: baseline,
+                                                                  sweep: sweep,
+                                                                  rackId: rackId,
+                                                                  profileId: profileId,
+                                                                  macro: macro,
+                                                                  runsDir: "runs"))
+    print("cert_receipt: runs/\(receipt.runId)/sonic_cert_receipt.v1.json")
+    if receipt.status != "pass" { throw ExitCode(1) }
   }
 }
