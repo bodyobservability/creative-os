@@ -277,17 +277,29 @@ struct WubStateSetup: AsyncParsableCommand {
   @Flag(name: .long, help: "Print manual steps after setup.")
   var showManual: Bool = false
 
+  @Flag(name: .long, help: "Execute allowlisted steps (default: dry-run).")
+  var apply: Bool = false
+
   func run() async throws {
     let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
     let report = try context.makePlanReport()
-    let automated = report.steps.filter { $0.type == .automated }
-    let manual = report.steps.filter { $0.type == .manualRequired }
+    let evaluation = evaluateSetupSteps(report.steps, allowlist: stateSetupAllowlist)
 
-    if automated.isEmpty {
-      print("No automated steps available. Use 'wub state-plan' for manual steps.")
-      if showManual && !manual.isEmpty {
+    if !apply {
+      print("Executable steps (dry run):")
+      if evaluation.executable.isEmpty { print("- (none)") }
+      for step in evaluation.executable {
+        print("- \(step.agent)/\(step.id): \(step.description)")
+      }
+      if !evaluation.skipped.isEmpty {
+        print("\nSkipped steps:")
+        for (step, reason) in evaluation.skipped {
+          print("- \(step.agent)/\(step.id): \(reason)")
+        }
+      }
+      if showManual && !evaluation.manual.isEmpty {
         print("\nManual steps:")
-        for step in manual {
+        for step in evaluation.manual {
           print("- \(step.agent)/\(step.id): \(step.description)")
         }
       }
@@ -295,13 +307,13 @@ struct WubStateSetup: AsyncParsableCommand {
     }
 
     var failures: [String] = []
-    for step in automated {
+    for step in evaluation.executable {
       try await executeStep(step, failures: &failures)
     }
 
-    if showManual && !manual.isEmpty {
+    if showManual && !evaluation.manual.isEmpty {
       print("\nManual steps:")
-      for step in manual {
+      for step in evaluation.manual {
         print("- \(step.agent)/\(step.id): \(step.description)")
       }
     }
@@ -329,34 +341,36 @@ struct WubSetup: AsyncParsableCommand {
   @Flag(name: .long, help: "Print manual steps after setup.")
   var showManual: Bool = false
 
-  @Flag(name: .long, help: "Preview automated steps without executing them.")
+  @Flag(name: .long, help: "Preview allowlisted steps without executing them.")
   var dryRun: Bool = false
+
+  @Flag(name: .long, help: "Execute allowlisted steps (default: dry-run).")
+  var apply: Bool = false
 
   func run() async throws {
     let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
     let report = try context.makePlanReport()
-    let automated = report.steps.filter { $0.type == .automated }
-    let manual = report.steps.filter { $0.type == .manualRequired }
+    let evaluation = evaluateSetupSteps(report.steps, allowlist: stateSetupAllowlist)
 
-    if automated.isEmpty {
-      print("No automated steps available. Use 'wub state-plan' for manual steps.")
-      if showManual && !manual.isEmpty {
-        print("\nManual steps:")
-        for step in manual {
-          print("- \(step.agent)/\(step.id): \(step.description)")
-        }
-      }
-      return
+    if apply && dryRun {
+      throw ValidationError("Use either --apply or --dry-run (default: dry run).")
     }
 
-    if dryRun {
-      print("Automated steps (dry run):")
-      for step in automated {
+    if !apply || dryRun {
+      print("Executable steps (dry run):")
+      if evaluation.executable.isEmpty { print("- (none)") }
+      for step in evaluation.executable {
         print("- \(step.agent)/\(step.id): \(step.description)")
       }
-      if showManual && !manual.isEmpty {
+      if !evaluation.skipped.isEmpty {
+        print("\nSkipped steps:")
+        for (step, reason) in evaluation.skipped {
+          print("- \(step.agent)/\(step.id): \(reason)")
+        }
+      }
+      if showManual && !evaluation.manual.isEmpty {
         print("\nManual steps:")
-        for step in manual {
+        for step in evaluation.manual {
           print("- \(step.agent)/\(step.id): \(step.description)")
         }
       }
@@ -364,13 +378,13 @@ struct WubSetup: AsyncParsableCommand {
     }
 
     var failures: [String] = []
-    for step in automated {
+    for step in evaluation.executable {
       try await executeStep(step, failures: &failures)
     }
 
-    if showManual && !manual.isEmpty {
+    if showManual && !evaluation.manual.isEmpty {
       print("\nManual steps:")
-      for step in manual {
+      for step in evaluation.manual {
         print("- \(step.agent)/\(step.id): \(step.description)")
       }
     }
@@ -456,6 +470,42 @@ private func emit<T: Encodable>(_ value: T, json: Bool) throws {
   printSummary(value)
 }
 
+private let stateSetupAllowlist: Set<String> = [
+  "ready.check",
+  "drift.check",
+  "station.status"
+]
+
+private struct SetupEvaluation {
+  let executable: [CreativeOS.PlanStep]
+  let skipped: [(CreativeOS.PlanStep, String)]
+  let manual: [CreativeOS.PlanStep]
+}
+
+private func evaluateSetupSteps(_ steps: [CreativeOS.PlanStep], allowlist: Set<String>) -> SetupEvaluation {
+  var executable: [CreativeOS.PlanStep] = []
+  var skipped: [(CreativeOS.PlanStep, String)] = []
+  var manual: [CreativeOS.PlanStep] = []
+
+  for step in steps {
+    guard let actionRef = step.actionRef else {
+      manual.append(step)
+      continue
+    }
+    if !allowlist.contains(actionRef.id) {
+      skipped.append((step, "action not allowlisted (\(actionRef.id))"))
+      continue
+    }
+    if !ServiceExecutor.supports(actionId: actionRef.id) {
+      skipped.append((step, "action not supported by service executor (\(actionRef.id))"))
+      continue
+    }
+    executable.append(step)
+  }
+
+  return SetupEvaluation(executable: executable, skipped: skipped, manual: manual)
+}
+
 private func printSummary<T>(_ value: T) {
   switch value {
   case let report as CreativeOS.SweepReport:
@@ -488,29 +538,17 @@ private func runShell(_ command: String) async throws -> Int32 {
 }
 
 private func executeStep(_ step: CreativeOS.PlanStep, failures: inout [String]) async throws {
-  if let actionRef = step.actionRef {
-    do {
-      print("Running: \(step.agent)/\(step.id) → \(actionRef.id)")
-      if let code = try await ServiceExecutor.execute(step: step) {
-        if code != 0 { failures.append("\(step.agent)/\(step.id): exit=\(code)") }
-        return
-      }
-    } catch {
-      print("Service executor failed for \(step.agent)/\(step.id): \(error)")
-    }
-  }
-
-  let processEffects = step.effects.filter { $0.kind == .process }
-  if processEffects.isEmpty {
-    failures.append("\(step.agent)/\(step.id): no process effects to execute")
+  guard let actionRef = step.actionRef else {
+    failures.append("\(step.agent)/\(step.id): missing action_ref")
     return
   }
-  for effect in processEffects {
-    print("Running: \(step.agent)/\(step.id) → \(effect.target)")
-    let code = try await runShell(effect.target)
-    if code != 0 {
+  do {
+    print("Running: \(step.agent)/\(step.id) → \(actionRef.id)")
+    if let code = try await ServiceExecutor.execute(step: step), code != 0 {
       failures.append("\(step.agent)/\(step.id): exit=\(code)")
     }
+  } catch {
+    failures.append("\(step.agent)/\(step.id): \(error)")
   }
 }
 

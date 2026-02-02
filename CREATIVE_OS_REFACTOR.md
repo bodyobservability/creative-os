@@ -104,6 +104,12 @@ to:
 2. Update agents that already include `actionRef` (e.g. `SweeperAgent`, `DriftAgent`, `ReadyAgent`, `StationAgent`, `AssetsAgent`, etc.) so their steps are type: `.automated` (or new rule makes that irrelevant).
 3. Keep `.process` effects only as optional “debug hints” — never executed by `state-setup`.
 
+PR 1 progress:
+- [x] Gate execution by allowlist + ServiceExecutor support for actionRef steps.
+- [x] Default `state-setup`/`setup` to dry-run; add explicit `--apply`.
+- [x] Ensure `state-setup` never executes `.process` effects.
+- [ ] Update agent plan steps with `actionRef` to use `.automated`.
+
 **Acceptance criteria:**
 
 - `wub state-setup` defaults to **dry-run** output (prints what would run and why others are skipped).

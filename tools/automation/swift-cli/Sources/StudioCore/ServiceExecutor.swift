@@ -2,6 +2,27 @@ import Foundation
 import ArgumentParser
 
 struct ServiceExecutor {
+  static let supportedActionIds: Set<String> = [
+    "sweeper.run",
+    "ready.check",
+    "drift.check",
+    "drift.fix",
+    "assets.export_all",
+    "voice.run",
+    "rack.install",
+    "rack.verify",
+    "session.compile",
+    "index.build",
+    "release.promote_profile",
+    "report.generate",
+    "repair.run",
+    "station.status"
+  ]
+
+  static func supports(actionId: String) -> Bool {
+    supportedActionIds.contains(actionId)
+  }
+
   struct ConfigBag {
     let raw: [String: Any]
 
