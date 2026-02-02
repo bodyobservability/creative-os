@@ -7,6 +7,13 @@ struct WubContext {
   let sweeperConfig: SweeperConfig?
   let driftConfig: DriftConfig?
   let readyConfig: ReadyConfig?
+  let stationConfig: StationConfig?
+  let assetsConfig: AssetsConfig?
+  let voiceRackSessionConfig: VoiceRackSessionConfig?
+  let indexConfig: IndexConfig?
+  let releaseConfig: ReleaseConfig?
+  let reportConfig: ReportConfig?
+  let repairConfig: RepairConfig?
 
   func makeSweepReport() throws -> CreativeOS.SweepReport {
     let runtime = try buildRuntime()
@@ -32,6 +39,13 @@ struct WubContext {
     }
     if let driftConfig { agents.append(DriftAgent(config: driftConfig)) }
     if let readyConfig { agents.append(ReadyAgent(config: readyConfig)) }
+    if let stationConfig { agents.append(StationAgent(config: stationConfig)) }
+    if let assetsConfig { agents.append(AssetsAgent(config: assetsConfig)) }
+    if let voiceRackSessionConfig { agents.append(VoiceRackSessionAgent(config: voiceRackSessionConfig)) }
+    if let indexConfig { agents.append(IndexAgent(config: indexConfig)) }
+    if let releaseConfig { agents.append(ReleaseAgent(config: releaseConfig)) }
+    if let reportConfig { agents.append(ReportAgent(config: reportConfig)) }
+    if let repairConfig { agents.append(RepairAgent(config: repairConfig)) }
     if !config.activePackIds.isEmpty {
       let packs = try store.loadPackManifests()
       let selected = packs.filter { config.activePackIds.contains($0.id) }

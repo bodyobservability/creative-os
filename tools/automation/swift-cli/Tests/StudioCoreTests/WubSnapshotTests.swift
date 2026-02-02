@@ -50,7 +50,7 @@ final class WubSnapshotTests: XCTestCase {
     XCTAssertTrue(fm.changeCurrentDirectoryPath(tempDir.path))
     let runDir = try setupWorkspace(at: tempDir)
 
-    let context = WubContext(runDir: runDir, runsDir: "runs", sweeperConfig: nil, driftConfig: nil, readyConfig: nil)
+    let context = WubContext(runDir: runDir, runsDir: "runs", sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
     let report = try context.makeSweepReport()
 
     let enc = JSONEncoder()
@@ -73,7 +73,7 @@ final class WubSnapshotTests: XCTestCase {
     XCTAssertTrue(fm.changeCurrentDirectoryPath(tempDir.path))
     let runDir = try setupWorkspace(at: tempDir)
 
-    let context = WubContext(runDir: runDir, runsDir: "runs", sweeperConfig: nil, driftConfig: nil, readyConfig: nil)
+    let context = WubContext(runDir: runDir, runsDir: "runs", sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
     let report = try context.makePlanReport()
 
     let enc = JSONEncoder()

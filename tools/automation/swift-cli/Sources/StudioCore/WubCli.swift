@@ -68,7 +68,7 @@ struct WubStateSweep: AsyncParsableCommand {
   var json: Bool = false
 
   func run() async throws {
-    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil)
+    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
     let report = try context.makeSweepReport()
     try emit(report, json: json)
   }
@@ -107,7 +107,7 @@ struct WubSweep: AsyncParsableCommand {
                                requiredControllers: requireController,
                                allowOcrFallback: allowOcrFallback,
                                fix: fix)
-    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: config, driftConfig: nil, readyConfig: nil)
+    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: config, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
     let report = try context.makeSweepReport()
     try emit(report, json: json)
   }
@@ -126,7 +126,7 @@ struct WubStatePlan: AsyncParsableCommand {
   var json: Bool = false
 
   func run() async throws {
-    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil)
+    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
     let report = try context.makePlanReport()
     try emit(report, json: json)
   }
@@ -165,6 +165,72 @@ struct WubPlan: AsyncParsableCommand {
   @Option(name: .long, help: "Anchors pack hint for ready agent.")
   var readyAnchorsPackHint: String = "specs/automation/anchors/<pack_id>"
 
+  @Option(name: .long, help: "Station status format for station agent: human|json.")
+  var stationStatusFormat: String = "json"
+
+  @Flag(name: .long, help: "Station status without writing report.")
+  var stationNoWriteReport: Bool = true
+
+  @Option(name: .long, help: "Anchors pack for assets export-all agent.")
+  var assetsAnchorsPack: String = "specs/automation/anchors/<pack_id>"
+
+  @Flag(name: .long, help: "Assets export-all agent overwrite existing outputs.")
+  var assetsOverwrite: Bool = false
+
+  @Flag(name: .long, help: "Assets export-all agent non-interactive mode.")
+  var assetsNonInteractive: Bool = false
+
+  @Flag(name: .long, inversion: .prefixedNo, help: "Assets export-all agent preflight (default: enabled).")
+  var assetsPreflight: Bool = true
+
+  @Option(name: .long, help: "Anchors pack for voice/rack/session agent.")
+  var vrsAnchorsPack: String? = nil
+
+  @Option(name: .long, help: "Macro region for voice/rack/session agent.")
+  var vrsMacroRegion: String = "rack.macros"
+
+  @Flag(name: .long, help: "Allow CGEvent fallback for rack install.")
+  var vrsAllowCgevent: Bool = false
+
+  @Flag(name: .long, help: "Run voice handshake with fix enabled.")
+  var vrsFix: Bool = false
+
+  @Option(name: .long, help: "Session profile id for session compile.")
+  var vrsSessionProfile: String = "bass_v1"
+
+  @Option(name: .long, help: "Index build repo version.")
+  var indexRepoVersion: String = "v1.8.4"
+
+  @Option(name: .long, help: "Index build output directory.")
+  var indexOutDir: String = "checksums/index"
+
+  @Option(name: .long, help: "Index build runs directory.")
+  var indexRunsDir: String = "runs"
+
+  @Option(name: .long, help: "Release candidate profile path.")
+  var releaseProfilePath: String = "profiles/hvlien/specs/library/profiles/dev/bass_lead.v1.yaml"
+
+  @Option(name: .long, help: "Release rack id for certification.")
+  var releaseRackId: String = "bass"
+
+  @Option(name: .long, help: "Release macro for certification.")
+  var releaseMacro: String = "Width"
+
+  @Option(name: .long, help: "Release baseline receipt path.")
+  var releaseBaseline: String = "runs/<run_id>/sonic_sweep_receipt.v1.json"
+
+  @Option(name: .long, help: "Release current sweep receipt path.")
+  var releaseCurrentSweep: String = "runs/<run_id>/sonic_sweep_receipt.v1.json"
+
+  @Option(name: .long, help: "Report run directory for report generate.")
+  var reportRunDir: String = "runs/<run_id>"
+
+  @Option(name: .long, help: "Repair anchors pack hint.")
+  var repairAnchorsPackHint: String = "specs/automation/anchors/<pack_id>"
+
+  @Flag(name: .long, help: "Repair overwrite during export-all.")
+  var repairOverwrite: Bool = true
+
   func run() async throws {
     let config = SweeperConfig(anchorsPack: anchorsPack,
                                modalTest: modalTest,
@@ -175,7 +241,27 @@ struct WubPlan: AsyncParsableCommand {
                              runsDir: runsDir,
                              sweeperConfig: config,
                              driftConfig: DriftConfig(anchorsPackHint: anchorsPackHint),
-                             readyConfig: ReadyConfig(anchorsPackHint: readyAnchorsPackHint))
+                             readyConfig: ReadyConfig(anchorsPackHint: readyAnchorsPackHint),
+                             stationConfig: StationConfig(format: stationStatusFormat, noWriteReport: stationNoWriteReport),
+                             assetsConfig: AssetsConfig(anchorsPack: assetsAnchorsPack,
+                                                        overwrite: assetsOverwrite,
+                                                        nonInteractive: assetsNonInteractive,
+                                                        preflight: assetsPreflight),
+                             voiceRackSessionConfig: VoiceRackSessionConfig(anchorsPack: vrsAnchorsPack,
+                                                                           macroRegion: vrsMacroRegion,
+                                                                           allowCgevent: vrsAllowCgevent,
+                                                                           fix: vrsFix,
+                                                                           sessionProfile: vrsSessionProfile),
+                             indexConfig: IndexConfig(repoVersion: indexRepoVersion,
+                                                      outDir: indexOutDir,
+                                                      runsDir: indexRunsDir),
+                             releaseConfig: ReleaseConfig(profilePath: releaseProfilePath,
+                                                          rackId: releaseRackId,
+                                                          macro: releaseMacro,
+                                                          baseline: releaseBaseline,
+                                                          currentSweep: releaseCurrentSweep),
+                             reportConfig: ReportConfig(runDir: reportRunDir),
+                             repairConfig: RepairConfig(anchorsPackHint: repairAnchorsPackHint, overwrite: repairOverwrite))
     let report = try context.makePlanReport()
     try emit(report, json: json)
   }
@@ -194,7 +280,7 @@ struct WubStateSetup: AsyncParsableCommand {
   var showManual: Bool = false
 
   func run() async throws {
-    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil)
+    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
     let report = try context.makePlanReport()
     let automated = report.steps.filter { $0.type == .automated }
     let manual = report.steps.filter { $0.type == .manualRequired }
@@ -260,7 +346,7 @@ struct WubSetup: AsyncParsableCommand {
   var dryRun: Bool = false
 
   func run() async throws {
-    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil)
+    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
     let report = try context.makePlanReport()
     let automated = report.steps.filter { $0.type == .automated }
     let manual = report.steps.filter { $0.type == .manualRequired }
