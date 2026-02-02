@@ -146,6 +146,12 @@ struct RepairConfig {
   let overwrite: Bool
 }
 
+private func configEffect(id: String, payload: [String: Any]) -> CreativeOS.Effect {
+  let data = (try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])) ?? Data()
+  let json = String(data: data, encoding: .utf8) ?? "{}"
+  return CreativeOS.Effect(id: id, kind: .config, target: json, description: "service_config")
+}
+
 struct SweeperAgent: CreativeOS.Agent {
   let id: String = "sweeper"
   let config: SweeperConfig
@@ -154,14 +160,26 @@ struct SweeperAgent: CreativeOS.Agent {
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = buildCommand()
+    let cfg = configEffect(id: "sweeper_config",
+                           payload: [
+                             "anchors_pack": config.anchorsPack as Any,
+                             "modal_test": config.modalTest,
+                             "required_controllers": config.requiredControllers,
+                             "allow_ocr_fallback": config.allowOcrFallback,
+                             "fix": config.fix
+                           ])
     p.register(id: "sweep_maintenance") {
       [CreativeOS.PlanStep(id: "sweep_maintenance",
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(cmd)",
-                           effects: [CreativeOS.Effect(id: "sweep_command", kind: .process, target: cmd, description: "Run maintenance sweep")],
+                           effects: [
+                             cfg,
+                             CreativeOS.Effect(id: "sweep_command", kind: .process, target: cmd, description: "Run maintenance sweep")
+                           ],
                            idempotent: true,
-                           manualReason: "sweep_required")]
+                           manualReason: "sweep_required",
+                           actionRef: .init(id: "sweeper.run", kind: .setup, description: "Run sweeper service"))]
     }
   }
 
@@ -201,15 +219,23 @@ struct DriftAgent: CreativeOS.Agent {
     let checkCmd = hint.isEmpty ? "wub drift check" : "wub drift check --anchors-pack-hint \(hint)"
     let planCmd = hint.isEmpty ? "wub drift plan" : "wub drift plan --anchors-pack-hint \(hint)"
     let fixCmd = hint.isEmpty ? "wub drift fix --dry-run" : "wub drift fix --anchors-pack-hint \(hint) --dry-run"
+    let cfg = configEffect(id: "drift_config",
+                           payload: [
+                             "anchors_pack_hint": config.anchorsPackHint as Any,
+                             "artifact_index": "checksums/index/artifact_index.v1.json",
+                             "receipt_index": "checksums/index/receipt_index.v1.json",
+                             "dry_run": true
+                           ])
 
     p.register(id: "drift_check") {
       [CreativeOS.PlanStep(id: "drift_check",
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(checkCmd)",
-                           effects: [CreativeOS.Effect(id: "drift_check", kind: .process, target: checkCmd, description: "Run drift check")],
+                           effects: [cfg, CreativeOS.Effect(id: "drift_check", kind: .process, target: checkCmd, description: "Run drift check")],
                            idempotent: true,
-                           manualReason: "drift_check_required")]
+                           manualReason: "drift_check_required",
+                           actionRef: .init(id: "drift.check", kind: .recheck, description: "Run drift check"))]
     }
     p.register(id: "drift_plan") {
       [CreativeOS.PlanStep(id: "drift_plan",
@@ -225,9 +251,10 @@ struct DriftAgent: CreativeOS.Agent {
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(fixCmd)",
-                           effects: [CreativeOS.Effect(id: "drift_fix", kind: .process, target: fixCmd, description: "Run drift fix (dry run)")],
+                           effects: [cfg, CreativeOS.Effect(id: "drift_fix", kind: .process, target: fixCmd, description: "Run drift fix (dry run)")],
                            idempotent: true,
-                           manualReason: "drift_fix_required")]
+                           manualReason: "drift_fix_required",
+                           actionRef: .init(id: "drift.fix", kind: .repair, description: "Run drift fix service"))]
     }
   }
 
@@ -245,14 +272,16 @@ struct ReadyAgent: CreativeOS.Agent {
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let hint = config.anchorsPackHint
     let cmd = "wub ready --anchors-pack-hint \(hint)"
+    let cfg = configEffect(id: "ready_config", payload: ["anchors_pack_hint": hint])
     p.register(id: "ready_check") {
       [CreativeOS.PlanStep(id: "ready_check",
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(cmd)",
-                           effects: [CreativeOS.Effect(id: "ready_check", kind: .process, target: cmd, description: "Run ready check")],
+                           effects: [cfg, CreativeOS.Effect(id: "ready_check", kind: .process, target: cmd, description: "Run ready check")],
                            idempotent: true,
-                           manualReason: "ready_check_required")]
+                           manualReason: "ready_check_required",
+                           actionRef: .init(id: "ready.check", kind: .recheck, description: "Run ready service"))]
     }
   }
 
@@ -269,14 +298,21 @@ struct StationAgent: CreativeOS.Agent {
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = "wub station status --format \(config.format)" + (config.noWriteReport ? " --no-write-report" : "")
+    let cfg = configEffect(id: "station_config",
+                           payload: [
+                             "format": config.format,
+                             "no_write_report": config.noWriteReport,
+                             "anchors_pack_hint": "specs/automation/anchors/<pack_id>"
+                           ])
     p.register(id: "station_status") {
       [CreativeOS.PlanStep(id: "station_status",
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(cmd)",
-                           effects: [CreativeOS.Effect(id: "station_status", kind: .process, target: cmd, description: "Check station status")],
+                           effects: [cfg, CreativeOS.Effect(id: "station_status", kind: .process, target: cmd, description: "Check station status")],
                            idempotent: true,
-                           manualReason: "station_status")]
+                           manualReason: "station_status",
+                           actionRef: .init(id: "station.status", kind: .recheck, description: "Run station status service"))]
     }
   }
 
@@ -293,14 +329,22 @@ struct AssetsAgent: CreativeOS.Agent {
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = buildCommand()
+    let cfg = configEffect(id: "assets_config",
+                           payload: [
+                             "anchors_pack": config.anchorsPack as Any,
+                             "overwrite": config.overwrite,
+                             "non_interactive": config.nonInteractive,
+                             "preflight": config.preflight
+                           ])
     p.register(id: "assets_export_all") {
       [CreativeOS.PlanStep(id: "assets_export_all",
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(cmd)",
-                           effects: [CreativeOS.Effect(id: "assets_export_all", kind: .process, target: cmd, description: "Run assets export-all")],
+                           effects: [cfg, CreativeOS.Effect(id: "assets_export_all", kind: .process, target: cmd, description: "Run assets export-all")],
                            idempotent: true,
-                           manualReason: "assets_export_required")]
+                           manualReason: "assets_export_required",
+                           actionRef: .init(id: "assets.export_all", kind: .setup, description: "Run assets export-all service"))]
     }
   }
 
@@ -337,6 +381,12 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
     let rackInstallCmd = "wub rack install" + apArgs + macroArgs + cgArg
     let rackVerifyCmd = "wub rack verify" + apArgs + macroArgs
     let sessionCmd = "wub session compile --profile \(config.sessionProfile)" + (anchorsFlag.isEmpty ? "" : " --anchors-pack \(anchorsFlag)")
+    let sessionCfg = configEffect(id: "session_config",
+                                  payload: [
+                                    "profile": config.sessionProfile,
+                                    "anchors_pack": anchorsFlag,
+                                    "fix": config.fix
+                                  ])
 
     p.register(id: "voice_run") {
       [CreativeOS.PlanStep(id: "voice_run",
@@ -370,9 +420,10 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(sessionCmd)",
-                           effects: [CreativeOS.Effect(id: "session_compile", kind: .process, target: sessionCmd, description: "Compile session")],
+                           effects: [sessionCfg, CreativeOS.Effect(id: "session_compile", kind: .process, target: sessionCmd, description: "Compile session")],
                            idempotent: true,
-                           manualReason: "session_compile_required")]
+                           manualReason: "session_compile_required",
+                           actionRef: .init(id: "session.compile", kind: .setup, description: "Run session compile service"))]
     }
   }
 
@@ -389,14 +440,24 @@ struct IndexAgent: CreativeOS.Agent {
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = "wub index build --repo-version \(config.repoVersion) --out-dir \(config.outDir) --runs-dir \(config.runsDir)"
+    let cfg = configEffect(id: "index_config",
+                           payload: [
+                             "repo_version": config.repoVersion,
+                             "out_dir": config.outDir,
+                             "runs_dir": config.runsDir
+                           ])
     p.register(id: "index_build") {
       [CreativeOS.PlanStep(id: "index_build",
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(cmd)",
-                           effects: [CreativeOS.Effect(id: "index_build", kind: .process, target: cmd, description: "Build indexes")],
+                           effects: [
+                             cfg,
+                             CreativeOS.Effect(id: "index_build", kind: .process, target: cmd, description: "Build indexes")
+                           ],
                            idempotent: true,
-                           manualReason: "index_build_required")]
+                           manualReason: "index_build_required",
+                           actionRef: .init(id: "index.build", kind: .setup, description: "Run index build service"))]
     }
     p.register(id: "index_status") {
       let statusCmd = "wub index status"
@@ -423,14 +484,26 @@ struct ReleaseAgent: CreativeOS.Agent {
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = "wub release promote-profile --profile \(config.profilePath) --rack-id \(config.rackId) --macro \(config.macro) --baseline \(config.baseline) --current-sweep \(config.currentSweep)"
+    let cfg = configEffect(id: "release_config",
+                           payload: [
+                             "profile": config.profilePath,
+                             "rack_id": config.rackId,
+                             "macro": config.macro,
+                             "baseline": config.baseline,
+                             "current_sweep": config.currentSweep
+                           ])
     p.register(id: "release_promote_profile") {
       [CreativeOS.PlanStep(id: "release_promote_profile",
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(cmd)",
-                           effects: [CreativeOS.Effect(id: "release_promote_profile", kind: .process, target: cmd, description: "Promote profile")],
+                           effects: [
+                             cfg,
+                             CreativeOS.Effect(id: "release_promote_profile", kind: .process, target: cmd, description: "Promote profile")
+                           ],
                            idempotent: true,
-                           manualReason: "release_promote_required")]
+                           manualReason: "release_promote_required",
+                           actionRef: .init(id: "release.promote_profile", kind: .setup, description: "Run release promote service"))]
     }
   }
 
@@ -447,14 +520,22 @@ struct ReportAgent: CreativeOS.Agent {
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = "wub report generate --run-dir \(config.runDir)"
+    let cfg = configEffect(id: "report_config",
+                           payload: [
+                             "run_dir": config.runDir
+                           ])
     p.register(id: "report_generate") {
       [CreativeOS.PlanStep(id: "report_generate",
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(cmd)",
-                           effects: [CreativeOS.Effect(id: "report_generate", kind: .process, target: cmd, description: "Generate run report")],
+                           effects: [
+                             cfg,
+                             CreativeOS.Effect(id: "report_generate", kind: .process, target: cmd, description: "Generate run report")
+                           ],
                            idempotent: true,
-                           manualReason: "report_generate_required")]
+                           manualReason: "report_generate_required",
+                           actionRef: .init(id: "report.generate", kind: .setup, description: "Run report generation service"))]
     }
   }
 
@@ -471,14 +552,23 @@ struct RepairAgent: CreativeOS.Agent {
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = "wub repair --anchors-pack-hint \(config.anchorsPackHint)" + (config.overwrite ? " --overwrite" : "")
+    let cfg = configEffect(id: "repair_config",
+                           payload: [
+                             "anchors_pack_hint": config.anchorsPackHint,
+                             "overwrite": config.overwrite
+                           ])
     p.register(id: "repair_run") {
       [CreativeOS.PlanStep(id: "repair_run",
                            agent: id,
                            type: .manualRequired,
                            description: "Run: \(cmd)",
-                           effects: [CreativeOS.Effect(id: "repair_run", kind: .process, target: cmd, description: "Run repair recipe")],
+                           effects: [
+                             cfg,
+                             CreativeOS.Effect(id: "repair_run", kind: .process, target: cmd, description: "Run repair recipe")
+                           ],
                            idempotent: true,
-                           manualReason: "repair_run_required")]
+                           manualReason: "repair_run_required",
+                           actionRef: .init(id: "repair.run", kind: .setup, description: "Run repair service"))]
     }
   }
 

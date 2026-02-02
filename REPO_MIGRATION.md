@@ -60,6 +60,14 @@ Scope:
 4) **Deprecate Legacy CLI Surfaces**  
    Mark `plan-legacy` and `sweep-legacy` as compatibility-only and add deprecation messaging.
 
+Suggested execution order:
+1) **Create ServiceExecutor** + structured `PlanStep` action refs.
+2) **Session/Voice chain** (largest dependency graph, most shell‑outs).
+3) **Assets/Index/Repair** (keeps repo‑wide workflows consistent).
+4) **Sonic/Pipeline** (audio governance).
+5) **Release/DriftFix** (gated workflows).
+6) Remove/lock down `plan-legacy` + `sweep-legacy`.
+
 Acceptance gate:
 - Agents can execute automated steps without spawning `wub`
 - `swift test` green

@@ -298,18 +298,7 @@ struct WubStateSetup: AsyncParsableCommand {
 
     var failures: [String] = []
     for step in automated {
-      let processEffects = step.effects.filter { $0.kind == .process }
-      if processEffects.isEmpty {
-        failures.append("\(step.agent)/\(step.id): no process effects to execute")
-        continue
-      }
-      for effect in processEffects {
-        print("Running: \(step.agent)/\(step.id) → \(effect.target)")
-        let code = try await runShell(effect.target)
-        if code != 0 {
-          failures.append("\(step.agent)/\(step.id): exit=\(code)")
-        }
-      }
+      try await executeStep(step, failures: &failures)
     }
 
     if showManual && !manual.isEmpty {
@@ -378,18 +367,7 @@ struct WubSetup: AsyncParsableCommand {
 
     var failures: [String] = []
     for step in automated {
-      let processEffects = step.effects.filter { $0.kind == .process }
-      if processEffects.isEmpty {
-        failures.append("\(step.agent)/\(step.id): no process effects to execute")
-        continue
-      }
-      for effect in processEffects {
-        print("Running: \(step.agent)/\(step.id) → \(effect.target)")
-        let code = try await runShell(effect.target)
-        if code != 0 {
-          failures.append("\(step.agent)/\(step.id): exit=\(code)")
-        }
-      }
+      try await executeStep(step, failures: &failures)
     }
 
     if showManual && !manual.isEmpty {
@@ -509,6 +487,33 @@ private func runShell(_ command: String) async throws -> Int32 {
   try process.run()
   process.waitUntilExit()
   return process.terminationStatus
+}
+
+private func executeStep(_ step: CreativeOS.PlanStep, failures: inout [String]) async throws {
+  if let actionRef = step.actionRef {
+    do {
+      print("Running: \(step.agent)/\(step.id) → \(actionRef.id)")
+      if let code = try await ServiceExecutor.execute(step: step) {
+        if code != 0 { failures.append("\(step.agent)/\(step.id): exit=\(code)") }
+        return
+      }
+    } catch {
+      print("Service executor failed for \(step.agent)/\(step.id): \(error)")
+    }
+  }
+
+  let processEffects = step.effects.filter { $0.kind == .process }
+  if processEffects.isEmpty {
+    failures.append("\(step.agent)/\(step.id): no process effects to execute")
+    return
+  }
+  for effect in processEffects {
+    print("Running: \(step.agent)/\(step.id) → \(effect.target)")
+    let code = try await runShell(effect.target)
+    if code != 0 {
+      failures.append("\(step.agent)/\(step.id): exit=\(code)")
+    }
+  }
 }
 
 public enum WubEntry {

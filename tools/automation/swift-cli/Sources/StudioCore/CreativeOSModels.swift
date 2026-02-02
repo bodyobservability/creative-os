@@ -123,6 +123,7 @@ enum CreativeOS {
     var effects: [Effect]
     var idempotent: Bool
     let manualReason: String?
+    let actionRef: ActionRef?
 
     enum CodingKeys: String, CodingKey {
       case id
@@ -132,6 +133,7 @@ enum CreativeOS {
       case effects
       case idempotent
       case manualReason = "manual_reason"
+      case actionRef = "action_ref"
     }
 
     init(id: String,
@@ -140,7 +142,8 @@ enum CreativeOS {
          description: String,
          effects: [Effect] = [],
          idempotent: Bool = true,
-         manualReason: String? = nil) {
+         manualReason: String? = nil,
+         actionRef: ActionRef? = nil) {
       self.id = id
       self.agent = agent
       self.type = type
@@ -148,6 +151,7 @@ enum CreativeOS {
       self.effects = effects
       self.idempotent = idempotent
       self.manualReason = manualReason
+      self.actionRef = actionRef
     }
 
     init(from decoder: Decoder) throws {
@@ -159,6 +163,7 @@ enum CreativeOS {
       effects = try container.decodeIfPresent([Effect].self, forKey: .effects) ?? []
       idempotent = try container.decodeIfPresent(Bool.self, forKey: .idempotent) ?? true
       manualReason = try container.decodeIfPresent(String.self, forKey: .manualReason)
+      actionRef = try container.decodeIfPresent(ActionRef.self, forKey: .actionRef)
       if type == .manualRequired && (manualReason == nil || manualReason?.isEmpty == true) {
         throw DecodingError.dataCorruptedError(forKey: .manualReason, in: container, debugDescription: "manual_reason is required when type=manual_required")
       }
