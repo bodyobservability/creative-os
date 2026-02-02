@@ -23,37 +23,39 @@ struct PipelineService {
     let runDir = URL(fileURLWithPath: config.runsDir).appendingPathComponent(runId, isDirectory: true)
     try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
 
-    let exe = CommandLine.arguments.first ?? "wub"
     var steps: [PipelineStepV1] = []
     var reasons: [String] = []
     var artifacts: [String: String] = [:]
 
-    func step(_ id: String, _ args: [String]) async -> Int32 {
-      let cmd = ([exe] + args).joined(separator: " ")
-      let code: Int32
-      do { code = try await runProcess(exe: exe, args: args) }
-      catch { steps.append(.init(id: id, command: cmd, exitCode: 999)); reasons.append("\(id): error"); return 999 }
-      steps.append(.init(id: id, command: cmd, exitCode: Int(code)))
-      if code != 0 { reasons.append("\(id): exit=\(code)") }
-      return code
+    func recordStep(_ id: String, _ command: String, _ exitCode: Int) {
+      steps.append(.init(id: id, command: command, exitCode: exitCode))
+      if exitCode != 0 { reasons.append("\(id): exit=\(exitCode)") }
     }
 
     let tunedOut = runDir.appendingPathComponent("tuned_profile.yaml").path
-    let calArgs = [
-      "sonic", "calibrate",
-      "--macro", config.macro,
-      "--positions", config.positions,
-      "--export-dir", config.exportDir,
-      "--midi-dest", config.midiDest,
-      "--cc", String(config.cc),
-      "--channel", String(config.channel),
-      "--profile", config.profileDev,
-      "--out-profile", tunedOut,
-      "--rack-id", config.rackId,
-      "--profile-id", config.profileId,
-      "--thresholds", config.thresholds
-    ]
-    _ = await step("sonic_calibrate", calArgs)
+    let calExit: Int
+    do {
+      let receipt = try await SonicCalibrateService.run(config: .init(macro: config.macro,
+                                                                      positions: config.positions,
+                                                                      exportDir: config.exportDir,
+                                                                      baseName: "BASE",
+                                                                      midiDest: config.midiDest,
+                                                                      cc: config.cc,
+                                                                      channel: config.channel,
+                                                                      exportChord: "CMD+SHIFT+R",
+                                                                      waitSeconds: 8.0,
+                                                                      thresholds: config.thresholds,
+                                                                      profile: config.profileDev,
+                                                                      outProfile: tunedOut,
+                                                                      rackId: config.rackId,
+                                                                      profileId: config.profileId,
+                                                                      runsDir: config.runsDir))
+      calExit = (receipt.status == "fail") ? 1 : 0
+    } catch {
+      reasons.append("sonic_calibrate: \(error.localizedDescription)")
+      calExit = 999
+    }
+    recordStep("sonic_calibrate", "service: sonic.calibrate", calExit)
     let sweepPath = runDir.appendingPathComponent("sonic_sweep_receipt.v1.json").path
     artifacts["current_sweep"] = sweepPath
     artifacts["tuned_profile"] = tunedOut
@@ -63,22 +65,56 @@ struct PipelineService {
 
     if config.baselineMode == "set-if-missing" {
       if !FileManager.default.fileExists(atPath: basePath) {
-        _ = await step("baseline_set", ["sonic", "baseline", "set", "--rack-id", config.rackId, "--profile-id", config.profileId, "--macro", config.macro, "--sweep", sweepPath])
+        let baseExit: Int
+        do {
+          _ = try BaselineService.set(config: .init(rackId: config.rackId,
+                                                    profileId: config.profileId,
+                                                    macro: config.macro,
+                                                    sweep: sweepPath,
+                                                    root: WubDefaults.profileSpecPath("sonic/baselines"),
+                                                    index: WubDefaults.profileSpecPath("sonic/baselines/baseline_index.v1.json"),
+                                                    notes: nil))
+          baseExit = 0
+        } catch {
+          reasons.append("baseline_set: \(error.localizedDescription)")
+          baseExit = 999
+        }
+        recordStep("baseline_set", "service: sonic.baseline_set", baseExit)
       }
     } else if config.baselineMode == "update" {
-      _ = await step("baseline_set", ["sonic", "baseline", "set", "--rack-id", config.rackId, "--profile-id", config.profileId, "--macro", config.macro, "--sweep", sweepPath])
+      let baseExit: Int
+      do {
+        _ = try BaselineService.set(config: .init(rackId: config.rackId,
+                                                  profileId: config.profileId,
+                                                  macro: config.macro,
+                                                  sweep: sweepPath,
+                                                  root: WubDefaults.profileSpecPath("sonic/baselines"),
+                                                  index: WubDefaults.profileSpecPath("sonic/baselines/baseline_index.v1.json"),
+                                                  notes: nil))
+        baseExit = 0
+      } catch {
+        reasons.append("baseline_set: \(error.localizedDescription)")
+        baseExit = 999
+      }
+      recordStep("baseline_set", "service: sonic.baseline_set", baseExit)
     }
 
-    var promoteArgs = [
-      "release", "promote-profile",
-      "--profile", tunedOut,
-      "--rack-id", config.rackId,
-      "--macro", config.macro,
-      "--baseline", basePath,
-      "--current-sweep", sweepPath
-    ]
-    if let out = config.releaseOut { promoteArgs += ["--out", out] }
-    _ = await step("release_promote", promoteArgs)
+    let promoteExit: Int
+    do {
+      let receipt = try await ReleaseService.promoteProfile(config: .init(profile: tunedOut,
+                                                                          out: config.releaseOut,
+                                                                          rackId: config.rackId,
+                                                                          macro: config.macro,
+                                                                          baseline: basePath,
+                                                                          currentSweep: sweepPath,
+                                                                          rackManifest: WubDefaults.profileSpecPath("library/racks/rack_pack_manifest.v1.json"),
+                                                                          runsDir: config.runsDir))
+      promoteExit = (receipt.status == "fail") ? 1 : 0
+    } catch {
+      reasons.append("release_promote: \(error.localizedDescription)")
+      promoteExit = 999
+    }
+    recordStep("release_promote", "service: release.promote_profile", promoteExit)
 
     let status = reasons.isEmpty ? "pass" : "fail"
     artifacts["run_dir"] = "\(config.runsDir)/\(runId)"
@@ -103,15 +139,4 @@ struct PipelineService {
     return receipt
   }
 
-  private static func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
-  }
 }

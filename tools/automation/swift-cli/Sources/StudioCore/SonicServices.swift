@@ -16,17 +16,12 @@ struct SonicCertifyService {
     let runDir = URL(fileURLWithPath: config.runsDir).appendingPathComponent(runId, isDirectory: true)
     try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
 
-    let exe = CommandLine.arguments.first ?? "wub"
     let diffOut = runDir.appendingPathComponent("sonic_diff_receipt.v1.json").path
 
-    let code = try await runProcess(exe: exe, args: [
-      "sonic", "diff-sweep",
-      "--baseline", config.baseline,
-      "--current", config.sweep,
-      "--out", diffOut
-    ])
+    let diff = try SonicDiff.diff(baselinePath: config.baseline, currentPath: config.sweep)
+    try JSONIO.save(diff, to: URL(fileURLWithPath: diffOut))
 
-    let status = (code == 0) ? "pass" : "fail"
+    let status = (diff.status == "fail") ? "fail" : "pass"
     let receipt = SonicCertifyCommand.SonicCertReceiptV1(schemaVersion: 1,
                                                         runId: runId,
                                                         timestamp: ISO8601DateFormatter().string(from: Date()),
@@ -35,22 +30,10 @@ struct SonicCertifyService {
                                                         macro: config.macro,
                                                         status: status,
                                                         artifacts: ["baseline": config.baseline, "current_sweep": config.sweep, "diff": diffOut],
-                                                        reasons: (code == 0) ? [] : ["diff_failed"])
+                                                        reasons: (status == "pass") ? [] : ["diff_failed"])
 
     try JSONIO.save(receipt, to: runDir.appendingPathComponent("sonic_cert_receipt.v1.json"))
     return receipt
-  }
-
-  private static func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
   }
 }
 
@@ -81,54 +64,69 @@ struct SonicCalibrateService {
     let runDir = URL(fileURLWithPath: config.runsDir).appendingPathComponent(runId, isDirectory: true)
     try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
 
-    let exe = CommandLine.arguments.first ?? "wub"
     var steps: [SonicCalibrateStepV1] = []
     var reasons: [String] = []
 
-    func runStep(_ id: String, _ args: [String]) async -> Int32 {
-      let cmd = ([exe] + args).joined(separator: " ")
-      let code: Int32
-      do { code = try await runProcess(exe: exe, args: args) }
-      catch {
-        steps.append(.init(id: id, command: cmd, exitCode: 999))
-        reasons.append("\(id): \(error.localizedDescription)")
-        return 999
-      }
-      steps.append(.init(id: id, command: cmd, exitCode: Int(code)))
-      if code != 0 { reasons.append("\(id): exit=\(code)") }
-      return code
+    func recordStep(_ id: String, _ command: String, _ exitCode: Int) {
+      steps.append(.init(id: id, command: command, exitCode: exitCode))
+      if exitCode != 0 { reasons.append("\(id): exit=\(exitCode)") }
     }
 
-    var scArgs = ["sonic", "sweep-compile",
-                  "--macro", config.macro,
-                  "--positions", config.positions,
-                  "--export-dir", config.exportDir,
-                  "--base-name", config.baseName,
-                  "--midi-dest", config.midiDest,
-                  "--cc", String(config.cc),
-                  "--channel", String(config.channel),
-                  "--export-chord", config.exportChord,
-                  "--wait-seconds", String(config.waitSeconds)]
-    if !config.thresholds.isEmpty { scArgs += ["--thresholds", config.thresholds] }
-    if let rackId = config.rackId { scArgs += ["--rack-id", rackId] }
-    if let profileId = config.profileId { scArgs += ["--profile-id", profileId] }
-    let scCode = await runStep("sweep_compile", scArgs)
+    let scCode: Int
+    do {
+      let receipt = try await SonicSweepCompileService.run(config: .init(macro: config.macro,
+                                                                         positions: config.positions,
+                                                                         exportDir: config.exportDir,
+                                                                         baseName: config.baseName,
+                                                                         midiDest: config.midiDest,
+                                                                         cc: config.cc,
+                                                                         channel: config.channel,
+                                                                         exportChord: config.exportChord,
+                                                                         waitSeconds: config.waitSeconds,
+                                                                         thresholds: config.thresholds,
+                                                                         rackId: config.rackId,
+                                                                         profileId: config.profileId,
+                                                                         runsDir: config.runsDir))
+      scCode = (receipt.status == "pass") ? 0 : 1
+    } catch {
+      reasons.append("sweep_compile: \(error.localizedDescription)")
+      scCode = 999
+    }
+    recordStep("sweep_compile", "service: sonic.sweep_compile", scCode)
 
     let sweepOut = runDir.appendingPathComponent("sonic_sweep_receipt.v1.json").path
-    var sweepArgs = ["sonic", "sweep", "--macro", config.macro, "--dir", config.exportDir, "--out", sweepOut]
-    if !config.thresholds.isEmpty { sweepArgs += ["--thresholds", config.thresholds] }
-    if let rackId = config.rackId { sweepArgs += ["--rack-id", rackId] }
-    if let profileId = config.profileId { sweepArgs += ["--profile-id", profileId] }
-    let sweepCode = await runStep("sonic_sweep", sweepArgs)
+    let sweepCode: Int
+    do {
+      let receipt = try runSonicSweep(macro: config.macro,
+                                      dir: config.exportDir,
+                                      thresholds: config.thresholds,
+                                      rackId: config.rackId,
+                                      profileId: config.profileId,
+                                      runId: runId,
+                                      runsDir: config.runsDir,
+                                      outPath: sweepOut)
+      sweepCode = (receipt.status == "fail") ? 1 : 0
+    } catch {
+      reasons.append("sonic_sweep: \(error.localizedDescription)")
+      sweepCode = 999
+    }
+    recordStep("sonic_sweep", "service: sonic.sweep", sweepCode)
 
     let tunedOut = config.outProfile ?? runDir.appendingPathComponent("tuned_profile.yaml").path
     let tuneReceiptOut = runDir.appendingPathComponent("sonic_tune_receipt.v1.json").path
-    let tuneArgs = ["sonic", "tune-profile",
-                    "--sweep-receipt", sweepOut,
-                    "--profile", config.profile,
-                    "--out", tunedOut,
-                    "--receipt-out", tuneReceiptOut]
-    let tuneCode = await runStep("tune_profile", tuneArgs)
+    let tuneCode: Int
+    do {
+      let (outProfile, receipt) = try SonicTune.tuneProfile(profileYamlPath: config.profile,
+                                                            sweepReceiptPath: sweepOut,
+                                                            outPath: tunedOut)
+      try JSONIO.save(receipt, to: URL(fileURLWithPath: tuneReceiptOut))
+      tuneCode = (receipt.status == "fail") ? 1 : 0
+      if outProfile != tunedOut { _ = outProfile }
+    } catch {
+      reasons.append("tune_profile: \(error.localizedDescription)")
+      tuneCode = 999
+    }
+    recordStep("tune_profile", "service: sonic.tune_profile", tuneCode)
 
     let status = (scCode == 0 && sweepCode == 0 && tuneCode == 0) ? "pass" : "fail"
 
@@ -159,17 +157,6 @@ struct SonicCalibrateService {
     s.split(separator: ",").compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }.map { max(0.0, min(1.0, $0)) }.sorted()
   }
 
-  private static func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
-  }
 }
 
 struct SonicSweepRunService {
@@ -197,8 +184,6 @@ struct SonicSweepRunService {
     let ctx = RunContext(common: common)
     try ctx.ensureRunDir()
 
-    let exe = CommandLine.arguments.first ?? "wub"
-
     print("\n== v7.3 sweep-run ==")
     print("macro: \(config.macro)")
     let positionsText = posList.map { String(format: "%.2f", $0) }.joined(separator: ", ")
@@ -224,37 +209,35 @@ struct SonicSweepRunService {
       try data.write(to: planPath)
 
       print("2) Trigger export + save as: \(fullOut)")
-      _ = try await runProcess(exe: exe, args: ["apply", "--plan", planPath.path, "--allow-cgevent"])
+      _ = try await ApplyService.run(config: .init(planPath: planPath.path,
+                                                   anchorsPack: nil,
+                                                   allowCgevent: true,
+                                                   force: false,
+                                                   runsDir: config.runsDir,
+                                                   regionsConfig: "tools/automation/swift-cli/config/regions.v1.json",
+                                                   evidence: "fail",
+                                                   watchdogMs: 30000))
 
       print("3) Waiting \(config.waitSeconds)s for render...")
       try await Task.sleep(nanoseconds: UInt64(config.waitSeconds * 1_000_000_000.0))
     }
 
     print("\n== Running sonic sweep ==")
-    var args = ["sonic", "sweep", "--macro", config.macro, "--dir", config.exportDir]
-    if !config.thresholds.isEmpty { args += ["--thresholds", config.thresholds] }
-    if let rackId = config.rackId { args += ["--rack-id", rackId] }
-    if let profileId = config.profileId { args += ["--profile-id", profileId] }
-
-    let code = try await runProcess(exe: exe, args: args)
-    if code != 0 { throw ExitCode(code) }
+    let receipt = try runSonicSweep(macro: config.macro,
+                                    dir: config.exportDir,
+                                    thresholds: config.thresholds,
+                                    rackId: config.rackId,
+                                    profileId: config.profileId,
+                                    runId: ctx.runId,
+                                    runsDir: config.runsDir,
+                                    outPath: nil)
+    if receipt.status == "fail" { throw ExitCode(1) }
   }
 
   private static func parsePositions(_ s: String) -> [Double] {
     s.split(separator: ",").compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }.sorted()
   }
 
-  private static func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
-  }
 }
 
 struct SonicSweepCompileService {
@@ -286,8 +269,6 @@ struct SonicSweepCompileService {
     try ctx.ensureRunDir()
     let runDir = ctx.runDir
 
-    let exe = CommandLine.arguments.first ?? "wub"
-
     var steps: [SonicSweepCompileStep] = []
     var reasons: [String] = []
 
@@ -310,24 +291,35 @@ struct SonicSweepCompileService {
       let data = try JSONSerialization.data(withJSONObject: plan, options: [.prettyPrinted, .sortedKeys])
       try data.write(to: planPath)
 
-      let code = try await runProcess(exe: exe, args: ["apply", "--plan", planPath.path, "--allow-cgevent"])
-      steps.append(.init(id: "export_\(posTag)", detail: "Exported -> \(fullOut)", exitCode: Int(code)))
-      if code != 0 { reasons.append("export \(posTag) failed exit=\(code)") }
+      let result = try await ApplyService.run(config: .init(planPath: planPath.path,
+                                                            anchorsPack: nil,
+                                                            allowCgevent: true,
+                                                            force: false,
+                                                            runsDir: config.runsDir,
+                                                            regionsConfig: "tools/automation/swift-cli/config/regions.v1.json",
+                                                            evidence: "fail",
+                                                            watchdogMs: 30000))
+      let exitCode = (result.status == "success") ? 0 : 1
+      steps.append(.init(id: "export_\(posTag)", detail: "Exported -> \(fullOut)", exitCode: exitCode))
+      if exitCode != 0 { reasons.append("export \(posTag) failed status=\(result.status)") }
 
       try await Task.sleep(nanoseconds: UInt64(config.waitSeconds * 1_000_000_000.0))
     }
 
-    var sweepArgs = ["sonic", "sweep", "--macro", config.macro, "--dir", config.exportDir]
-    if !config.thresholds.isEmpty { sweepArgs += ["--thresholds", config.thresholds] }
-    if let rackId = config.rackId { sweepArgs += ["--rack-id", rackId] }
-    if let profileId = config.profileId { sweepArgs += ["--profile-id", profileId] }
-
-    let sweepCode = try await runProcess(exe: exe, args: sweepArgs)
-    steps.append(.init(id: "sonic_sweep", detail: "sonic sweep dir=\(config.exportDir)", exitCode: Int(sweepCode)))
-    if sweepCode != 0 { reasons.append("sonic sweep failed exit=\(sweepCode)") }
+    let sweepReceipt = try runSonicSweep(macro: config.macro,
+                                         dir: config.exportDir,
+                                         thresholds: config.thresholds,
+                                         rackId: config.rackId,
+                                         profileId: config.profileId,
+                                         runId: ctx.runId,
+                                         runsDir: config.runsDir,
+                                         outPath: nil)
+    let sweepCode = (sweepReceipt.status == "fail") ? 1 : 0
+    steps.append(.init(id: "sonic_sweep", detail: "sonic sweep dir=\(config.exportDir)", exitCode: sweepCode))
+    if sweepCode != 0 { reasons.append("sonic sweep failed") }
 
     let status = (reasons.isEmpty && sweepCode == 0) ? "pass" : "fail"
-    let sweepReceiptPath = "\(config.runsDir)/\(RunContext.makeRunId())/sonic_sweep_receipt.v1.json"
+    let sweepReceiptPath = "\(config.runsDir)/\(ctx.runId)/sonic_sweep_receipt.v1.json"
 
     let receipt = SonicSweepCompileReceiptV1(
       schemaVersion: 1,
@@ -354,15 +346,75 @@ struct SonicSweepCompileService {
     s.split(separator: ",").compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }.map { max(0.0, min(1.0, $0)) }.sorted()
   }
 
-  private static func runProcess(exe: String, args: [String]) async throws -> Int32 {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: exe)
-      p.arguments = args
-      p.standardOutput = FileHandle.standardOutput
-      p.standardError = FileHandle.standardError
-      p.terminationHandler = { proc in cont.resume(returning: proc.terminationStatus) }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
+}
+
+private func runSonicSweep(macro: String,
+                           dir: String,
+                           thresholds: String,
+                           rackId: String?,
+                           profileId: String?,
+                           runId: String,
+                           runsDir: String,
+                           outPath: String?) throws -> SonicSweepReceiptV1 {
+  let runDir = URL(fileURLWithPath: runsDir).appendingPathComponent(runId, isDirectory: true)
+  try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
+
+  let folder = URL(fileURLWithPath: dir, isDirectory: true)
+  let files = (try FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil))
+    .filter { ["wav","aiff","aif"].contains($0.pathExtension.lowercased()) }
+    .sorted { $0.lastPathComponent < $1.lastPathComponent }
+
+  if files.count < 2 {
+    throw ValidationError("Need at least 2 audio files in dir.")
   }
+
+  let th = SonicSweep.loadThresholds(path: thresholds.isEmpty ? nil : thresholds)
+  var samples: [SonicSweepSampleV1] = []
+
+  for f in files {
+    guard let pos = parsePosition(from: f.lastPathComponent) else { continue }
+    let (metrics, _, _) = try SonicAnalyze.analyze(url: f)
+    let (status, reasons) = SonicSweep.classifySample(metrics: metrics, thresholds: th)
+    samples.append(SonicSweepSampleV1(position: pos, inputAudio: f.path, metrics: metrics, status: status, reasons: reasons))
+  }
+
+  if samples.count < 2 { throw ValidationError("Could not parse positions from filenames. Include like pos0.25.") }
+
+  let positions = samples.map { $0.position }.sorted()
+  let (status, summary, _) = SonicSweep.aggregate(macro: macro, samples: samples, thresholds: th)
+
+  let thMap: [String: Double] = [
+    "max_true_peak_dbfs": th.maxTruePeakDbfs,
+    "max_dc_offset_abs": th.maxDcOffsetAbs,
+    "min_stereo_correlation": th.minStereoCorrelation,
+    "max_rms_dbfs_warn": th.maxRmsDbfsWarn,
+    "max_rms_dbfs_fail": th.maxRmsDbfsFail
+  ]
+
+  let receipt = SonicSweepReceiptV1(
+    schemaVersion: 1,
+    runId: runId,
+    timestamp: ISO8601DateFormatter().string(from: Date()),
+    macro: macro,
+    profileId: profileId,
+    rackId: rackId,
+    positions: positions,
+    status: status,
+    thresholds: thMap,
+    summary: summary,
+    samples: samples.sorted { $0.position < $1.position }
+  )
+
+  let out = outPath ?? runDir.appendingPathComponent("sonic_sweep_receipt.v1.json").path
+  try JSONIO.save(receipt, to: URL(fileURLWithPath: out))
+  return receipt
+}
+
+private func parsePosition(from name: String) -> Double? {
+  guard let r = name.range(of: "pos") else { return nil }
+  let tail = name[r.upperBound...]
+  let num = tail.prefix { (ch: Character) in
+    ch.isNumber || ch == "." || ch == "-"
+  }
+  return Double(num)
 }
