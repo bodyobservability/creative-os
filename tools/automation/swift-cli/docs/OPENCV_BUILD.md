@@ -13,14 +13,14 @@ Recommended: Xcode wrapper project
 3) Add these files:
    tools/automation/swift-cli/Sources/AnchorCV/AnchorMatcherBridge.h
    tools/automation/swift-cli/Sources/AnchorCV/AnchorMatcherBridge.mm
-   tools/automation/swift-cli/Sources/AnchorCV/hvlien-Bridging-Header.h
+   tools/automation/swift-cli/Sources/AnchorCV/AnchorCV-Bridging-Header.h
 
 4) Xcode Build Settings:
    - Header Search Paths: /opt/homebrew/include
    - Library Search Paths: /opt/homebrew/lib
    - Other Linker Flags: (paste output of `pkg-config --libs opencv4`)
    - C++ Standard: C++17
-   - Objective-C Bridging Header: .../hvlien-Bridging-Header.h
+   - Objective-C Bridging Header: .../AnchorCV-Bridging-Header.h
 
 5) Validate anchors:
    wub validate-anchors --pack specs/automation/anchors/ableton12_3_macos_default_5k_morespace

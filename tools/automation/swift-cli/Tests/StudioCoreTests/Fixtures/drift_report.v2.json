@@ -12,7 +12,7 @@
       "artifact_path": "library/exports/example.wav",
       "title": "MISSING: library/exports/example.wav",
       "why": "missing artifact",
-      "fix": "hvlien assets export-all",
+      "fix": "service: assets.export_all anchors_pack=specs/automation/anchors/<pack_id> overwrite=true",
       "details": {"kind": "rack", "bytes": ""}
     }
   ],
@@ -20,7 +20,7 @@
   "recommended_fixes": [
     {
       "id": "fix_1",
-      "command": "hvlien assets export-all",
+      "command": "service: assets.export_all anchors_pack=specs/automation/anchors/<pack_id> overwrite=true",
       "covers": ["library/exports/example.wav"],
       "notes": "Rebuild missing artifacts"
     }

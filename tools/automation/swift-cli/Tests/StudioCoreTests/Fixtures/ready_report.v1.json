@@ -16,8 +16,8 @@
     }
   ],
   "recommended_commands": [
-    "hvlien index build",
-    "hvlien drift check --anchors-pack-hint specs/automation/anchors/pack"
+    "wub index build",
+    "wub drift check --anchors-pack-hint specs/automation/anchors/pack"
   ],
   "notes": ["Repo contains missing/placeholder artifacts."]
 }
