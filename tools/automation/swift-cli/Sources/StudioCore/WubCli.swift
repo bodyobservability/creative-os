@@ -66,7 +66,22 @@ struct WubStateSweep: AsyncParsableCommand {
   var json: Bool = false
 
   func run() async throws {
-    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
+    let context = WubContext(runDir: runDir,
+                             runsDir: runsDir,
+                             sweeperConfig: nil,
+                             driftCheckConfig: nil,
+                             driftFixConfig: nil,
+                             readyConfig: nil,
+                             stationConfig: nil,
+                             assetsConfig: nil,
+                             voiceConfig: nil,
+                             rackInstallConfig: nil,
+                             rackVerifyConfig: nil,
+                             sessionConfig: nil,
+                             indexConfig: nil,
+                             releaseConfig: nil,
+                             reportConfig: nil,
+                             repairConfig: nil)
     let report = try context.makeSweepReport()
     try emit(report, json: json)
   }
@@ -100,12 +115,29 @@ struct WubSweep: AsyncParsableCommand {
   var fix: Bool = false
 
   func run() async throws {
-    let config = SweeperConfig(anchorsPack: anchorsPack,
-                               modalTest: modalTest,
-                               requiredControllers: requireController,
-                               allowOcrFallback: allowOcrFallback,
-                               fix: fix)
-    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: config, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
+    let config = SweeperService.Config(anchorsPack: anchorsPack,
+                                       modalTest: modalTest,
+                                       requiredControllers: requireController,
+                                       allowOcrFallback: allowOcrFallback,
+                                       fix: fix,
+                                       regionsConfig: "tools/automation/swift-cli/config/regions.v1.json",
+                                       runsDir: runsDir)
+    let context = WubContext(runDir: runDir,
+                             runsDir: runsDir,
+                             sweeperConfig: config,
+                             driftCheckConfig: nil,
+                             driftFixConfig: nil,
+                             readyConfig: nil,
+                             stationConfig: nil,
+                             assetsConfig: nil,
+                             voiceConfig: nil,
+                             rackInstallConfig: nil,
+                             rackVerifyConfig: nil,
+                             sessionConfig: nil,
+                             indexConfig: nil,
+                             releaseConfig: nil,
+                             reportConfig: nil,
+                             repairConfig: nil)
     let report = try context.makeSweepReport()
     try emit(report, json: json)
   }
@@ -124,7 +156,22 @@ struct WubStatePlan: AsyncParsableCommand {
   var json: Bool = false
 
   func run() async throws {
-    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
+    let context = WubContext(runDir: runDir,
+                             runsDir: runsDir,
+                             sweeperConfig: nil,
+                             driftCheckConfig: nil,
+                             driftFixConfig: nil,
+                             readyConfig: nil,
+                             stationConfig: nil,
+                             assetsConfig: nil,
+                             voiceConfig: nil,
+                             rackInstallConfig: nil,
+                             rackVerifyConfig: nil,
+                             sessionConfig: nil,
+                             indexConfig: nil,
+                             releaseConfig: nil,
+                             reportConfig: nil,
+                             repairConfig: nil)
     let report = try context.makePlanReport()
     try emit(report, json: json)
   }
@@ -230,36 +277,109 @@ struct WubPlan: AsyncParsableCommand {
   var repairOverwrite: Bool = true
 
   func run() async throws {
-    let config = SweeperConfig(anchorsPack: anchorsPack,
-                               modalTest: modalTest,
-                               requiredControllers: requireController,
-                               allowOcrFallback: allowOcrFallback,
-                               fix: fix)
+    let sweeperConfig = SweeperService.Config(anchorsPack: anchorsPack,
+                                              modalTest: modalTest,
+                                              requiredControllers: requireController,
+                                              allowOcrFallback: allowOcrFallback,
+                                              fix: fix,
+                                              regionsConfig: "tools/automation/swift-cli/config/regions.v1.json",
+                                              runsDir: runsDir)
+    let driftCheckConfig = DriftService.Config(artifactIndex: "checksums/index/artifact_index.v1.json",
+                                               receiptIndex: "checksums/index/receipt_index.v1.json",
+                                               anchorsPackHint: anchorsPackHint,
+                                               out: nil,
+                                               format: "human",
+                                               groupByFix: true,
+                                               onlyFail: false)
+    let driftFixConfig = DriftFixService.Config(force: false,
+                                                artifactIndex: "checksums/index/artifact_index.v1.json",
+                                                receiptIndex: "checksums/index/receipt_index.v1.json",
+                                                anchorsPackHint: anchorsPackHint ?? "specs/automation/anchors/<pack_id>",
+                                                yes: false,
+                                                dryRun: true,
+                                                out: nil,
+                                                runsDir: runsDir)
+    let readyConfig = ReadyService.Config(anchorsPackHint: readyAnchorsPackHint,
+                                          artifactIndex: "checksums/index/artifact_index.v1.json",
+                                          runDir: nil,
+                                          writeReport: true)
+    let stationConfig = StationStatusService.Config(format: stationStatusFormat,
+                                                    out: nil,
+                                                    noWriteReport: stationNoWriteReport,
+                                                    anchorsPackHint: "specs/automation/anchors/<pack_id>",
+                                                    runsDir: runsDir)
+    let assetsConfig = AssetsService.ExportAllConfig(anchorsPack: assetsAnchorsPack,
+                                                     overwrite: assetsOverwrite,
+                                                     nonInteractive: assetsNonInteractive,
+                                                     preflight: assetsPreflight,
+                                                     runsDir: runsDir,
+                                                     regionsConfig: "tools/automation/swift-cli/config/regions.v1.json",
+                                                     racksOut: WubDefaults.packPath("ableton/racks/BASS_RACKS_v1.0"),
+                                                     performanceOut: WubDefaults.packPath("ableton/performance-sets/BASS_PERFORMANCE_SET_v1.0.als"),
+                                                     baysSpec: WubDefaults.profileSpecPath("assets/export/finishing_bays_export.v1.yaml"),
+                                                     serumOut: "library/serum/SERUM_BASE_v1.0.fxp",
+                                                     extrasSpec: WubDefaults.profileSpecPath("assets/export/extra_exports.v1.yaml"),
+                                                     postcheck: true,
+                                                     rackVerifyManifest: WubDefaults.profileSpecPath("library/racks/rack_pack_manifest.v1.json"),
+                                                     vrlMapping: WubDefaults.profileSpecPath("voice_runtime/v9_3_ableton_mapping.v1.yaml"),
+                                                     force: false)
+    let sessionProfilePath = WubDefaults.profileSpecPath("session/profiles/\(vrsSessionProfile).yaml")
+    let sessionProfile = try SessionService.loadProfileConfig(profile: vrsSessionProfile, profilePath: sessionProfilePath)
+    let sessionAnchors = vrsAnchorsPack ?? sessionProfile.anchorsPack
+    let voiceMacroRegion = vrsMacroRegion.isEmpty ? sessionProfile.voiceMacroRegion : vrsMacroRegion
+    let rackMacroRegion = vrsMacroRegion.isEmpty ? sessionProfile.rackMacroRegion : vrsMacroRegion
+    let voiceConfig = VoiceService.RunConfig(script: sessionProfile.voiceScript,
+                                             abi: sessionProfile.voiceAbi,
+                                             anchorsPack: sessionAnchors,
+                                             regions: sessionProfile.regionsPath,
+                                             macroOcr: sessionProfile.voiceMacroOCR,
+                                             macroRegion: voiceMacroRegion,
+                                             fix: vrsFix,
+                                             runsDir: runsDir)
+    let rackInstallConfig = RackInstallService.Config(manifest: sessionProfile.rackManifest,
+                                                      macroRegion: rackMacroRegion,
+                                                      anchorsPack: sessionAnchors,
+                                                      allowCgevent: vrsAllowCgevent,
+                                                      runsDir: runsDir)
+    let rackVerifyConfig = RackVerifyService.Config(manifest: sessionProfile.rackManifest,
+                                                    macroRegion: rackMacroRegion,
+                                                    runApply: true,
+                                                    anchorsPack: sessionAnchors,
+                                                    runsDir: runsDir)
+    let sessionConfig = SessionService.Config(profile: vrsSessionProfile,
+                                              profilePath: sessionProfilePath,
+                                              anchorsPack: sessionAnchors,
+                                              fix: vrsFix,
+                                              runsDir: runsDir)
     let context = WubContext(runDir: runDir,
                              runsDir: runsDir,
-                             sweeperConfig: config,
-                             driftConfig: DriftConfig(anchorsPackHint: anchorsPackHint),
-                             readyConfig: ReadyConfig(anchorsPackHint: readyAnchorsPackHint),
-                             stationConfig: StationConfig(format: stationStatusFormat, noWriteReport: stationNoWriteReport),
-                             assetsConfig: AssetsConfig(anchorsPack: assetsAnchorsPack,
-                                                        overwrite: assetsOverwrite,
-                                                        nonInteractive: assetsNonInteractive,
-                                                        preflight: assetsPreflight),
-                             voiceRackSessionConfig: VoiceRackSessionConfig(anchorsPack: vrsAnchorsPack,
-                                                                           macroRegion: vrsMacroRegion,
-                                                                           allowCgevent: vrsAllowCgevent,
-                                                                           fix: vrsFix,
-                                                                           sessionProfile: vrsSessionProfile),
-                             indexConfig: IndexConfig(repoVersion: indexRepoVersion,
-                                                      outDir: indexOutDir,
-                                                      runsDir: indexRunsDir),
-                             releaseConfig: ReleaseConfig(profilePath: releaseProfilePath,
-                                                          rackId: releaseRackId,
-                                                          macro: releaseMacro,
-                                                          baseline: releaseBaseline,
-                                                          currentSweep: releaseCurrentSweep),
-                             reportConfig: ReportConfig(runDir: reportRunDir),
-                             repairConfig: RepairConfig(anchorsPackHint: repairAnchorsPackHint, overwrite: repairOverwrite))
+                             sweeperConfig: sweeperConfig,
+                             driftCheckConfig: driftCheckConfig,
+                             driftFixConfig: driftFixConfig,
+                             readyConfig: readyConfig,
+                             stationConfig: stationConfig,
+                             assetsConfig: assetsConfig,
+                             voiceConfig: voiceConfig,
+                             rackInstallConfig: rackInstallConfig,
+                             rackVerifyConfig: rackVerifyConfig,
+                             sessionConfig: sessionConfig,
+                             indexConfig: IndexService.BuildConfig(repoVersion: indexRepoVersion,
+                                                                   outDir: indexOutDir,
+                                                                   runsDir: indexRunsDir),
+                             releaseConfig: ReleaseService.PromoteConfig(profile: releaseProfilePath,
+                                                                         out: nil,
+                                                                         rackId: releaseRackId,
+                                                                         macro: releaseMacro,
+                                                                         baseline: releaseBaseline,
+                                                                         currentSweep: releaseCurrentSweep,
+                                                                         rackManifest: WubDefaults.profileSpecPath("library/racks/rack_pack_manifest.v1.json"),
+                                                                         runsDir: runsDir),
+                             reportConfig: ReportService.GenerateConfig(runDir: reportRunDir, out: nil),
+                             repairConfig: RepairService.Config(force: false,
+                                                                anchorsPackHint: repairAnchorsPackHint,
+                                                                yes: false,
+                                                                overwrite: repairOverwrite,
+                                                                runsDir: runsDir))
     let report = try context.makePlanReport()
     try emit(report, json: json)
   }
@@ -281,7 +401,22 @@ struct WubStateSetup: AsyncParsableCommand {
   var apply: Bool = false
 
   func run() async throws {
-    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
+    let context = WubContext(runDir: runDir,
+                             runsDir: runsDir,
+                             sweeperConfig: nil,
+                             driftCheckConfig: nil,
+                             driftFixConfig: nil,
+                             readyConfig: nil,
+                             stationConfig: nil,
+                             assetsConfig: nil,
+                             voiceConfig: nil,
+                             rackInstallConfig: nil,
+                             rackVerifyConfig: nil,
+                             sessionConfig: nil,
+                             indexConfig: nil,
+                             releaseConfig: nil,
+                             reportConfig: nil,
+                             repairConfig: nil)
     let report = try context.makePlanReport()
     let evaluation = evaluateSetupSteps(report.steps, allowlist: stateSetupAllowlist)
     let (runId, setupRunDir) = try createSetupRunDir(runsDir: runsDir)
@@ -385,7 +520,22 @@ struct WubSetup: AsyncParsableCommand {
   var apply: Bool = false
 
   func run() async throws {
-    let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
+    let context = WubContext(runDir: runDir,
+                             runsDir: runsDir,
+                             sweeperConfig: nil,
+                             driftCheckConfig: nil,
+                             driftFixConfig: nil,
+                             readyConfig: nil,
+                             stationConfig: nil,
+                             assetsConfig: nil,
+                             voiceConfig: nil,
+                             rackInstallConfig: nil,
+                             rackVerifyConfig: nil,
+                             sessionConfig: nil,
+                             indexConfig: nil,
+                             releaseConfig: nil,
+                             reportConfig: nil,
+                             repairConfig: nil)
     let report = try context.makePlanReport()
     let evaluation = evaluateSetupSteps(report.steps, allowlist: stateSetupAllowlist)
     let (runId, setupRunDir) = try createSetupRunDir(runsDir: runsDir)

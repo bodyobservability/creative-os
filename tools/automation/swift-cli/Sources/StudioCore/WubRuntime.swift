@@ -5,39 +5,51 @@ struct WubContext {
   let storeRoot: URL
   let runDir: String?
   let runsDir: String
-  let sweeperConfig: SweeperConfig?
-  let driftConfig: DriftConfig?
-  let readyConfig: ReadyConfig?
-  let stationConfig: StationConfig?
-  let assetsConfig: AssetsConfig?
-  let voiceRackSessionConfig: VoiceRackSessionConfig?
-  let indexConfig: IndexConfig?
-  let releaseConfig: ReleaseConfig?
-  let reportConfig: ReportConfig?
-  let repairConfig: RepairConfig?
+  let sweeperConfig: SweeperService.Config?
+  let driftCheckConfig: DriftService.Config?
+  let driftFixConfig: DriftFixService.Config?
+  let readyConfig: ReadyService.Config?
+  let stationConfig: StationStatusService.Config?
+  let assetsConfig: AssetsService.ExportAllConfig?
+  let voiceConfig: VoiceService.RunConfig?
+  let rackInstallConfig: RackInstallService.Config?
+  let rackVerifyConfig: RackVerifyService.Config?
+  let sessionConfig: SessionService.Config?
+  let indexConfig: IndexService.BuildConfig?
+  let releaseConfig: ReleaseService.PromoteConfig?
+  let reportConfig: ReportService.GenerateConfig?
+  let repairConfig: RepairService.Config?
 
   init(runDir: String?,
        runsDir: String,
-       sweeperConfig: SweeperConfig?,
-       driftConfig: DriftConfig?,
-       readyConfig: ReadyConfig?,
-       stationConfig: StationConfig?,
-       assetsConfig: AssetsConfig?,
-       voiceRackSessionConfig: VoiceRackSessionConfig?,
-       indexConfig: IndexConfig?,
-       releaseConfig: ReleaseConfig?,
-       reportConfig: ReportConfig?,
-       repairConfig: RepairConfig?,
+       sweeperConfig: SweeperService.Config?,
+       driftCheckConfig: DriftService.Config?,
+       driftFixConfig: DriftFixService.Config?,
+       readyConfig: ReadyService.Config?,
+       stationConfig: StationStatusService.Config?,
+       assetsConfig: AssetsService.ExportAllConfig?,
+       voiceConfig: VoiceService.RunConfig?,
+       rackInstallConfig: RackInstallService.Config?,
+       rackVerifyConfig: RackVerifyService.Config?,
+       sessionConfig: SessionService.Config?,
+       indexConfig: IndexService.BuildConfig?,
+       releaseConfig: ReleaseService.PromoteConfig?,
+       reportConfig: ReportService.GenerateConfig?,
+       repairConfig: RepairService.Config?,
        storeRoot: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)) {
     self.storeRoot = storeRoot
     self.runDir = runDir
     self.runsDir = runsDir
     self.sweeperConfig = sweeperConfig
-    self.driftConfig = driftConfig
+    self.driftCheckConfig = driftCheckConfig
+    self.driftFixConfig = driftFixConfig
     self.readyConfig = readyConfig
     self.stationConfig = stationConfig
     self.assetsConfig = assetsConfig
-    self.voiceRackSessionConfig = voiceRackSessionConfig
+    self.voiceConfig = voiceConfig
+    self.rackInstallConfig = rackInstallConfig
+    self.rackVerifyConfig = rackVerifyConfig
+    self.sessionConfig = sessionConfig
     self.indexConfig = indexConfig
     self.releaseConfig = releaseConfig
     self.reportConfig = reportConfig
@@ -66,11 +78,18 @@ struct WubContext {
     if let sweeperConfig {
       agents.append(SweeperAgent(config: sweeperConfig))
     }
-    if let driftConfig { agents.append(DriftAgent(config: driftConfig)) }
+    if let driftCheckConfig, let driftFixConfig {
+      agents.append(DriftAgent(checkConfig: driftCheckConfig, fixConfig: driftFixConfig))
+    }
     if let readyConfig { agents.append(ReadyAgent(config: readyConfig)) }
     if let stationConfig { agents.append(StationAgent(config: stationConfig)) }
     if let assetsConfig { agents.append(AssetsAgent(config: assetsConfig)) }
-    if let voiceRackSessionConfig { agents.append(VoiceRackSessionAgent(config: voiceRackSessionConfig)) }
+    if let voiceConfig, let rackInstallConfig, let rackVerifyConfig, let sessionConfig {
+      agents.append(VoiceRackSessionAgent(voiceConfig: voiceConfig,
+                                          rackInstallConfig: rackInstallConfig,
+                                          rackVerifyConfig: rackVerifyConfig,
+                                          sessionConfig: sessionConfig))
+    }
     if let indexConfig { agents.append(IndexAgent(config: indexConfig)) }
     if let releaseConfig { agents.append(ReleaseAgent(config: releaseConfig)) }
     if let reportConfig { agents.append(ReportAgent(config: reportConfig)) }

@@ -2,31 +2,32 @@ import Foundation
 
 struct VoiceRackSessionAgent: CreativeOS.Agent {
   let id: String = "voice_rack_session"
-  let config: VoiceRackSessionConfig
+  let voiceConfig: VoiceService.RunConfig
+  let rackInstallConfig: RackInstallService.Config
+  let rackVerifyConfig: RackVerifyService.Config
+  let sessionConfig: SessionService.Config
 
   func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
-    let anchorsPack = config.anchorsPack.flatMap { $0.isEmpty ? nil : $0 }
+    let anchorsPack = voiceConfig.anchorsPack.isEmpty ? nil : voiceConfig.anchorsPack
     let anchorsFlag = anchorsPack ?? ""
     let apArgs = anchorsFlag.isEmpty ? "" : " --anchors-pack \(anchorsFlag)"
-    let macroArgs = config.macroRegion.isEmpty ? "" : " --macro-region \(config.macroRegion)"
-    let cgArg = config.allowCgevent ? " --allow-cgevent" : ""
-    let fixArg = config.fix ? " --fix" : ""
+    let macroArgs = voiceConfig.macroRegion.isEmpty ? "" : " --macro-region \(voiceConfig.macroRegion)"
+    let cgArg = rackInstallConfig.allowCgevent ? " --allow-cgevent" : ""
+    let fixArg = voiceConfig.fix ? " --fix" : ""
 
     let voiceCmd = "wub voice run" + apArgs + macroArgs + fixArg
     let rackInstallCmd = "wub rack install" + apArgs + macroArgs + cgArg
     let rackVerifyCmd = "wub rack verify" + apArgs + macroArgs
-    let sessionCmd = "wub session compile --profile \(config.sessionProfile)" + (anchorsFlag.isEmpty ? "" : " --anchors-pack \(anchorsFlag)")
-    let vrsCfg = CreativeOSActionCatalog.voiceRackSessionConfig(sessionProfile: config.sessionProfile,
-                                                                sessionProfilePath: WubDefaults.profileSpecPath("session/profiles/\(config.sessionProfile).yaml"),
-                                                                anchorsPack: anchorsPack,
-                                                                macroRegion: config.macroRegion,
-                                                                allowCgevent: config.allowCgevent,
-                                                                fix: config.fix)
-    let sessionCfg = CreativeOSActionCatalog.sessionCompileConfig(profile: config.sessionProfile,
+    let sessionCmd = "wub session compile --profile \(sessionConfig.profile)" + (anchorsFlag.isEmpty ? "" : " --anchors-pack \(anchorsFlag)")
+    let voiceCfg = CreativeOSActionCatalog.voiceRunConfig(config: voiceConfig)
+    let rackInstallCfg = CreativeOSActionCatalog.rackInstallConfig(config: rackInstallConfig)
+    let rackVerifyCfg = CreativeOSActionCatalog.rackVerifyConfig(config: rackVerifyConfig)
+    let sessionCfg = CreativeOSActionCatalog.sessionCompileConfig(profile: sessionConfig.profile,
+                                                                  profilePath: sessionConfig.profilePath,
                                                                   anchorsPack: anchorsPack,
-                                                                  fix: config.fix)
+                                                                  fix: sessionConfig.fix)
 
     p.register(id: "voice_run") {
       [CreativeOS.PlanStep(id: "voice_run",
@@ -34,7 +35,7 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
                            type: .automated,
                            description: "Run: \(voiceCmd)",
                            effects: [
-                             vrsCfg,
+                             voiceCfg,
                              CreativeOS.Effect(id: "voice_run", kind: .process, target: voiceCmd, description: "Run voice handshake")
                            ],
                            idempotent: true,
@@ -47,7 +48,7 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
                            type: .automated,
                            description: "Run: \(rackInstallCmd)",
                            effects: [
-                             vrsCfg,
+                             rackInstallCfg,
                              CreativeOS.Effect(id: "rack_install", kind: .process, target: rackInstallCmd, description: "Install racks")
                            ],
                            idempotent: true,
@@ -60,7 +61,7 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
                            type: .automated,
                            description: "Run: \(rackVerifyCmd)",
                            effects: [
-                             vrsCfg,
+                             rackVerifyCfg,
                              CreativeOS.Effect(id: "rack_verify", kind: .process, target: rackVerifyCmd, description: "Verify racks")
                            ],
                            idempotent: true,

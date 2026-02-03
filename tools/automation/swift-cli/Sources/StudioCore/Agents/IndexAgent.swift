@@ -2,7 +2,7 @@ import Foundation
 
 struct IndexAgent: CreativeOS.Agent {
   let id: String = "index"
-  let config: IndexConfig
+  let config: IndexService.BuildConfig
 
   func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
 

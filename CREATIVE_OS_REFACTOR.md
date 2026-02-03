@@ -263,6 +263,10 @@ Right now `SweeperConfig`, `DriftConfig`, etc. are agent-local types, and then r
 
 **Rollback:** revert to agent config structs.
 
+PR 5 progress:
+- [x] Replace agent config structs with service config types.
+- [x] Update WubContext/WubCli wiring to use service configs directly.
+
 ---
 
 ## PR 6 — Station gating consolidation (single choke point)

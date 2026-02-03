@@ -2,7 +2,7 @@ import Foundation
 
 struct SweeperAgent: CreativeOS.Agent {
   let id: String = "sweeper"
-  let config: SweeperConfig
+  let config: SweeperService.Config
 
   func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
 

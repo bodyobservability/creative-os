@@ -2,17 +2,20 @@ import Foundation
 
 struct ReleaseAgent: CreativeOS.Agent {
   let id: String = "release"
-  let config: ReleaseConfig
+  let config: ReleaseService.PromoteConfig
 
   func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
-    let cmd = "wub release promote-profile --profile \(config.profilePath) --rack-id \(config.rackId) --macro \(config.macro) --baseline \(config.baseline) --current-sweep \(config.currentSweep)"
-    let cfg = CreativeOSActionCatalog.releasePromoteProfileConfig(profile: config.profilePath,
+    let cmd = "wub release promote-profile --profile \(config.profile) --rack-id \(config.rackId) --macro \(config.macro) --baseline \(config.baseline) --current-sweep \(config.currentSweep)"
+    let cfg = CreativeOSActionCatalog.releasePromoteProfileConfig(profile: config.profile,
                                                                   rackId: config.rackId,
                                                                   macro: config.macro,
                                                                   baseline: config.baseline,
-                                                                  currentSweep: config.currentSweep)
+                                                                  currentSweep: config.currentSweep,
+                                                                  out: config.out,
+                                                                  rackManifest: config.rackManifest,
+                                                                  runsDir: config.runsDir)
     p.register(id: "release_promote_profile") {
       [CreativeOS.PlanStep(id: "release_promote_profile",
                            agent: id,

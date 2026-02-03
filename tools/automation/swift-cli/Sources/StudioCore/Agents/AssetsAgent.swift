@@ -2,7 +2,7 @@ import Foundation
 
 struct AssetsAgent: CreativeOS.Agent {
   let id: String = "assets"
-  let config: AssetsConfig
+  let config: AssetsService.ExportAllConfig
 
   func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
 
@@ -11,7 +11,18 @@ struct AssetsAgent: CreativeOS.Agent {
     let cfg = CreativeOSActionCatalog.assetsExportAllConfig(anchorsPack: config.anchorsPack,
                                                            overwrite: config.overwrite,
                                                            nonInteractive: config.nonInteractive,
-                                                           preflight: config.preflight)
+                                                           preflight: config.preflight,
+                                                           runsDir: config.runsDir,
+                                                           regionsConfig: config.regionsConfig,
+                                                           racksOut: config.racksOut,
+                                                           performanceOut: config.performanceOut,
+                                                           baysSpec: config.baysSpec,
+                                                           serumOut: config.serumOut,
+                                                           extrasSpec: config.extrasSpec,
+                                                           postcheck: config.postcheck,
+                                                           rackVerifyManifest: config.rackVerifyManifest,
+                                                           vrlMapping: config.vrlMapping,
+                                                           force: config.force)
     p.register(id: "assets_export_all") {
       [CreativeOS.PlanStep(id: "assets_export_all",
                            agent: id,

@@ -2,14 +2,17 @@ import Foundation
 
 struct RepairAgent: CreativeOS.Agent {
   let id: String = "repair"
-  let config: RepairConfig
+  let config: RepairService.Config
 
   func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = "wub repair --anchors-pack-hint \(config.anchorsPackHint)" + (config.overwrite ? " --overwrite" : "")
     let cfg = CreativeOSActionCatalog.repairRunConfig(anchorsPackHint: config.anchorsPackHint,
-                                                      overwrite: config.overwrite)
+                                                      overwrite: config.overwrite,
+                                                      force: config.force,
+                                                      yes: config.yes,
+                                                      runsDir: config.runsDir)
     p.register(id: "repair_run") {
       [CreativeOS.PlanStep(id: "repair_run",
                            agent: id,

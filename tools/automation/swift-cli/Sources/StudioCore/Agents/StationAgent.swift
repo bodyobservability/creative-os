@@ -2,7 +2,7 @@ import Foundation
 
 struct StationAgent: CreativeOS.Agent {
   let id: String = "station"
-  let config: StationConfig
+  let config: StationStatusService.Config
 
   func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
 
@@ -10,7 +10,9 @@ struct StationAgent: CreativeOS.Agent {
     let cmd = "wub station status --format \(config.format)" + (config.noWriteReport ? " --no-write-report" : "")
     let cfg = CreativeOSActionCatalog.stationStatusConfig(format: config.format,
                                                           noWriteReport: config.noWriteReport,
-                                                          anchorsPackHint: "specs/automation/anchors/<pack_id>")
+                                                          anchorsPackHint: config.anchorsPackHint,
+                                                          out: config.out,
+                                                          runsDir: config.runsDir)
     p.register(id: "station_status") {
       [CreativeOS.PlanStep(id: "station_status",
                            agent: id,

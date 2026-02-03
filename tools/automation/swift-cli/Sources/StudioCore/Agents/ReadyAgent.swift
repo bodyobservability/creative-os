@@ -2,14 +2,17 @@ import Foundation
 
 struct ReadyAgent: CreativeOS.Agent {
   let id: String = "ready"
-  let config: ReadyConfig
+  let config: ReadyService.Config
 
   func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let hint = config.anchorsPackHint
     let cmd = "wub ready --anchors-pack-hint \(hint)"
-    let cfg = CreativeOSActionCatalog.readyCheckConfig(anchorsPackHint: hint)
+    let cfg = CreativeOSActionCatalog.readyCheckConfig(anchorsPackHint: hint,
+                                                       artifactIndex: config.artifactIndex,
+                                                       runDir: config.runDir,
+                                                       writeReport: config.writeReport)
     p.register(id: "ready_check") {
       [CreativeOS.PlanStep(id: "ready_check",
                            agent: id,

@@ -130,7 +130,22 @@ final class WubConfigTests: XCTestCase {
                            lastUpdated: "2026-01-01T00:00:00Z")
     try JSONIO.save(config, to: tempDir.appendingPathComponent(store.configPath))
 
-    let context = WubContext(runDir: nil, runsDir: "runs", sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
+    let context = WubContext(runDir: nil,
+                             runsDir: "runs",
+                             sweeperConfig: nil,
+                             driftCheckConfig: nil,
+                             driftFixConfig: nil,
+                             readyConfig: nil,
+                             stationConfig: nil,
+                             assetsConfig: nil,
+                             voiceConfig: nil,
+                             rackInstallConfig: nil,
+                             rackVerifyConfig: nil,
+                             sessionConfig: nil,
+                             indexConfig: nil,
+                             releaseConfig: nil,
+                             reportConfig: nil,
+                             repairConfig: nil)
     let desired = try context.makeSweepReport().desired
     XCTAssertTrue(desired.slices.contains { $0.agentId == "pack:hvlien-defaults" })
   }

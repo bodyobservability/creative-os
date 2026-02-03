@@ -429,6 +429,42 @@ struct CreativeOSActionCatalog {
     return configEffect(id: "voice_rack_session_config", payload: payload)
   }
 
+  static func voiceRunConfig(config: VoiceService.RunConfig) -> CreativeOS.Effect {
+    let payload = configPayload([
+      (ConfigKey.script, config.script),
+      (ConfigKey.abi, config.abi),
+      (ConfigKey.anchorsPack, config.anchorsPack),
+      (ConfigKey.regions, config.regions),
+      (ConfigKey.macroOcr, config.macroOcr),
+      (ConfigKey.macroRegion, config.macroRegion),
+      (ConfigKey.fix, config.fix),
+      (ConfigKey.runsDir, config.runsDir)
+    ])
+    return configEffect(id: "voice_config", payload: payload)
+  }
+
+  static func rackInstallConfig(config: RackInstallService.Config) -> CreativeOS.Effect {
+    let payload = configPayload([
+      (ConfigKey.manifest, config.manifest),
+      (ConfigKey.macroRegion, config.macroRegion),
+      (ConfigKey.anchorsPack, config.anchorsPack),
+      (ConfigKey.allowCgevent, config.allowCgevent),
+      (ConfigKey.runsDir, config.runsDir)
+    ])
+    return configEffect(id: "rack_install_config", payload: payload)
+  }
+
+  static func rackVerifyConfig(config: RackVerifyService.Config) -> CreativeOS.Effect {
+    let payload = configPayload([
+      (ConfigKey.manifest, config.manifest),
+      (ConfigKey.macroRegion, config.macroRegion),
+      (ConfigKey.runApply, config.runApply),
+      (ConfigKey.anchorsPack, config.anchorsPack),
+      (ConfigKey.runsDir, config.runsDir)
+    ])
+    return configEffect(id: "rack_verify_config", payload: payload)
+  }
+
   static func sessionCompileConfig(profile: String,
                                    profilePath: String? = nil,
                                    anchorsPack: String?,

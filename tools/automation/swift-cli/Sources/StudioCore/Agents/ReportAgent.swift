@@ -2,13 +2,13 @@ import Foundation
 
 struct ReportAgent: CreativeOS.Agent {
   let id: String = "report"
-  let config: ReportConfig
+  let config: ReportService.GenerateConfig
 
   func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = "wub report generate --run-dir \(config.runDir)"
-    let cfg = CreativeOSActionCatalog.reportGenerateConfig(runDir: config.runDir)
+    let cfg = CreativeOSActionCatalog.reportGenerateConfig(runDir: config.runDir, out: config.out)
     p.register(id: "report_generate") {
       [CreativeOS.PlanStep(id: "report_generate",
                            agent: id,
