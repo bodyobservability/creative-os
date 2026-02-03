@@ -55,12 +55,14 @@ struct UI: AsyncParsableCommand {
     var lastReceiptPath: String? = nil
     var lastRunDir: String? = nil
     var lastFailuresDir: String? = nil
+    var toast = ToastManager()
 
     let stdinRaw = StdinRawMode()
     try stdinRaw.enable()
     defer { stdinRaw.disable() }
 
     while true {
+      toast.tick()
       // dynamic filtered view
       let items = visibleItems(all: allItems, studioMode: studioMode, showAll: showAll)
       selected = min(selected, max(0, items.count - 1))
@@ -89,6 +91,7 @@ struct UI: AsyncParsableCommand {
                   failuresDir: lastFailuresDir,
                   state: state,
                   recommended: rec.summary,
+                  toastLine: toast.currentText,
                   items: items,
                   selected: selected,
                   lastExit: lastCommandExit,
@@ -102,20 +105,23 @@ struct UI: AsyncParsableCommand {
 
       case .toggleVoiceMode:
         voiceMode.toggle()
+        toast.info(voiceMode ? "Voice mode enabled — say or press numbers" : "Voice mode disabled", key: "voice_toggle")
         continue
 
       case .toggleStudioMode:
         studioMode.toggle()
         selected = 0
+        toast.info(studioMode ? "Safe mode — risky actions hidden" : "Guided mode — essential actions visible", key: "studio_toggle")
         continue
 
       case .toggleAll:
         if studioMode {
-          // View is locked in SAFE mode.
+          toast.blocked("View is locked in SAFE — press s to reveal guided actions", key: "view_locked_safe")
           continue
         }
         showAll.toggle()
         selected = 0
+        toast.info(showAll ? "All actions visible" : "Guided mode — essential actions only", key: "view_toggle")
         continue
 
       case .refresh:
@@ -168,9 +174,21 @@ struct UI: AsyncParsableCommand {
 
       case .runRecommended:
         if let action = rec.action {
+          if action.danger && studioMode {
+            toast.blocked("Next action is risky and hidden — press s to proceed", key: "next_hidden_safe")
+            continue
+          }
           try await runAction(action, stdinRaw: stdinRaw, dryRun: dryRun,
                               lastExit: &lastCommandExit, lastReceipt: &lastReceiptPath,
                               lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
+          if let code = lastCommandExit, code == 0 {
+            toast.success("Completed successfully", key: "action_ok")
+          } else if let _ = lastCommandExit {
+            let tail = lastRunDir ?? "runs/<id>/"
+            toast.blocked("Action failed — see \(tail) for details", key: "action_fail")
+          }
+        } else {
+          toast.info("No pending actions — studio is ready", key: "no_next_action", ttl: 1.8)
         }
         continue
 
@@ -180,6 +198,12 @@ struct UI: AsyncParsableCommand {
                             stdinRaw: stdinRaw, dryRun: dryRun,
                             lastExit: &lastCommandExit, lastReceipt: &lastReceiptPath,
                             lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
+        if let code = lastCommandExit, code == 0 {
+          toast.success("Completed successfully", key: "action_ok")
+        } else if let _ = lastCommandExit {
+          let tail = lastRunDir ?? "runs/<id>/"
+          toast.blocked("Action failed — see \(tail) for details", key: "action_fail")
+        }
 
       case .openReceipt:
         if let rp = lastReceiptPath { _ = try? await OperatorShellService.openPath(rp) }
@@ -199,6 +223,14 @@ struct UI: AsyncParsableCommand {
                               stdinRaw: stdinRaw, dryRun: dryRun,
                               lastExit: &lastCommandExit, lastReceipt: &lastReceiptPath,
                               lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
+          if let code = lastCommandExit, code == 0 {
+            toast.success("Completed successfully", key: "action_ok")
+          } else if let _ = lastCommandExit {
+            let tail = lastRunDir ?? "runs/<id>/"
+            toast.blocked("Action failed — see \(tail) for details", key: "action_fail")
+          }
+        } else {
+          toast.info("No action at that number", key: "no_action_number")
         }
       case .none:
         continue
@@ -389,6 +421,7 @@ struct UI: AsyncParsableCommand {
                    failuresDir: String?,
                    state: DashboardState,
                    recommended: String,
+                   toastLine: String?,
                    items: [MenuItem],
                    selected: Int,
                    lastExit: Int32?,
@@ -420,6 +453,7 @@ struct UI: AsyncParsableCommand {
     if studioMode {
       print("SAFE hides risky actions (exports/fix/repair/certify)")
     }
+    if let tl = toastLine { print(tl) }
     print("keys: ↑/↓ j/k • Enter run • Space recommended • p plan • c ready • g repair • R refresh • r/o/f/x • q quit")
     if voiceMode { print("voice hint: Say \"press 3\" (then Enter) or use number keys 1-9.") }
     print(String(repeating: "-", count: 88))
