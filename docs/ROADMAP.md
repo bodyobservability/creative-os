@@ -20,21 +20,19 @@ Completed PR sequence: PR 0 safety harness; PR 1 permissioned execution; PR 2 ac
 
 Status: PR 0–10 complete as of February 3, 2026. Follow-up hardening (PR7 checks + PR9 governance + allowlist centralization) completed February 3, 2026. CI split into governance + swift-tests workflows February 3, 2026.
 
-## Versioning + Release Model (Proposal)
+## Release Model (Creative OS stance)
 
-- **Milestone releases** use `vX.Y` tags (not time-boxed).
-- **X (major)** = identity or contract shifts (CLI surface, schemas, or core guarantees).
-- **Y (minor)** = new intelligence or certification capabilities that do not break contracts.
-- **Patch** = fixes, stability, performance, and doc-only updates.
-- **Profiles and packs version independently** from core (semantic versions per profile/pack).
-- Each release ships with:
+- **Milestones are named, not versioned.** Avoid `vX.Y` in doc/spec filenames and headings.
+- **If external release tags exist**, keep them in release notes only; do not embed them in docs/specs.
+- **Profiles and packs** may carry semantic versions for compatibility, but the canonical docs use `Version: current`.
+- Each milestone ships with:
   - `wub state-sweep/state-plan/state-setup` snapshot tests
   - a fresh-machine smoke checklist entry
   - a short release note in `docs/release/`
 
 ## Milestones (Intelligence + Guarantees)
 
-### v1.9 — Cross-Rack Intelligence (bass-focused)
+### Cross-Rack Intelligence (bass-focused)
 
 - Analyze interactions between exported artifacts:
   - Sub ↔ BassLead mono/phase stability
@@ -47,7 +45,7 @@ Status: PR 0–10 complete as of February 3, 2026. Follow-up hardening (PR7 chec
   - `wub analyze cross-rack` report + recommendations
   - PR-ready patch artifacts (manual apply only)
 
-### v2.0 — Constrained Auto-Tuning Proposals
+### Constrained Auto-Tuning Proposals
 
 - Generate proposed profile patches from measured receipts under strict constraints:
   - calibrated sweeps, regression diffs, and release gates
@@ -55,14 +53,14 @@ Status: PR 0–10 complete as of February 3, 2026. Follow-up hardening (PR7 chec
 - Deliverables:
   - `wub propose tune --profile <id>` (patch + diff + evidence)
 
-### v2.1 — Set-Level Intelligence (optional, heavier)
+### Set-Level Intelligence (optional, heavier)
 
 - Scene-to-scene energy / contrast analysis on exported performance sets.
 - Suggested macro snapshots per scene (still discrete and bounded).
 - Deliverables:
   - `wub analyze set` (scene recommendations + snapshot candidates)
 
-### v2.2 — Performance Guarantees (optional)
+### Performance Guarantees (optional)
 
 - Live-set safety certification across scenes:
   - no clipping, no silence, no runaway macros
