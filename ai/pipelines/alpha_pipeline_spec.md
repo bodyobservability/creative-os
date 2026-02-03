@@ -1,4 +1,6 @@
-# V1_1_ALPHA_PIPELINE_SPEC
+# Alpha Pipeline Spec
+
+Version: current
 
 Minimal runnable pipeline for:
 - library backfill
