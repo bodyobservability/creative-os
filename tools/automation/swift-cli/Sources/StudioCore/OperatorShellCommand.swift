@@ -54,10 +54,7 @@ struct UI: AsyncParsableCommand {
     let runner = RunnerState()
     let toast = ToastState()
     var logScroll = 0
-
-    let stdinRaw = StdinRawMode()
-    try stdinRaw.enable()
-    defer { stdinRaw.disable() }
+    var showHelp = false
 
     while true {
       toast.tick()
@@ -87,6 +84,14 @@ struct UI: AsyncParsableCommand {
 
       let confirming: Bool
       if case .confirming = runner.state { confirming = true } else { confirming = false }
+      let context = ShellContext(showLogs: runner.showLogs,
+                                 confirming: confirming,
+                                 studioMode: studioMode,
+                                 showAll: showAll,
+                                 voiceMode: voiceMode,
+                                 showHelp: showHelp)
+      let legendLine = LegendRenderer.render(context: context)
+      let helpLines = HelpOverlayRenderer.render(context: context)
       printScreen(repoRoot: repoRoot,
                   hv: hv,
                   anchorsPack: ap,
@@ -102,28 +107,32 @@ struct UI: AsyncParsableCommand {
                   showLogs: runner.showLogs,
                   logLines: logLines,
                   confirming: confirming,
+                  showHelp: showHelp,
+                  legendLine: legendLine,
+                  helpLines: helpLines,
                   items: items,
                   selected: selected,
                   lastExit: runner.lastExit,
                   lastReceipt: runner.lastReceiptPath)
 
       let key = InputDecoder.readKey(timeoutMs: runner.state == .running ? 100 : 250)
-      switch key {
+      let action = ActionRouter.route(key, context: context)
+      switch action {
       case .quit:
         return
 
-      case .toggleVoiceMode:
+      case .toggleVoice:
         voiceMode.toggle()
         toast.info(voiceMode ? "Voice mode enabled — say or press numbers" : "Voice mode disabled", key: "voice_toggle")
         continue
 
-      case .toggleStudioMode:
+      case .toggleSafe:
         studioMode.toggle()
         selected = 0
         toast.info(studioMode ? "Safe mode — risky actions hidden" : "Guided mode — essential actions visible", key: "studio_toggle")
         continue
 
-      case .toggleAll:
+      case .toggleView:
         if studioMode {
           toast.blocked("View is locked in SAFE — press s to reveal guided actions", key: "view_locked_safe")
           continue
@@ -137,7 +146,7 @@ struct UI: AsyncParsableCommand {
         logScroll = 0
         toast.info(runner.showLogs ? "Logs opened" : "Logs hidden", key: "logs_toggle")
         continue
-      case .escape:
+      case .back:
         if runner.showLogs {
           runner.showLogs = false
           toast.info("Back to actions", key: "logs_back")
@@ -155,14 +164,14 @@ struct UI: AsyncParsableCommand {
       case .refresh:
         continue
 
-      case .up:
+      case .moveUp:
         if runner.showLogs {
           logScroll = min(logScroll + 1, max(0, runner.logBuffer.lines.count - 1))
         } else {
           selected = max(0, selected - 1)
         }
 
-      case .down:
+      case .moveDown:
         if runner.showLogs {
           logScroll = max(0, logScroll - 1)
         } else {
@@ -181,7 +190,7 @@ struct UI: AsyncParsableCommand {
         startAction(.init(command: [hv, "repair", "--anchors-pack-hint", ap], danger: true, label: "Repair: run recipe"),
                     runner: runner, toast: toast, dryRun: dryRun)
 
-      case .runRecommended:
+      case .runNext:
         if let action = rec.action {
           if action.danger && studioMode {
             toast.blocked("Next action is risky and hidden — press s to proceed", key: "next_hidden_safe")
@@ -201,7 +210,7 @@ struct UI: AsyncParsableCommand {
         }
         continue
 
-      case .enter:
+      case .runSelected:
         let item = items[selected]
         if case .running = runner.state {
           toast.info("Action running — wait", key: "action_running")
@@ -254,15 +263,17 @@ struct UI: AsyncParsableCommand {
         } else {
           toast.info("No action at that number", key: "no_action_number")
         }
-      case .yes:
+      case .confirmYes:
         if case .confirming(let action) = runner.state {
           beginRun(action, runner: runner, toast: toast, dryRun: dryRun)
         }
-      case .no:
+      case .confirmNo:
         if case .confirming = runner.state {
           runner.state = .idle
           toast.info("Action cancelled — studio state unchanged", key: "danger_cancel", ttl: 1.8)
         }
+      case .toggleHelp:
+        showHelp.toggle()
       case .none:
         continue
       }
@@ -434,38 +445,6 @@ struct UI: AsyncParsableCommand {
     }
   }
 
-  // MARK: run action helper
-
-  func runAction(_ action: RecommendedAction.Action,
-                 stdinRaw: StdinRawMode,
-                 dryRun: Bool,
-                 lastExit: inout Int32?,
-                 lastReceipt: inout String?,
-                 lastRunDir: inout String?,
-                 lastFailuresDir: inout String?) async throws {
-    if action.danger && !dryRun {
-      stdinRaw.disable()
-      print("\nThis action may click/type or overwrite files.\nProceed? [y/N] ", terminator: "")
-      let ans = (readLine() ?? "").lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-      try stdinRaw.enable()
-      if ans != "y" && ans != "yes" { return }
-    }
-    if dryRun { lastExit = 0; return }
-    stdinRaw.disable()
-    print("\n> Running: \(action.command.joined(separator: " "))\n")
-    let code = try await OperatorShellService.runProcess(action.command)
-    lastExit = code
-    lastRunDir = latestRunDir()
-    lastReceipt = discoverLatestReceipt(inRunDir: lastRunDir)
-    lastFailuresDir = latestFailuresDir(inRunDir: lastRunDir)
-    print("\nExit: \(code)")
-    if let rp = lastReceipt { print("Latest receipt: \(rp)") }
-    if let fd = lastFailuresDir { print("Failures folder: \(fd)") }
-    print("\nPress Enter to return…", terminator: "")
-    _ = readLine()
-    try stdinRaw.enable()
-  }
-
   func appendRunSummary(action: RecommendedAction.Action,
                         logBuffer: inout LogBuffer,
                         lastExit: Int32?,
@@ -485,7 +464,7 @@ struct UI: AsyncParsableCommand {
       toast.blocked("This action modifies the studio state — confirmation required", key: "danger_confirm", ttl: 1.0)
       return
     }
-    beginRun(action, runner: runner, toast: &toast, dryRun: dryRun)
+    beginRun(action, runner: runner, toast: toast, dryRun: dryRun)
   }
 
   func beginRun(_ action: RecommendedAction.Action,
@@ -568,6 +547,9 @@ struct UI: AsyncParsableCommand {
                    showLogs: Bool,
                    logLines: [String],
                    confirming: Bool,
+                   showHelp: Bool,
+                   legendLine: String,
+                   helpLines: [String],
                    items: [MenuItem],
                    selected: Int,
                    lastExit: Int32?,
@@ -595,8 +577,12 @@ struct UI: AsyncParsableCommand {
     if let r = lastReceipt { print("last receipt: \(r)") }
 
     print(String(repeating: "-", count: 88))
+    if showHelp {
+      for line in helpLines { print(line) }
+      return
+    }
     if let tl = toastLine { print(tl) }
-    print("keys: ↑/↓ j/k • Enter run • Space recommended • p plan • c ready • g repair • R refresh • r/o/f/x • q quit")
+    print(legendLine)
     if voiceMode { print("voice hint: Say \"press 3\" (then Enter) or use number keys 1-9.") }
     print(String(repeating: "-", count: 88))
 
@@ -608,7 +594,6 @@ struct UI: AsyncParsableCommand {
       } else if let tl = toastLine {
         print(tl)
       }
-      print("keys: ↑/↓ scroll • 0 bottom • ESC back • o run • f fail • r receipt • q quit")
     } else {
       // In voice mode, show explicit numeric guidance
       for (i, it) in items.enumerated() {
@@ -627,7 +612,6 @@ struct UI: AsyncParsableCommand {
       } else if let tl = toastLine {
         print(tl)
       }
-      print("keys: ↑/↓ j/k • Enter run • Space recommended • l logs • o run • f fail • r receipt • q quit")
     }
   }
 
@@ -684,25 +668,6 @@ struct UI: AsyncParsableCommand {
 
   func runProcess(_ args: [String]) async throws -> Int32 {
     try await OperatorShellService.runProcess(args)
-  }
-
-  func captureProcessOutput(_ args: [String]) async throws -> String {
-    return try await withCheckedThrowingContinuation { cont in
-      let p = Process()
-      p.executableURL = URL(fileURLWithPath: args[0])
-      p.arguments = Array(args.dropFirst())
-      let out = Pipe()
-      let err = Pipe()
-      p.standardOutput = out
-      p.standardError = err
-      p.terminationHandler = { _ in
-        let od = out.fileHandleForReading.readDataToEndOfFile()
-        let ed = err.fileHandleForReading.readDataToEndOfFile()
-        let s = (String(data: od, encoding: .utf8) ?? "") + (String(data: ed, encoding: .utf8) ?? "")
-        cont.resume(returning: s.trimmingCharacters(in: .whitespacesAndNewlines))
-      }
-      do { try p.run() } catch { cont.resume(throwing: error) }
-    }
   }
 
   // MARK: First-run wizard
@@ -968,26 +933,3 @@ struct UI: AsyncParsableCommand {
   }
 }
 
-final class StdinRawMode {
-  private var original = termios()
-  private var hasOriginal = false
-
-  func enable() throws {
-    if !hasOriginal {
-      tcgetattr(STDIN_FILENO, &original)
-      hasOriginal = true
-    }
-    var raw = original
-    raw.c_lflag &= ~UInt(ECHO | ICANON)
-    raw.c_cc.16 = 1
-    raw.c_cc.17 = 0
-    tcsetattr(STDIN_FILENO, TCSANOW, &raw)
-  }
-
-  func disable() {
-    if hasOriginal {
-      var t = original
-      tcsetattr(STDIN_FILENO, TCSANOW, &t)
-    }
-  }
-}

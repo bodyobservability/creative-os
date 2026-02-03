@@ -6,6 +6,7 @@ enum InputKey {
   case openReceipt, openRun, openFailures
   case toggleAll, refresh, runRecommended, previewDriftPlan, readyVerify, repairRun
   case toggleVoiceMode, toggleStudioMode, toggleLogs, escape, bottom
+  case help
   case selectNumber(Int)
   case yes, no
   case none
@@ -49,6 +50,7 @@ struct InputDecoder {
     if c == asciiByte("s") { return .toggleStudioMode }
     if c == asciiByte("l") { return .toggleLogs }
     if c == asciiByte("0") { return .bottom }
+    if c == asciiByte("?") { return .help }
     if c == 0x0D || c == 0x0A { return .enter }
     if c == asciiByte("q") { return .quit }
     if c == asciiByte("r") { return .openReceipt }
