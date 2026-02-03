@@ -20,8 +20,8 @@ struct WubCheck: AsyncParsableCommand {
       runsDir: runsDir,
       anchorsPack: anchors,
       now: Date(),
-      sweepStaleSeconds: 60 * 30,
-      readyStaleSeconds: 60 * 30
+      sweepStaleSeconds: 60 * 10,
+      readyStaleSeconds: 60 * 10
     ))
 
     print(StationBarRender.renderLine(label: "STATION", gates: snapshot.gates, next: snapshot.recommended.command?.joined(separator: " ")))

@@ -27,8 +27,8 @@ struct WubPreflight: AsyncParsableCommand {
       runsDir: runsDir,
       anchorsPack: anchors,
       now: Date(),
-      sweepStaleSeconds: 60 * 30,
-      readyStaleSeconds: 60 * 30
+      sweepStaleSeconds: 60 * 10,
+      readyStaleSeconds: 60 * 10
     ))
 
     if auto {
@@ -43,8 +43,8 @@ struct WubPreflight: AsyncParsableCommand {
         runsDir: runsDir,
         anchorsPack: anchors,
         now: Date(),
-        sweepStaleSeconds: 60 * 30,
-        readyStaleSeconds: 60 * 30
+        sweepStaleSeconds: 60 * 10,
+        readyStaleSeconds: 60 * 10
       ))
     }
 
