@@ -1,4 +1,4 @@
-# Studio Operator
+# Creative OS
 
 Creative OS for studio workflows. The CLI is `wub`, and identity lives in profiles.
 
@@ -91,6 +91,6 @@ tools/automation/swift-cli/.build/release/wub station status --format json --no-
   - `.github/workflows/governance.yml`
   - `.github/workflows/swift-tests.yml`
 
-## Roadmap (Studio Operator)
+## Roadmap (Creative OS)
 
 The canonical roadmap lives in `docs/ROADMAP.md`.

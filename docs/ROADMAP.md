@@ -1,13 +1,13 @@
 # Roadmap
 
-This document is the canonical roadmap for Studio Operator / Creative OS.
+This document is the canonical roadmap for Creative OS.
 It consolidates the roadmap content from the repo root README and the
 Creative OS refactor plan.
 
 ## Scope
 
 - Creative OS kernel: safety, execution model, governance
-- Studio Operator roadmap: releases, milestones, and operator examples
+- Creative OS roadmap: releases, milestones, and operator examples
 
 ## Creative OS kernel (safety-first refactor)
 
