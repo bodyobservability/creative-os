@@ -78,6 +78,24 @@ struct UI: AsyncParsableCommand {
         }
       )
       let displayCheck = displayTargetCheck(anchorsPack: ap)
+      let recommendedVisible: Bool
+      if let action = rec.action {
+        recommendedVisible = items.contains(where: { $0.command == action.command })
+      } else {
+        recommendedVisible = true
+      }
+      let noteLine: String?
+      if let action = rec.action, studioMode && action.danger {
+        noteLine = "note: next action is risky and hidden in SAFE — press s"
+      } else if let _ = rec.action, !studioMode && !showAll && !recommendedVisible {
+        noteLine = "note: next action not shown in GUIDED — press a for ALL"
+      } else {
+        noteLine = nil
+      }
+      if Date().timeIntervalSince(runner.lastStationCheck) > 5 {
+        runner.lastStationSummary = stationSummary(wubBin: wubBin)
+        runner.lastStationCheck = Date()
+      }
       let currentStatuses = Dictionary(uniqueKeysWithValues: snapshot.gates.map { ($0.key, $0.status) })
       if !runner.lastGateStatuses.isEmpty {
         for g in snapshot.gates {
@@ -124,6 +142,8 @@ struct UI: AsyncParsableCommand {
                   showHelp: showHelp,
                   legendLine: legendLine,
                   helpLines: helpLines,
+                  noteLine: noteLine,
+                  stationSummary: runner.lastStationSummary,
                   items: items,
                   selected: selected,
                   lastExit: runner.lastExit,
@@ -307,6 +327,8 @@ struct UI: AsyncParsableCommand {
 
   final class RunnerState {
     var state: RunState = .idle
+    var lastStationSummary: String = "unk."
+    var lastStationCheck: Date = Date.distantPast
     var lastGateStatuses: [String: GateStatus] = [:]
     var process: Process?
     var partialOutput: String = ""
@@ -498,6 +520,8 @@ struct UI: AsyncParsableCommand {
                    showHelp: Bool,
                    legendLine: String,
                    helpLines: [String],
+                   noteLine: String?,
+                   stationSummary: String,
                    items: [MenuItem],
                    selected: Int,
                    lastExit: Int32?,
@@ -520,12 +544,13 @@ struct UI: AsyncParsableCommand {
     if let ap = snapshot.anchorsPack {
       let apText = truncatePath(ap, maxLen: anchorMax, repoRoot: repoRoot)
       let lastText = truncateTail(lastRun ?? "—", maxLen: lastMax)
-      print("Anchors: \(apText)    Last: \(lastText)")
+      print("Anchors: \(apText)    Station: \(stationSummary)    Last: \(lastText)")
     } else {
       let lastText = truncateTail(lastRun ?? "—", maxLen: lastMax)
-      print("Anchors: NOT SET    Last: \(lastText)")
+      print("Anchors: NOT SET    Station: \(stationSummary)    Last: \(lastText)")
     }
     if let info = displayInfo { print("display: \(info)") }
+    if let note = noteLine { print(note) }
     if let warn = displayWarning { print("display warning: \(warn)") }
     if let fd = failuresDir { print("last failures: \(fd)") }
     if let e = lastExit { print("last exit: \(e)") }
@@ -617,6 +642,36 @@ struct UI: AsyncParsableCommand {
   func renderStationLine(snapshot: StudioStateSnapshot, width: Int) -> String {
     let base = StationBarRender.renderLine(label: "STATION", gates: snapshot.gates, next: snapshot.recommended.command?.joined(separator: " "))
     return base.count <= width ? base : truncateTail(base, maxLen: width)
+  }
+
+  func stationSummary(wubBin: String) -> String {
+    let output = runShell("\(wubBin) station status --format json --no-write-report")
+    guard !output.isEmpty, let data = output.data(using: .utf8) else { return "unk." }
+    struct Envelope: Decodable { let stationState: String?; enum CodingKeys: String, CodingKey { case stationState = "station_state" } }
+    let env = try? JSONDecoder().decode(Envelope.self, from: data)
+    let state = env?.stationState ?? "unknown"
+    switch state {
+    case "detected": return "det."
+    case "blocked": return "blk"
+    case "offline": return "off"
+    default: return "unk."
+    }
+  }
+
+  func runShell(_ cmd: String) -> String {
+    let p = Process()
+    p.executableURL = URL(fileURLWithPath: "/bin/zsh")
+    p.arguments = ["-lc", cmd]
+    let out = Pipe()
+    let err = Pipe()
+    p.standardOutput = out
+    p.standardError = err
+    do { try p.run() } catch { return "" }
+    p.waitUntilExit()
+    let od = out.fileHandleForReading.readDataToEndOfFile()
+    let ed = err.fileHandleForReading.readDataToEndOfFile()
+    let s = (String(data: od, encoding: .utf8) ?? "") + (String(data: ed, encoding: .utf8) ?? "")
+    return s.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
   // MARK: FS helpers

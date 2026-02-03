@@ -1,3 +1,24 @@
+
+## Onboarding
+
+### check / preflight / anchors select
+
+When to run:
+
+- First run or after environment changes.
+
+Prereqs:
+
+- None.
+
+Outputs:
+
+- Readiness summary and blockers.
+
+Recovery:
+
+- Follow the recommended next action.
+
 # Capabilities
 
 Groupings are by intent, not subcommand names. Each entry shows when to run, prerequisites, outputs, and recovery.
