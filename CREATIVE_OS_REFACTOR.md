@@ -301,6 +301,10 @@ Currently, station gating exists in:
 
 **Rollback:** revert gating integration.
 
+PR 6 progress:
+- [x] Add station-gate metadata to action catalog.
+- [x] Enforce station gating for mutating actions in state-setup execute step.
+
 ---
 
 ## PR 7 — Convert “manual-required because state mismatch” into typed checks + repair plans

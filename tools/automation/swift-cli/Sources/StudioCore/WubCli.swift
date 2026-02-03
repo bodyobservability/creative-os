@@ -781,6 +781,11 @@ private func executeStep(_ step: CreativeOS.PlanStep, failures: inout [String]) 
   var errorText: String? = nil
   do {
     print("Running: \(step.agent)/\(step.id) → \(actionRef.id)")
+    if let spec = CreativeOSActionCatalog.spec(for: actionRef.id), spec.requiresStationGate {
+      try StationGate.enforceOrThrow(force: false,
+                                     anchorsPackHint: actionRef.kind == .setup ? "specs/automation/anchors/<pack_id>" : nil,
+                                     commandName: actionRef.id)
+    }
     if let code = try await ServiceExecutor.execute(step: step) {
       let codeInt = Int(code)
       exitCode = codeInt

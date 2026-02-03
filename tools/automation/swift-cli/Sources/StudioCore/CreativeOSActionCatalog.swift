@@ -6,6 +6,7 @@ struct CreativeOSActionCatalog {
     let kind: CreativeOS.ActionRefKind
     let description: String
     let configKeys: [String]
+    let requiresStationGate: Bool
 
     var actionRef: CreativeOS.ActionRef {
       CreativeOS.ActionRef(id: id, kind: kind, description: description)
@@ -76,7 +77,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.fix,
       ConfigKey.regionsConfig,
       ConfigKey.runsDir
-    ]
+    ],
+    requiresStationGate: false
   )
 
   static let readyCheck = ActionSpec(
@@ -88,7 +90,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.artifactIndex,
       ConfigKey.runDir,
       ConfigKey.writeReport
-    ]
+    ],
+    requiresStationGate: false
   )
 
   static let driftCheck = ActionSpec(
@@ -103,7 +106,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.format,
       ConfigKey.groupByFix,
       ConfigKey.onlyFail
-    ]
+    ],
+    requiresStationGate: false
   )
 
   static let driftFix = ActionSpec(
@@ -119,7 +123,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.dryRun,
       ConfigKey.out,
       ConfigKey.runsDir
-    ]
+    ],
+    requiresStationGate: true
   )
 
   static let assetsExportAll = ActionSpec(
@@ -142,7 +147,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.rackVerifyManifest,
       ConfigKey.vrlMapping,
       ConfigKey.force
-    ]
+    ],
+    requiresStationGate: true
   )
 
   static let voiceRun = ActionSpec(
@@ -160,7 +166,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.runsDir,
       ConfigKey.sessionProfile,
       ConfigKey.sessionProfilePath
-    ]
+    ],
+    requiresStationGate: true
   )
 
   static let rackInstall = ActionSpec(
@@ -175,7 +182,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.runsDir,
       ConfigKey.sessionProfile,
       ConfigKey.sessionProfilePath
-    ]
+    ],
+    requiresStationGate: true
   )
 
   static let rackVerify = ActionSpec(
@@ -190,7 +198,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.runsDir,
       ConfigKey.sessionProfile,
       ConfigKey.sessionProfilePath
-    ]
+    ],
+    requiresStationGate: true
   )
 
   static let sessionCompile = ActionSpec(
@@ -203,7 +212,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.anchorsPack,
       ConfigKey.fix,
       ConfigKey.runsDir
-    ]
+    ],
+    requiresStationGate: true
   )
 
   static let indexBuild = ActionSpec(
@@ -214,7 +224,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.repoVersion,
       ConfigKey.outDir,
       ConfigKey.runsDir
-    ]
+    ],
+    requiresStationGate: false
   )
 
   static let releasePromoteProfile = ActionSpec(
@@ -230,7 +241,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.out,
       ConfigKey.rackManifest,
       ConfigKey.runsDir
-    ]
+    ],
+    requiresStationGate: true
   )
 
   static let reportGenerate = ActionSpec(
@@ -240,7 +252,8 @@ struct CreativeOSActionCatalog {
     configKeys: [
       ConfigKey.runDir,
       ConfigKey.out
-    ]
+    ],
+    requiresStationGate: false
   )
 
   static let repairRun = ActionSpec(
@@ -253,7 +266,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.yes,
       ConfigKey.overwrite,
       ConfigKey.runsDir
-    ]
+    ],
+    requiresStationGate: true
   )
 
   static let stationStatus = ActionSpec(
@@ -266,7 +280,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.noWriteReport,
       ConfigKey.anchorsPackHint,
       ConfigKey.runsDir
-    ]
+    ],
+    requiresStationGate: false
   )
 
   static let all: [ActionSpec] = [
