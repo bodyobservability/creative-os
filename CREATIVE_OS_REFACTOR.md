@@ -187,6 +187,11 @@ Currently `WubStateSetup` runs steps and reports failures, but does not produce 
 
 **Rollback:** remove receipt writing; keep behavior.
 
+PR 3 progress:
+- [x] Add Creative OS setup receipt models.
+- [x] Write `creative_os_setup_receipt.v1.json` for state-setup/setup (dry-run + apply).
+- [x] Add receipt round-trip test.
+
 ---
 
 ## PR 4 — Split WubAgents.swift into per-domain agent files (move-only PR)

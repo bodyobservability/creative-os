@@ -284,7 +284,12 @@ struct WubStateSetup: AsyncParsableCommand {
     let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
     let report = try context.makePlanReport()
     let evaluation = evaluateSetupSteps(report.steps, allowlist: stateSetupAllowlist)
-
+    let (runId, setupRunDir) = try createSetupRunDir(runsDir: runsDir)
+    let createdAt = ISO8601DateFormatter().string(from: Date())
+    let planSteps = report.steps.map(setupStepRef)
+    let skippedSteps = evaluation.skipped.map(setupSkippedStep)
+    let manualSteps = evaluation.manual.map(setupStepRef)
+    
     if !apply {
       print("Executable steps (dry run):")
       if evaluation.executable.isEmpty { print("- (none)") }
@@ -303,12 +308,28 @@ struct WubStateSetup: AsyncParsableCommand {
           print("- \(step.agent)/\(step.id): \(step.description)")
         }
       }
+      let receipt = CreativeOSSetupReceiptV1(schemaVersion: 1,
+                                             runId: runId,
+                                             createdAt: createdAt,
+                                             status: "dry_run",
+                                             apply: false,
+                                             allowlist: stateSetupAllowlist.sorted(),
+                                             planSteps: planSteps,
+                                             executedSteps: [],
+                                             skippedSteps: skippedSteps,
+                                             manualSteps: manualSteps,
+                                             failures: [])
+      let outPath = setupRunDir.appendingPathComponent("creative_os_setup_receipt.v1.json")
+      try JSONIO.save(receipt, to: outPath)
+      print("\nreceipt: \(outPath.path)")
       return
     }
 
     var failures: [String] = []
+    var executed: [CreativeOSSetupReceiptV1.ExecutedStep] = []
     for step in evaluation.executable {
-      try await executeStep(step, failures: &failures)
+      let result = await executeStep(step, failures: &failures)
+      executed.append(result)
     }
 
     if showManual && !evaluation.manual.isEmpty {
@@ -317,6 +338,22 @@ struct WubStateSetup: AsyncParsableCommand {
         print("- \(step.agent)/\(step.id): \(step.description)")
       }
     }
+
+    let status = failures.isEmpty ? "pass" : "fail"
+    let receipt = CreativeOSSetupReceiptV1(schemaVersion: 1,
+                                           runId: runId,
+                                           createdAt: createdAt,
+                                           status: status,
+                                           apply: true,
+                                           allowlist: stateSetupAllowlist.sorted(),
+                                           planSteps: planSteps,
+                                           executedSteps: executed,
+                                           skippedSteps: skippedSteps,
+                                           manualSteps: manualSteps,
+                                           failures: failures)
+    let outPath = setupRunDir.appendingPathComponent("creative_os_setup_receipt.v1.json")
+    try JSONIO.save(receipt, to: outPath)
+    print("\nreceipt: \(outPath.path)")
 
     if !failures.isEmpty {
       print("\nSetup failures:")
@@ -351,6 +388,11 @@ struct WubSetup: AsyncParsableCommand {
     let context = WubContext(runDir: runDir, runsDir: runsDir, sweeperConfig: nil, driftConfig: nil, readyConfig: nil, stationConfig: nil, assetsConfig: nil, voiceRackSessionConfig: nil, indexConfig: nil, releaseConfig: nil, reportConfig: nil, repairConfig: nil)
     let report = try context.makePlanReport()
     let evaluation = evaluateSetupSteps(report.steps, allowlist: stateSetupAllowlist)
+    let (runId, setupRunDir) = try createSetupRunDir(runsDir: runsDir)
+    let createdAt = ISO8601DateFormatter().string(from: Date())
+    let planSteps = report.steps.map(setupStepRef)
+    let skippedSteps = evaluation.skipped.map(setupSkippedStep)
+    let manualSteps = evaluation.manual.map(setupStepRef)
 
     if apply && dryRun {
       throw ValidationError("Use either --apply or --dry-run (default: dry run).")
@@ -374,12 +416,28 @@ struct WubSetup: AsyncParsableCommand {
           print("- \(step.agent)/\(step.id): \(step.description)")
         }
       }
+      let receipt = CreativeOSSetupReceiptV1(schemaVersion: 1,
+                                             runId: runId,
+                                             createdAt: createdAt,
+                                             status: "dry_run",
+                                             apply: false,
+                                             allowlist: stateSetupAllowlist.sorted(),
+                                             planSteps: planSteps,
+                                             executedSteps: [],
+                                             skippedSteps: skippedSteps,
+                                             manualSteps: manualSteps,
+                                             failures: [])
+      let outPath = setupRunDir.appendingPathComponent("creative_os_setup_receipt.v1.json")
+      try JSONIO.save(receipt, to: outPath)
+      print("\nreceipt: \(outPath.path)")
       return
     }
 
     var failures: [String] = []
+    var executed: [CreativeOSSetupReceiptV1.ExecutedStep] = []
     for step in evaluation.executable {
-      try await executeStep(step, failures: &failures)
+      let result = await executeStep(step, failures: &failures)
+      executed.append(result)
     }
 
     if showManual && !evaluation.manual.isEmpty {
@@ -388,6 +446,22 @@ struct WubSetup: AsyncParsableCommand {
         print("- \(step.agent)/\(step.id): \(step.description)")
       }
     }
+
+    let status = failures.isEmpty ? "pass" : "fail"
+    let receipt = CreativeOSSetupReceiptV1(schemaVersion: 1,
+                                           runId: runId,
+                                           createdAt: createdAt,
+                                           status: status,
+                                           apply: true,
+                                           allowlist: stateSetupAllowlist.sorted(),
+                                           planSteps: planSteps,
+                                           executedSteps: executed,
+                                           skippedSteps: skippedSteps,
+                                           manualSteps: manualSteps,
+                                           failures: failures)
+    let outPath = setupRunDir.appendingPathComponent("creative_os_setup_receipt.v1.json")
+    try JSONIO.save(receipt, to: outPath)
+    print("\nreceipt: \(outPath.path)")
 
     if !failures.isEmpty {
       print("\nSetup failures:")
@@ -537,19 +611,66 @@ private func runShell(_ command: String) async throws -> Int32 {
   return process.terminationStatus
 }
 
-private func executeStep(_ step: CreativeOS.PlanStep, failures: inout [String]) async throws {
+private func executeStep(_ step: CreativeOS.PlanStep, failures: inout [String]) async -> CreativeOSSetupReceiptV1.ExecutedStep {
+  let start = ISO8601DateFormatter().string(from: Date())
   guard let actionRef = step.actionRef else {
-    failures.append("\(step.agent)/\(step.id): missing action_ref")
-    return
+    let finish = ISO8601DateFormatter().string(from: Date())
+    let message = "\(step.agent)/\(step.id): missing action_ref"
+    failures.append(message)
+    return CreativeOSSetupReceiptV1.ExecutedStep(stepId: step.id,
+                                                 agent: step.agent,
+                                                 actionId: "missing_action_ref",
+                                                 status: "error",
+                                                 exitCode: nil,
+                                                 error: message,
+                                                 startedAt: start,
+                                                 finishedAt: finish)
   }
+  var status = "pass"
+  var exitCode: Int? = nil
+  var errorText: String? = nil
   do {
     print("Running: \(step.agent)/\(step.id) → \(actionRef.id)")
-    if let code = try await ServiceExecutor.execute(step: step), code != 0 {
-      failures.append("\(step.agent)/\(step.id): exit=\(code)")
+    if let code = try await ServiceExecutor.execute(step: step) {
+      let codeInt = Int(code)
+      exitCode = codeInt
+      if codeInt != 0 {
+        status = "fail"
+        failures.append("\(step.agent)/\(step.id): exit=\(codeInt)")
+      }
     }
   } catch {
+    status = "error"
+    errorText = String(describing: error)
     failures.append("\(step.agent)/\(step.id): \(error)")
   }
+  let finish = ISO8601DateFormatter().string(from: Date())
+  return CreativeOSSetupReceiptV1.ExecutedStep(stepId: step.id,
+                                               agent: step.agent,
+                                               actionId: actionRef.id,
+                                               status: status,
+                                               exitCode: exitCode,
+                                               error: errorText,
+                                               startedAt: start,
+                                               finishedAt: finish)
+}
+
+private func createSetupRunDir(runsDir: String) throws -> (runId: String, runDir: URL) {
+  let runId = RunContext.makeRunId()
+  let runDir = URL(fileURLWithPath: runsDir).appendingPathComponent(runId, isDirectory: true)
+  try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
+  try FileManager.default.createDirectory(at: runDir.appendingPathComponent("evidence", isDirectory: true),
+                                          withIntermediateDirectories: true)
+  return (runId, runDir)
+}
+
+private func setupStepRef(_ step: CreativeOS.PlanStep) -> CreativeOSSetupReceiptV1.StepRef {
+  CreativeOSSetupReceiptV1.StepRef(stepId: step.id, agent: step.agent, actionId: step.actionRef?.id)
+}
+
+private func setupSkippedStep(_ entry: (CreativeOS.PlanStep, String)) -> CreativeOSSetupReceiptV1.SkippedStep {
+  let (step, reason) = entry
+  return CreativeOSSetupReceiptV1.SkippedStep(stepId: step.id, agent: step.agent, actionId: step.actionRef?.id, reason: reason)
 }
 
 public enum WubEntry {
