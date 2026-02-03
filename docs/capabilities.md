@@ -1,5 +1,8 @@
+# Capabilities
 
-## Onboarding
+Creative OS capabilities are the kernel actions; Studio Operator presents them as a guided shell and voice layer.
+
+## Onboarding (Kernel Gate)
 
 ### check / preflight / anchors select
 
@@ -18,8 +21,6 @@ Outputs:
 Recovery:
 
 - Follow the recommended next action.
-
-# Capabilities
 
 Groupings are by intent, not subcommand names. Each entry shows when to run, prerequisites, outputs, and recovery.
 

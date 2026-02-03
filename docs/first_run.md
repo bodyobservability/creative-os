@@ -1,5 +1,8 @@
 # First Run
 
+Creative OS is the execution kernel. Studio Operator is the persona + shell that drives it.
+This guide focuses on the kernel gate (`wub preflight`) and the operator entrypoint (`make studio`).
+
 ## One Command
 
 Run:

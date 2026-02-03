@@ -1,6 +1,6 @@
 # Modes
 
-Operator Shell modes are intentional and user-facing.
+These are Studio Operator shell modes. Creative OS kernel gating still decides what can execute.
 
 ## SAFE
 
