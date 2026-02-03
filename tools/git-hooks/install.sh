@@ -25,3 +25,4 @@ install_hook() {
 }
 
 install_hook pre-commit
+install_hook pre-push
