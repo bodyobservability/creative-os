@@ -228,6 +228,9 @@ PR 3 progress:
 
 **Rollback:** revert file moves.
 
+PR 4 progress:
+- [x] Move agents + configs into `Sources/StudioCore/Agents/` (move-only).
+
 ---
 
 ## PR 5 — Migrate agent configs into service configs (reduce duplicate config types)

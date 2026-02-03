@@ -27,6 +27,8 @@ renders/
 # Local operator shell config
 notes/LOCAL_CONFIG.json
 notes/WUB_CONFIG.json
+tools/automation/swift-cli/notes/LOCAL_CONFIG.json
+tools/automation/swift-cli/notes/WUB_CONFIG.json
 
 # Runtime outputs
 runs/
