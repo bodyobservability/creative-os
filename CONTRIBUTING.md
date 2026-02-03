@@ -53,6 +53,8 @@ To avoid missing this step, install the pre-commit hook:
 bash tools/git-hooks/install.sh
 ```
 
+This also installs a pre-push hook that verifies checksums before push.
+
 CI enforces checksum freshness and will fail if checksums are out of date.
 
 ## Legacy files
