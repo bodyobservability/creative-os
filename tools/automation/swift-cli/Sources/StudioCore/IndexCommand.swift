@@ -15,7 +15,7 @@ struct Index: ParsableCommand {
     )
 
     @Option(name: .long, help: "Repo version string to embed in the index.")
-    var repoVersion: String = "v1.8.4"
+    var repoVersion: String = "current"
 
     @Option(name: .long, help: "Output directory for indexes (default: checksums/index).")
     var outDir: String = "checksums/index"

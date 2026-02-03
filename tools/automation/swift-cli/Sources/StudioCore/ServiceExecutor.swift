@@ -142,7 +142,7 @@ struct ServiceExecutor {
       return receipt.status == "fail" ? 1 : 0
     })
     registry.register(ActionHandler(id: "index.build") { bag, _ in
-      let config = IndexService.BuildConfig(repoVersion: bag.string("repo_version") ?? "v1.8.4",
+      let config = IndexService.BuildConfig(repoVersion: bag.string("repo_version") ?? "current",
                                             outDir: bag.string("out_dir") ?? "checksums/index",
                                             runsDir: bag.string("runs_dir") ?? "runs")
       _ = try IndexService.build(config: config)

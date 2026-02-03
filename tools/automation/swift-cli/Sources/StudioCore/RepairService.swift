@@ -80,7 +80,7 @@ struct RepairService {
     }
 
     let indexCode = await step("index_build", "service: index.build") {
-      _ = try IndexService.build(config: .init(repoVersion: "v1.8.4",
+      _ = try IndexService.build(config: .init(repoVersion: "current",
                                                outDir: "checksums/index",
                                                runsDir: config.runsDir))
       return 0

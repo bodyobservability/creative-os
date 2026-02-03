@@ -247,7 +247,7 @@ struct WubPlan: AsyncParsableCommand {
   var vrsSessionProfile: String = "bass_v1"
 
   @Option(name: .long, help: "Index build repo version.")
-  var indexRepoVersion: String = "v1.8.4"
+  var indexRepoVersion: String = "current"
 
   @Option(name: .long, help: "Index build output directory.")
   var indexOutDir: String = "checksums/index"
