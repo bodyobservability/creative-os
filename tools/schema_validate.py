@@ -2,6 +2,7 @@
 import json
 import sys
 from pathlib import Path
+from typing import Optional
 
 try:
     import jsonschema
@@ -33,7 +34,7 @@ def _validate(schema_path: Path, doc_path: Path, errors: list[str]) -> None:
     except Exception as exc:
         errors.append(f"{doc_path}: {exc}")
 
-def _latest_setup_receipt_path() -> Path | None:
+def _latest_setup_receipt_path() -> Optional[Path]:
     if not RUNS_DIR.exists():
         return None
     receipts = list(RUNS_DIR.glob("*/creative_os_setup_receipt.v1.json"))
