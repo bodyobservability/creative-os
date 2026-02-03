@@ -4,14 +4,14 @@ import CryptoKit
 #endif
 
 enum ReceiptIndexBuilder {
-  static func build(runsDir: String = "runs") -> ReceiptIndexV1 {
+  static func build(runsDir: String = RepoPaths.defaultRunsDir()) -> ReceiptIndexV1 {
     let ts = ISO8601DateFormatter().string(from: Date())
     var receipts: [ReceiptIndexV1.Receipt] = []
     let fm = FileManager.default
     guard fm.fileExists(atPath: runsDir) else {
       return ReceiptIndexV1(schemaVersion: 1, generatedAt: ts, receipts: [])
     }
-    // scan runs/<run_id> for *receipt*.json
+    // scan \(RepoPaths.defaultRunsDir())/<run_id> for *receipt*.json
     if let runIds = try? fm.contentsOfDirectory(atPath: runsDir) {
       for rid in runIds {
         let rpath = URL(fileURLWithPath: runsDir).appendingPathComponent(rid, isDirectory: true).path

@@ -11,7 +11,7 @@ extension Station {
     @Option(name: .long, help: "Output format: human|json")
     var format: String = "human"
 
-    @Option(name: .long, help: "Output path for JSON report (default runs/<run_id>/station_state_report.v1.json).")
+    @Option(name: .long, help: "Output path for JSON report (default \(RepoPaths.defaultRunsDir())/<run_id>/station_state_report.v1.json).")
     var out: String? = nil
 
     @Flag(name: .long, help: "Do not write report file; print only.")

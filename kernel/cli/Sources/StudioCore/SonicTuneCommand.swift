@@ -17,13 +17,13 @@ struct SonicTuneCommand: ParsableCommand {
   @Option(name: .long, help: "Output tuned profile path (optional).")
   var out: String?
 
-  @Option(name: .long, help: "Output receipt path (optional). Default runs/<run_id>/sonic_tune_receipt.v1.json")
+  @Option(name: .long, help: "Output receipt path (optional). Default \(RepoPaths.defaultRunsDir())/<run_id>/sonic_tune_receipt.v1.json")
   var receiptOut: String?
 
   func run() throws {
     let (outProfile, receipt) = try SonicTune.tuneProfile(profileYamlPath: profile, sweepReceiptPath: sweepReceipt, outPath: out)
 
-    let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(receipt.runId, isDirectory: true)
+    let runDir = URL(fileURLWithPath: RepoPaths.defaultRunsDir()).appendingPathComponent(receipt.runId, isDirectory: true)
     try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
     let receiptPath = receiptOut ?? runDir.appendingPathComponent("sonic_tune_receipt.v1.json").path
     try JSONIO.save(receipt, to: URL(fileURLWithPath: receiptPath))

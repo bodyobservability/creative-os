@@ -19,7 +19,7 @@ struct StudioStateEvaluator {
     let anchors = config.anchorsPack
     let anchorsValid = anchors != nil && !(anchors?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true) && !(anchors?.contains("<pack_id>") ?? false)
 
-    let indexPath = "checksums/index/artifact_index.v1.json"
+    let indexPath = RepoPaths.defaultArtifactIndexPath()
     let indexExists = FileManager.default.fileExists(atPath: indexPath)
     let counts = ArtifactIndexParser.parseCounts(path: indexPath)
     let missing = counts?.missing ?? 0

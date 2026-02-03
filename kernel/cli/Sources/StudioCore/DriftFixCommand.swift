@@ -11,8 +11,8 @@ extension Drift {
     @Flag(name: .long, help: "Override station gating (dangerous).")
     var force: Bool = false
 
-    @Option(name: .long) var artifactIndex: String = "checksums/index/artifact_index.v1.json"
-    @Option(name: .long) var receiptIndex: String = "checksums/index/receipt_index.v1.json"
+    @Option(name: .long) var artifactIndex: String = RepoPaths.defaultArtifactIndexPath()
+    @Option(name: .long) var receiptIndex: String = RepoPaths.defaultReceiptIndexPath()
     @Option(name: .long) var anchorsPackHint: String = RepoPaths.defaultAnchorsPackHint()
 
     @Flag(name: .long, help: "Skip per-command prompts; still requires one final confirmation.")
@@ -21,7 +21,7 @@ extension Drift {
     @Flag(name: .long, help: "Print commands that would run, but do not execute.")
     var dryRun: Bool = false
 
-    @Option(name: .long, help: "Output receipt path (default runs/<run_id>/drift_fix_receipt.v1.json).")
+    @Option(name: .long, help: "Output receipt path (default \(RepoPaths.defaultRunsDir())/<run_id>/drift_fix_receipt.v1.json).")
     var out: String?
 
     func run() async throws {

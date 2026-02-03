@@ -11,12 +11,12 @@ struct Ready: AsyncParsableCommand {
   var anchorsPackHint: String = RepoPaths.defaultAnchorsPackHint()
 
   @Option(name: .long, help: "Artifact index path.")
-  var artifactIndex: String = "checksums/index/artifact_index.v1.json"
+  var artifactIndex: String = RepoPaths.defaultArtifactIndexPath()
 
-  @Option(name: .long, help: "Run directory to inspect for drift/export receipts (optional). Defaults to latest runs/<id>.")
+  @Option(name: .long, help: "Run directory to inspect for drift/export receipts (optional). Defaults to latest \(RepoPaths.defaultRunsDir())/<id>.")
   var runDir: String? = nil
 
-  @Flag(name: .long, inversion: .prefixedNo, help: "Write JSON report to runs/<run_id>/ready_report.v1.json")
+  @Flag(name: .long, inversion: .prefixedNo, help: "Write JSON report to \(RepoPaths.defaultRunsDir())/<run_id>/ready_report.v1.json")
   var writeReport: Bool = true
 
   func run() async throws {
@@ -36,7 +36,7 @@ struct Ready: AsyncParsableCommand {
     }
 
     if writeReport {
-      print("\nreport: runs/\(report.runId)/ready_report.v1.json")
+      print("\nreport: \(RepoPaths.defaultRunsDir())/\(report.runId)/ready_report.v1.json")
     }
 
     if report.status == "not_ready" { throw ExitCode(2) }

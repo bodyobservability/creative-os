@@ -17,11 +17,11 @@ struct Index: ParsableCommand {
     @Option(name: .long, help: "Repo version string to embed in the index.")
     var repoVersion: String = "current"
 
-    @Option(name: .long, help: "Output directory for indexes (default: checksums/index).")
-    var outDir: String = "checksums/index"
+    @Option(name: .long, help: "Output directory for indexes (default: \(RepoPaths.defaultChecksumsIndexDir())).")
+    var outDir: String = RepoPaths.defaultChecksumsIndexDir()
 
-    @Option(name: .long, help: "Runs directory to scan for receipts (default: runs).")
-    var runsDir: String = "runs"
+    @Option(name: .long, help: "Runs directory to scan for receipts (default: \(RepoPaths.defaultRunsDir())).")
+    var runsDir: String = RepoPaths.defaultRunsDir()
 
     func run() throws {
       let result = try IndexService.build(config: .init(repoVersion: repoVersion, outDir: outDir, runsDir: runsDir))
@@ -36,8 +36,8 @@ struct Index: ParsableCommand {
       abstract: "Summarize the current artifact_index.v1.json."
     )
 
-    @Option(name: .long, help: "Artifact index path (default: checksums/index/artifact_index.v1.json).")
-    var path: String = "checksums/index/artifact_index.v1.json"
+    @Option(name: .long, help: "Artifact index path (default: \(RepoPaths.defaultArtifactIndexPath())).")
+    var path: String = RepoPaths.defaultArtifactIndexPath()
 
     func run() throws {
       let result = try IndexService.status(path: path)

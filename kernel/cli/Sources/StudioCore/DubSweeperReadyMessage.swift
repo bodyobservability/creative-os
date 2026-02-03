@@ -5,7 +5,7 @@ enum DubSweeperReadyMessage {
     print("✅ Machine certified for studio automation.")
     print("Next:")
     print("  1) wub plan --spec <spec.yaml> --resolve <resolve_report.json>")
-    print("  2) wub apply --plan runs/<run_id>/plan.v1.json --interactive")
+    print("  2) wub apply --plan \(RepoPaths.defaultRunsDir())/<run_id>/plan.v1.json --interactive")
     print("")
   }
   static func printIfNotReady(report: DubSweeperReportV1) {

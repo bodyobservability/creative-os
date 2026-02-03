@@ -59,10 +59,10 @@ struct WubCli: AsyncParsableCommand {
 struct WubStateSweep: AsyncParsableCommand {
   static let configuration = CommandConfiguration(commandName: "state-sweep")
 
-  @Option(name: .long, help: "Run directory to inspect (default: latest in runs/).")
+  @Option(name: .long, help: "Run directory to inspect (default: latest in \(RepoPaths.defaultRunsDir())/).")
   var runDir: String? = nil
 
-  @Option(name: .long, help: "Runs directory (default: runs).")
+  @Option(name: .long, help: "Runs directory (default: \(RepoPaths.defaultRunsDir())).")
   var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Flag(name: .long, help: "Output JSON.")
@@ -93,10 +93,10 @@ struct WubStateSweep: AsyncParsableCommand {
 struct WubSweep: AsyncParsableCommand {
   static let configuration = CommandConfiguration(commandName: "sweep")
 
-  @Option(name: .long, help: "Run directory to inspect (default: latest in runs/).")
+  @Option(name: .long, help: "Run directory to inspect (default: latest in \(RepoPaths.defaultRunsDir())/).")
   var runDir: String? = nil
 
-  @Option(name: .long, help: "Runs directory (default: runs).")
+  @Option(name: .long, help: "Runs directory (default: \(RepoPaths.defaultRunsDir())).")
   var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Flag(name: .long, help: "Output JSON.")
@@ -149,10 +149,10 @@ struct WubSweep: AsyncParsableCommand {
 struct WubStatePlan: AsyncParsableCommand {
   static let configuration = CommandConfiguration(commandName: "state-plan")
 
-  @Option(name: .long, help: "Run directory to inspect (default: latest in runs/).")
+  @Option(name: .long, help: "Run directory to inspect (default: latest in \(RepoPaths.defaultRunsDir())/).")
   var runDir: String? = nil
 
-  @Option(name: .long, help: "Runs directory (default: runs).")
+  @Option(name: .long, help: "Runs directory (default: \(RepoPaths.defaultRunsDir())).")
   var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Flag(name: .long, help: "Output JSON.")
@@ -183,10 +183,10 @@ struct WubStatePlan: AsyncParsableCommand {
 struct WubPlan: AsyncParsableCommand {
   static let configuration = CommandConfiguration(commandName: "plan")
 
-  @Option(name: .long, help: "Run directory to inspect (default: latest in runs/).")
+  @Option(name: .long, help: "Run directory to inspect (default: latest in \(RepoPaths.defaultRunsDir())/).")
   var runDir: String? = nil
 
-  @Option(name: .long, help: "Runs directory (default: runs).")
+  @Option(name: .long, help: "Runs directory (default: \(RepoPaths.defaultRunsDir())).")
   var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Flag(name: .long, help: "Output JSON.")
@@ -250,10 +250,10 @@ struct WubPlan: AsyncParsableCommand {
   var indexRepoVersion: String = "current"
 
   @Option(name: .long, help: "Index build output directory.")
-  var indexOutDir: String = "checksums/index"
+  var indexOutDir: String = RepoPaths.defaultChecksumsIndexDir()
 
   @Option(name: .long, help: "Index build runs directory.")
-  var indexRunsDir: String = "runs"
+  var indexRunsDir: String = RepoPaths.defaultRunsDir()
 
   @Option(name: .long, help: "Release candidate profile path.")
   var releaseProfilePath: String = RepoPaths.defaultReleaseProfilePath(profileId: "hvlien", relative: "library/profiles/dev/bass_lead.v1.yaml")
@@ -265,13 +265,13 @@ struct WubPlan: AsyncParsableCommand {
   var releaseMacro: String = "Width"
 
   @Option(name: .long, help: "Release baseline receipt path.")
-  var releaseBaseline: String = "runs/<run_id>/sonic_sweep_receipt.v1.json"
+  var releaseBaseline: String = "\(RepoPaths.defaultRunsDir())/<run_id>/sonic_sweep_receipt.v1.json"
 
   @Option(name: .long, help: "Release current sweep receipt path.")
-  var releaseCurrentSweep: String = "runs/<run_id>/sonic_sweep_receipt.v1.json"
+  var releaseCurrentSweep: String = "\(RepoPaths.defaultRunsDir())/<run_id>/sonic_sweep_receipt.v1.json"
 
   @Option(name: .long, help: "Report run directory for report generate.")
-  var reportRunDir: String = "runs/<run_id>"
+  var reportRunDir: String = "\(RepoPaths.defaultRunsDir())/<run_id>"
 
   @Option(name: .long, help: "Repair anchors pack hint.")
   var repairAnchorsPackHint: String = RepoPaths.defaultAnchorsPackHint()
@@ -287,23 +287,23 @@ struct WubPlan: AsyncParsableCommand {
                                               fix: fix,
                                               regionsConfig: RepoPaths.defaultRegionsConfigPath(),
                                               runsDir: runsDir)
-    let driftCheckConfig = DriftService.Config(artifactIndex: "checksums/index/artifact_index.v1.json",
-                                               receiptIndex: "checksums/index/receipt_index.v1.json",
+    let driftCheckConfig = DriftService.Config(artifactIndex: RepoPaths.defaultArtifactIndexPath(),
+                                               receiptIndex: RepoPaths.defaultReceiptIndexPath(),
                                                anchorsPackHint: anchorsPackHint,
                                                out: nil,
                                                format: "human",
                                                groupByFix: true,
                                                onlyFail: false)
     let driftFixConfig = DriftFixService.Config(force: false,
-                                                artifactIndex: "checksums/index/artifact_index.v1.json",
-                                                receiptIndex: "checksums/index/receipt_index.v1.json",
+                                                artifactIndex: RepoPaths.defaultArtifactIndexPath(),
+                                                receiptIndex: RepoPaths.defaultReceiptIndexPath(),
                                                 anchorsPackHint: anchorsPackHint ?? RepoPaths.defaultAnchorsPackHint(),
                                                 yes: false,
                                                 dryRun: true,
                                                 out: nil,
                                                 runsDir: runsDir)
     let readyConfig = ReadyService.Config(anchorsPackHint: readyAnchorsPackHint,
-                                          artifactIndex: "checksums/index/artifact_index.v1.json",
+                                          artifactIndex: RepoPaths.defaultArtifactIndexPath(),
                                           runDir: nil,
                                           writeReport: true)
     let stationConfig = StationStatusService.Config(format: stationStatusFormat,
@@ -391,10 +391,10 @@ struct WubPlan: AsyncParsableCommand {
 struct WubStateSetup: AsyncParsableCommand {
   static let configuration = CommandConfiguration(commandName: "state-setup")
 
-  @Option(name: .long, help: "Run directory to inspect (default: latest in runs/).")
+  @Option(name: .long, help: "Run directory to inspect (default: latest in \(RepoPaths.defaultRunsDir())/).")
   var runDir: String? = nil
 
-  @Option(name: .long, help: "Runs directory (default: runs).")
+  @Option(name: .long, help: "Runs directory (default: \(RepoPaths.defaultRunsDir())).")
   var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Flag(name: .long, help: "Print manual steps after setup.")
@@ -507,10 +507,10 @@ struct WubSetup: AsyncParsableCommand {
     abstract: "Execute automated steps from state-plan."
   )
 
-  @Option(name: .long, help: "Run directory to inspect (default: latest in runs/).")
+  @Option(name: .long, help: "Run directory to inspect (default: latest in \(RepoPaths.defaultRunsDir())/).")
   var runDir: String? = nil
 
-  @Option(name: .long, help: "Runs directory (default: runs).")
+  @Option(name: .long, help: "Runs directory (default: \(RepoPaths.defaultRunsDir())).")
   var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Flag(name: .long, help: "Print manual steps after setup.")
@@ -647,7 +647,7 @@ struct WubStationStatus: AsyncParsableCommand {
   @Option(name: .long, help: "Output format: human|json")
   var format: String = "human"
 
-  @Option(name: .long, help: "Output path for JSON report (default runs/<run_id>/station_state_report.v1.json).")
+  @Option(name: .long, help: "Output path for JSON report (default \(RepoPaths.defaultRunsDir())/<run_id>/station_state_report.v1.json).")
   var out: String? = nil
 
   @Flag(name: .long, help: "Do not write report file; print only.")

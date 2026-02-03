@@ -13,7 +13,7 @@ struct ProfilePatchCommand: ParsableCommand {
   func run() throws {
     let (patchPath, receipt) = try ProfilePatch.emit(profileIn: profile, tunedIn: tuned, patchOut: out)
 
-    let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(receipt.runId, isDirectory: true)
+    let runDir = URL(fileURLWithPath: RepoPaths.defaultRunsDir()).appendingPathComponent(receipt.runId, isDirectory: true)
     try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
     let receiptPath = receiptOut ?? runDir.appendingPathComponent("profile_patch_receipt.v1.json").path
     try JSONIO.save(receipt, to: URL(fileURLWithPath: receiptPath))

@@ -4,8 +4,8 @@ import Foundation
 struct WubPreflight: AsyncParsableCommand {
   static let configuration = CommandConfiguration(commandName: "preflight")
 
-  @Option(name: .long, help: "Runs directory (default: runs).")
-  var runsDir: String = "runs"
+  @Option(name: .long, help: "Runs directory (default: \(RepoPaths.defaultRunsDir())).")
+  var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Option(name: .long, help: "Anchors pack override (default: from local config).")
   var anchorsPack: String? = nil

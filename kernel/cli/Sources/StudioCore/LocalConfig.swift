@@ -39,10 +39,7 @@ struct LocalConfig: Codable {
     let rootURL = URL(fileURLWithPath: repoRoot, isDirectory: true)
     // Candidate parent directories in priority order
     let candidates = [
-      RepoPaths.sharedSpecsDir(root: rootURL).appendingPathComponent("automation/anchors", isDirectory: true),
-      RepoPaths.kernelDir(root: rootURL).appendingPathComponent("tools/automation/anchors", isDirectory: true),
-      rootURL.appendingPathComponent("anchors", isDirectory: true),
-      RepoPaths.sharedSpecsDir(root: rootURL).appendingPathComponent("anchors", isDirectory: true)
+      RepoPaths.sharedSpecsDir(root: rootURL).appendingPathComponent("automation/anchors", isDirectory: true)
     ]
 
     var bestURL: URL? = nil

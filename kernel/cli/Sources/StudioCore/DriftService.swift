@@ -53,7 +53,7 @@ struct DriftService {
                                reasons: base.reasons,
                                recommendedFixes: recommended)
 
-    let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
+    let runDir = URL(fileURLWithPath: RepoPaths.defaultRunsDir()).appendingPathComponent(runId, isDirectory: true)
     try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
     let outPath = config.out ?? runDir.appendingPathComponent("drift_report.v2.json").path
     try JSONIO.save(report, to: URL(fileURLWithPath: outPath))

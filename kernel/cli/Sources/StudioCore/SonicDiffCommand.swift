@@ -12,7 +12,7 @@ struct SonicDiffCommand: ParsableCommand {
   func run() throws {
     let receipt = try SonicDiff.diff(baselinePath: baseline, currentPath: current)
 
-    let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(receipt.runId, isDirectory: true)
+    let runDir = URL(fileURLWithPath: RepoPaths.defaultRunsDir()).appendingPathComponent(receipt.runId, isDirectory: true)
     try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
     let outPath = out ?? runDir.appendingPathComponent("sonic_diff_receipt.v1.json").path
     try JSONIO.save(receipt, to: URL(fileURLWithPath: outPath))

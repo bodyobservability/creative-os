@@ -76,6 +76,24 @@ enum RepoPaths {
     return relOrAbs(root: root, url: runsDir(root: root))
   }
 
+  static func defaultChecksumsIndexDir() -> String {
+    let root = rootURL()
+    let dir = root.appendingPathComponent("checksums/index", isDirectory: true)
+    return relOrAbs(root: root, url: dir)
+  }
+
+  static func defaultArtifactIndexPath() -> String {
+    let root = rootURL()
+    let path = root.appendingPathComponent("checksums/index/artifact_index.v1.json")
+    return relOrAbs(root: root, url: path)
+  }
+
+  static func defaultReceiptIndexPath() -> String {
+    let root = rootURL()
+    let path = root.appendingPathComponent("checksums/index/receipt_index.v1.json")
+    return relOrAbs(root: root, url: path)
+  }
+
   static func defaultRegionsConfigDir() -> String {
     let root = rootURL()
     let dir = kernelDir(root: root).appendingPathComponent("cli/config", isDirectory: true)

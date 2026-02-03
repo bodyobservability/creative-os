@@ -13,7 +13,7 @@ struct SubMonoCommand: ParsableCommand {
   @Option(name: .long, help: "Thresholds JSON path (optional).")
   var thresholds: String = WubDefaults.profileSpecPath("sonic/thresholds/sub_mono_safety_defaults.v1.json")
 
-  @Option(name: .long, help: "Output receipt path (default: runs/<run_id>/sub_mono_safety_receipt.v1.json).")
+  @Option(name: .long, help: "Output receipt path (default: \(RepoPaths.defaultRunsDir())/<run_id>/sub_mono_safety_receipt.v1.json).")
   var out: String?
 
   @Option(name: .long) var rackId: String?

@@ -95,7 +95,7 @@ struct Voice: ParsableCommand {
                                                              macroRegion: macroRegion,
                                                              fix: fix,
                                                              runsDir: RepoPaths.defaultRunsDir()))
-      print("\nvoice_receipt: runs/\(receipt.runId)/voice_receipt.v1.json")
+      print("\nvoice_receipt: \(RepoPaths.defaultRunsDir())/\(receipt.runId)/voice_receipt.v1.json")
       if receipt.status != "pass" { throw ExitCode(1) }
     }
   }

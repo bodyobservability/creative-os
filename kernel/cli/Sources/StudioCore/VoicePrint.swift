@@ -86,9 +86,9 @@ wub apply --plan \(verifyPlan) --anchors-pack \(anchorsPack ?? "<anchors_pack>")
 ```
 
 Artifacts:
-- runs/<run_id>/receipt.v1.json
-- runs/<run_id>/trace.v1.json
-- runs/<run_id>/failures/...
+- \(RepoPaths.defaultRunsDir())/<run_id>/receipt.v1.json
+- \(RepoPaths.defaultRunsDir())/<run_id>/trace.v1.json
+- \(RepoPaths.defaultRunsDir())/<run_id>/failures/...
 
 ---
 

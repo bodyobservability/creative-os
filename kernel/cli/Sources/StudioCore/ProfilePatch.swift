@@ -28,7 +28,7 @@ enum ProfilePatch {
     var reasons: [String] = []
     if changes.isEmpty { status = "warn"; reasons.append("no_changes_detected") }
 
-    let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
+    let runDir = URL(fileURLWithPath: RepoPaths.defaultRunsDir()).appendingPathComponent(runId, isDirectory: true)
     try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
 
     let patchPath = patchOut ?? runDir.appendingPathComponent("profile_patch.v1.json").path

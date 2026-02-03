@@ -81,7 +81,7 @@ struct RepairService {
 
     let indexCode = await step("index_build", "service: index.build") {
       _ = try IndexService.build(config: .init(repoVersion: "current",
-                                               outDir: "checksums/index",
+                                               outDir: RepoPaths.defaultChecksumsIndexDir(),
                                                runsDir: config.runsDir))
       return 0
     }
@@ -90,8 +90,8 @@ struct RepairService {
     }
 
     let driftCode = await step("drift_check", "service: drift.check") {
-      _ = try DriftService.check(config: .init(artifactIndex: "checksums/index/artifact_index.v1.json",
-                                               receiptIndex: "checksums/index/receipt_index.v1.json",
+      _ = try DriftService.check(config: .init(artifactIndex: RepoPaths.defaultArtifactIndexPath(),
+                                               receiptIndex: RepoPaths.defaultReceiptIndexPath(),
                                                anchorsPackHint: config.anchorsPackHint,
                                                out: nil,
                                                format: "human",
@@ -102,8 +102,8 @@ struct RepairService {
     if driftCode != 0 {
       let fixCode = await step("drift_fix", "service: drift.fix") {
         let receipt = try await DriftFixService.run(config: .init(force: config.force,
-                                                                  artifactIndex: "checksums/index/artifact_index.v1.json",
-                                                                  receiptIndex: "checksums/index/receipt_index.v1.json",
+                                                                  artifactIndex: RepoPaths.defaultArtifactIndexPath(),
+                                                                  receiptIndex: RepoPaths.defaultReceiptIndexPath(),
                                                                   anchorsPackHint: config.anchorsPackHint,
                                                                   yes: config.yes,
                                                                   dryRun: false,

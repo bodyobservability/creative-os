@@ -14,8 +14,8 @@ struct Drift: ParsableCommand {
       abstract: "Check artifact drift and emit a drift report."
     )
 
-    @Option(name: .long) var artifactIndex: String = "checksums/index/artifact_index.v1.json"
-    @Option(name: .long) var receiptIndex: String = "checksums/index/receipt_index.v1.json"
+    @Option(name: .long) var artifactIndex: String = RepoPaths.defaultArtifactIndexPath()
+    @Option(name: .long) var receiptIndex: String = RepoPaths.defaultReceiptIndexPath()
     @Option(name: .long) var anchorsPackHint: String? = nil
     @Option(name: .long) var out: String? = nil
 
@@ -85,8 +85,8 @@ struct Drift: ParsableCommand {
       abstract: "Print a short remediation plan (commands only) for current drift findings."
     )
 
-    @Option(name: .long) var artifactIndex: String = "checksums/index/artifact_index.v1.json"
-    @Option(name: .long) var receiptIndex: String = "checksums/index/receipt_index.v1.json"
+    @Option(name: .long) var artifactIndex: String = RepoPaths.defaultArtifactIndexPath()
+    @Option(name: .long) var receiptIndex: String = RepoPaths.defaultReceiptIndexPath()
     @Option(name: .long) var anchorsPackHint: String? = nil
 
     func run() throws {
@@ -120,7 +120,7 @@ struct Drift: ParsableCommand {
     )
 
     @Argument var query: String
-    @Option(name: .long) var artifactIndex: String = "checksums/index/artifact_index.v1.json"
+    @Option(name: .long) var artifactIndex: String = RepoPaths.defaultArtifactIndexPath()
 
     func run() throws {
       let aidx = try JSONIO.load(ArtifactIndexV1.self, from: URL(fileURLWithPath: artifactIndex))

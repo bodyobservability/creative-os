@@ -23,7 +23,7 @@ struct VRL: AsyncParsableCommand {
     @Option(name: .long, help: "Regions config path (must include tracks.list, device.chain, rack.macros).")
     var regions: String = RepoPaths.defaultRegionsConfigPath()
 
-    @Option(name: .long, help: "Output receipt path (default: runs/<run_id>/vrl_mapping_receipt.v1.json).")
+    @Option(name: .long, help: "Output receipt path (default: \(RepoPaths.defaultRunsDir())/<run_id>/vrl_mapping_receipt.v1.json).")
     var out: String?
 
     @Flag(name: .long, help: "Also dump OCR JSON+PNGs for key regions (recommended).")

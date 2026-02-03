@@ -36,7 +36,7 @@ struct Sonic: ParsableCommand {
     @Option(name: .long, help: "Thresholds JSON path (optional).")
     var thresholds: String = WubDefaults.profileSpecPath("sonic/thresholds/bass_music_defaults.v1.json")
 
-    @Option(name: .long, help: "Output receipt path (default: runs/<run_id>/sonic_receipt.v1.json).")
+    @Option(name: .long, help: "Output receipt path (default: \(RepoPaths.defaultRunsDir())/<run_id>/sonic_receipt.v1.json).")
     var out: String?
 
     @Option(name: .long, help: "Optional rack_id for attribution.")
@@ -47,7 +47,7 @@ struct Sonic: ParsableCommand {
 
     func run() throws {
       let runId = RunContext.makeRunId()
-      let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
+      let runDir = URL(fileURLWithPath: RepoPaths.defaultRunsDir()).appendingPathComponent(runId, isDirectory: true)
       try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
 
       let inputURL = URL(fileURLWithPath: input)
@@ -108,7 +108,7 @@ struct Sonic: ParsableCommand {
     @Option(name: .long, help: "Thresholds JSON path (optional).")
     var thresholds: String = WubDefaults.profileSpecPath("sonic/thresholds/bass_music_sweep_defaults.v1.json")
 
-    @Option(name: .long, help: "Output receipt path (default: runs/<run_id>/sonic_sweep_receipt.v1.json).")
+    @Option(name: .long, help: "Output receipt path (default: \(RepoPaths.defaultRunsDir())/<run_id>/sonic_sweep_receipt.v1.json).")
     var out: String?
 
     @Option(name: .long) var rackId: String?
@@ -116,7 +116,7 @@ struct Sonic: ParsableCommand {
 
     func run() throws {
       let runId = RunContext.makeRunId()
-      let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
+      let runDir = URL(fileURLWithPath: RepoPaths.defaultRunsDir()).appendingPathComponent(runId, isDirectory: true)
       try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
 
       let folder = URL(fileURLWithPath: dir, isDirectory: true)

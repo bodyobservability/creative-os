@@ -14,7 +14,7 @@ extension Assets {
     @Option(name: .long, help: "Anchors pack path (optional).")
     var anchorsPack: String?
 
-    @Flag(name: .long, help: "Write report to runs/<run_id>/export_preflight_report.v1.json.")
+    @Flag(name: .long, help: "Write report to \(RepoPaths.defaultRunsDir())/<run_id>/export_preflight_report.v1.json.")
     var writeReport: Bool = true
 
     func run() async throws {
@@ -35,7 +35,7 @@ extension Assets {
         for n in report.notes { print("  - \(n)") }
       }
       if writeReport {
-        print("report: runs/\(ctx.runId)/export_preflight_report.v1.json")
+        print("report: \(RepoPaths.defaultRunsDir())/\(ctx.runId)/export_preflight_report.v1.json")
       }
       if report.status == "fail" { throw ExitCode(2) }
     }

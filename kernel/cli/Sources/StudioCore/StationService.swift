@@ -12,7 +12,7 @@ struct StationService {
 
   static func certify(config: Config) async throws -> CreativeOS.ServiceResult {
     let runId = RunContext.makeRunId()
-    let runDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
+    let runDir = URL(fileURLWithPath: RepoPaths.defaultRunsDir()).appendingPathComponent(runId, isDirectory: true)
     try FileManager.default.createDirectory(at: runDir, withIntermediateDirectories: true)
 
     let exe = CommandLine.arguments.first ?? "wub"
@@ -78,7 +78,7 @@ struct StationService {
       "session_profile": cfg.sessionProfilePath,
       "baseline": cfg.baseline,
       "current_sweep": currentSweepPath,
-      "run_dir": "runs/\(runId)"
+      "run_dir": "\(RepoPaths.defaultRunsDir())/\(runId)"
     ]
 
     let receipt = StationReceiptV1(schemaVersion: 1,

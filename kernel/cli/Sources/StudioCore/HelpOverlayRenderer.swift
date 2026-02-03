@@ -23,7 +23,7 @@ struct HelpOverlayRenderer {
       "Keys:",
       " \(legend)",
       "",
-      "Logs: runs/<id>/...",
+      "Logs: \(RepoPaths.defaultRunsDir())/<id>/...",
       "Press ? to close"
     ]
   }

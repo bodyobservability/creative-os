@@ -62,7 +62,7 @@ struct SweeperService {
                                         checks: entries,
                                         safeSteps: safeSteps,
                                         manualSteps: [],
-                                        artifactsDir: "runs/\(runId)/sweeper")
+                                        artifactsDir: "\(RepoPaths.defaultRunsDir())/\(runId)/sweeper")
 
     let hints = DubSweeperHints.nextActions(from: baseReport)
     let manualSteps = hints.enumerated().map { DubSweeperStep(id: "manual_\($0.offset + 1)", description: $0.element) }

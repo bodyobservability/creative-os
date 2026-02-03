@@ -564,7 +564,7 @@ struct UI: AsyncParsableCommand {
       {
         let title = "Open last run folder"
         return .init(title: title,
-                     command: ["bash","-lc", "open " + (latestRunDir() ?? "runs")],
+                     command: ["bash","-lc", "open " + (latestRunDir() ?? RepoPaths.defaultRunsDir())],
                      danger: false,
                      category: "Open",
                      isGuided: true,
@@ -595,14 +595,14 @@ struct UI: AsyncParsableCommand {
       return [
         "When: review the latest report output.",
         "Prereqs: at least one report run.",
-        "Outputs: opens report file in runs/<id>/...",
+        "Outputs: opens report file in \(RepoPaths.defaultRunsDir())/<id>/...",
         "Recovery: run a report command to regenerate."
       ]
     case "Open last run folder":
       return [
         "When: inspect receipts/logs for the latest run.",
         "Prereqs: at least one run exists.",
-        "Outputs: opens runs/<id>/ folder.",
+        "Outputs: opens \(RepoPaths.defaultRunsDir())/<id>/ folder.",
         "Recovery: run any command to create a run."
       ]
     default:
@@ -614,7 +614,7 @@ struct UI: AsyncParsableCommand {
       return [
         "When: before automation if UI may block.",
         "Prereqs: anchors pack configured.",
-        "Outputs: sweep report under runs/<id>/...",
+        "Outputs: sweep report under \(RepoPaths.defaultRunsDir())/<id>/...",
         "Recovery: close modals, then re-run sweep."
       ]
     case "Runtime":
@@ -635,14 +635,14 @@ struct UI: AsyncParsableCommand {
       return [
         "When: after exporting or editing assets.",
         "Prereqs: artifacts present on disk.",
-        "Outputs: checksums/index/artifact_index.v1.json.",
+        "Outputs: \(RepoPaths.defaultArtifactIndexPath()).",
         "Recovery: re-run index build."
       ]
     case "Drift":
       return [
         "When: before certification or release.",
         "Prereqs: index exists.",
-        "Outputs: drift report under runs/<id>/...",
+        "Outputs: drift report under \(RepoPaths.defaultRunsDir())/<id>/...",
         "Recovery: run drift fix if required."
       ]
     case "Governance":
@@ -655,7 +655,7 @@ struct UI: AsyncParsableCommand {
     case "Open":
       return [
         "When: inspect recent receipts and logs.",
-        "Prereqs: runs/<id>/ exists.",
+        "Prereqs: \(RepoPaths.defaultRunsDir())/<id>/ exists.",
         "Outputs: opens target path.",
         "Recovery: run any command to create a run."
       ]
@@ -663,7 +663,7 @@ struct UI: AsyncParsableCommand {
       return [
         "When: run as needed.",
         "Prereqs: see command details.",
-        "Outputs: receipts/logs under runs/<id>/...",
+        "Outputs: receipts/logs under \(RepoPaths.defaultRunsDir())/<id>/...",
         "Recovery: follow recommended next action."
       ]
     }
@@ -766,7 +766,7 @@ struct UI: AsyncParsableCommand {
         if code == 0 {
           toast.success("Completed successfully", key: "action_ok")
         } else {
-          let tail = runner.lastRunDir ?? "runs/<id>/"
+          let tail = runner.lastRunDir ?? "\(RepoPaths.defaultRunsDir())/<id>/"
           toast.blocked("Action failed — see \(tail) for details. Next: wub check", key: "action_fail")
         }
       })

@@ -18,15 +18,15 @@ struct ServiceExecutor {
     registry.register(ActionHandler(id: "ready.check") { bag, _ in
       let hint = bag.string("anchors_pack_hint") ?? RepoPaths.defaultAnchorsPackHint()
       let config = ReadyService.Config(anchorsPackHint: hint,
-                                       artifactIndex: bag.string("artifact_index") ?? "checksums/index/artifact_index.v1.json",
+                                       artifactIndex: bag.string("artifact_index") ?? RepoPaths.defaultArtifactIndexPath(),
                                        runDir: bag.string("run_dir"),
                                        writeReport: bag.bool("write_report") ?? true)
       _ = try ReadyService.run(config: config)
       return 0
     })
     registry.register(ActionHandler(id: "drift.check") { bag, _ in
-      let config = DriftService.Config(artifactIndex: bag.string("artifact_index") ?? "checksums/index/artifact_index.v1.json",
-                                       receiptIndex: bag.string("receipt_index") ?? "checksums/index/receipt_index.v1.json",
+      let config = DriftService.Config(artifactIndex: bag.string("artifact_index") ?? RepoPaths.defaultArtifactIndexPath(),
+                                       receiptIndex: bag.string("receipt_index") ?? RepoPaths.defaultReceiptIndexPath(),
                                        anchorsPackHint: bag.string("anchors_pack_hint"),
                                        out: nil,
                                        format: "human",
@@ -37,8 +37,8 @@ struct ServiceExecutor {
     })
     registry.register(ActionHandler(id: "drift.fix") { bag, _ in
       let config = DriftFixService.Config(force: bag.bool("force") ?? false,
-                                          artifactIndex: bag.string("artifact_index") ?? "checksums/index/artifact_index.v1.json",
-                                          receiptIndex: bag.string("receipt_index") ?? "checksums/index/receipt_index.v1.json",
+                                          artifactIndex: bag.string("artifact_index") ?? RepoPaths.defaultArtifactIndexPath(),
+                                          receiptIndex: bag.string("receipt_index") ?? RepoPaths.defaultReceiptIndexPath(),
                                           anchorsPackHint: bag.string("anchors_pack_hint") ?? RepoPaths.defaultAnchorsPackHint(),
                                           yes: bag.bool("yes") ?? false,
                                           dryRun: bag.bool("dry_run") ?? false,
@@ -143,7 +143,7 @@ struct ServiceExecutor {
     })
     registry.register(ActionHandler(id: "index.build") { bag, _ in
       let config = IndexService.BuildConfig(repoVersion: bag.string("repo_version") ?? "current",
-                                            outDir: bag.string("out_dir") ?? "checksums/index",
+                                            outDir: bag.string("out_dir") ?? RepoPaths.defaultChecksumsIndexDir(),
                                             runsDir: bag.string("runs_dir") ?? RepoPaths.defaultRunsDir())
       _ = try IndexService.build(config: config)
       return 0

@@ -11,7 +11,7 @@ struct OCRDumpCmd: AsyncParsableCommand {
   @Option(name: .long, help: "Region id from regions.v1.json, e.g., rack.macros")
   var region: String
 
-  @Option(name: .long, help: "Output directory (defaults to runs/<run_id>/ocr_dump/<region>/)")
+  @Option(name: .long, help: "Output directory (defaults to \(RepoPaths.defaultRunsDir())/<run_id>/ocr_dump/<region>/)")
   var out: String?
 
   @Option(name: .long, help: "Max lines to print")

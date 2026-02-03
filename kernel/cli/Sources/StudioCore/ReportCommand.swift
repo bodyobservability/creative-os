@@ -14,10 +14,10 @@ struct Report: ParsableCommand {
       abstract: "Generate a Markdown report for a given run directory."
     )
 
-    @Option(name: .long, help: "Run directory (e.g. runs/<run_id>).")
+    @Option(name: .long, help: "Run directory (e.g. \(RepoPaths.defaultRunsDir())/<run_id>).")
     var runDir: String
 
-    @Option(name: .long, help: "Output report path (default: runs/<run_id>/report.md).")
+    @Option(name: .long, help: "Output report path (default: \(RepoPaths.defaultRunsDir())/<run_id>/report.md).")
     var out: String?
 
     func run() throws {
@@ -32,7 +32,7 @@ struct Report: ParsableCommand {
       abstract: "Open a run report in the default viewer."
     )
 
-    @Option(name: .long, help: "Run directory (e.g. runs/<run_id>).")
+    @Option(name: .long, help: "Run directory (e.g. \(RepoPaths.defaultRunsDir())/<run_id>).")
     var runDir: String
 
     func run() throws {
