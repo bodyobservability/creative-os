@@ -109,6 +109,7 @@ PR 1 progress:
 - [x] Default `state-setup`/`setup` to dry-run; add explicit `--apply`.
 - [x] Ensure `state-setup` never executes `.process` effects.
 - [x] Update agent plan steps with `actionRef` to use `.automated`.
+- [x] Derive `state-setup` allowlist from the action catalog + assert catalog/executor coverage.
 
 **Acceptance criteria:**
 
@@ -337,6 +338,7 @@ PR 6 progress:
 PR 7 progress:
 - [x] Convert state mismatches into typed checks (reduce generic plan steps).
 - [x] Keep manual plan steps only for missing observed state.
+- [x] Enforce unique check keys + severity-first ordering with suggested actions.
 
 ---
 
@@ -409,6 +411,7 @@ PR 9 progress:
 - [x] Add checksum verification to CI.
 - [x] Add schema validation script + CI step (skips missing docs).
 - [x] Add Creative OS setup receipt schema + sample document.
+- [x] Install `jsonschema` in CI and validate latest emitted setup receipt when present.
 
 ---
 
