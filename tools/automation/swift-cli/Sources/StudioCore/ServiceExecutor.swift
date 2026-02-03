@@ -2,49 +2,9 @@ import Foundation
 import ArgumentParser
 
 struct ServiceExecutor {
-  static let supportedActionIds: Set<String> = [
-    "sweeper.run",
-    "ready.check",
-    "drift.check",
-    "drift.fix",
-    "assets.export_all",
-    "voice.run",
-    "rack.install",
-    "rack.verify",
-    "session.compile",
-    "index.build",
-    "release.promote_profile",
-    "report.generate",
-    "repair.run",
-    "station.status"
-  ]
-
-  static func supports(actionId: String) -> Bool {
-    supportedActionIds.contains(actionId)
-  }
-
-  struct ConfigBag {
-    let raw: [String: Any]
-
-    func string(_ key: String) -> String? { raw[key] as? String }
-    func stringNonEmpty(_ key: String) -> String? {
-      guard let val = raw[key] as? String, !val.isEmpty else { return nil }
-      return val
-    }
-    func bool(_ key: String) -> Bool? { raw[key] as? Bool }
-    func int(_ key: String) -> Int? { raw[key] as? Int }
-    func double(_ key: String) -> Double? { raw[key] as? Double }
-    func stringArray(_ key: String) -> [String] { raw[key] as? [String] ?? [] }
-  }
-
-  enum ExecutionError: Error { case missingConfig, unsupportedAction(String) }
-
-  static func execute(step: CreativeOS.PlanStep) async throws -> Int32? {
-    guard let action = step.actionRef else { return nil }
-    let bag = try loadConfig(from: step)
-
-    switch action.id {
-    case "sweeper.run":
+  private static let handlers: ActionHandlerRegistry = {
+    var registry = ActionHandlerRegistry()
+    registry.register(ActionHandler(id: "sweeper.run") { bag, _ in
       let config = SweeperService.Config(anchorsPack: bag.string("anchors_pack"),
                                          modalTest: bag.string("modal_test") ?? "detect",
                                          requiredControllers: bag.stringArray("required_controllers"),
@@ -54,8 +14,8 @@ struct ServiceExecutor {
                                          runsDir: bag.string("runs_dir") ?? "runs")
       _ = try await SweeperService.run(config: config)
       return 0
-
-    case "ready.check":
+    })
+    registry.register(ActionHandler(id: "ready.check") { bag, _ in
       let hint = bag.string("anchors_pack_hint") ?? "specs/automation/anchors/<pack_id>"
       let config = ReadyService.Config(anchorsPackHint: hint,
                                        artifactIndex: bag.string("artifact_index") ?? "checksums/index/artifact_index.v1.json",
@@ -63,8 +23,8 @@ struct ServiceExecutor {
                                        writeReport: bag.bool("write_report") ?? true)
       _ = try ReadyService.run(config: config)
       return 0
-
-    case "drift.check":
+    })
+    registry.register(ActionHandler(id: "drift.check") { bag, _ in
       let config = DriftService.Config(artifactIndex: bag.string("artifact_index") ?? "checksums/index/artifact_index.v1.json",
                                        receiptIndex: bag.string("receipt_index") ?? "checksums/index/receipt_index.v1.json",
                                        anchorsPackHint: bag.string("anchors_pack_hint"),
@@ -74,8 +34,8 @@ struct ServiceExecutor {
                                        onlyFail: false)
       _ = try DriftService.check(config: config)
       return 0
-
-    case "drift.fix":
+    })
+    registry.register(ActionHandler(id: "drift.fix") { bag, _ in
       let config = DriftFixService.Config(force: bag.bool("force") ?? false,
                                           artifactIndex: bag.string("artifact_index") ?? "checksums/index/artifact_index.v1.json",
                                           receiptIndex: bag.string("receipt_index") ?? "checksums/index/receipt_index.v1.json",
@@ -86,8 +46,8 @@ struct ServiceExecutor {
                                           runsDir: bag.string("runs_dir") ?? "runs")
       let receipt = try await DriftFixService.run(config: config)
       return receipt.status == "fail" ? 1 : 0
-
-    case "assets.export_all":
+    })
+    registry.register(ActionHandler(id: "assets.export_all") { bag, _ in
       let config = AssetsService.ExportAllConfig(anchorsPack: bag.string("anchors_pack"),
                                                  overwrite: bag.bool("overwrite") ?? false,
                                                  nonInteractive: bag.bool("non_interactive") ?? false,
@@ -105,8 +65,8 @@ struct ServiceExecutor {
                                                  force: bag.bool("force") ?? false)
       let receipt = try await AssetsService.exportAll(config: config)
       return receipt.status == "fail" ? 1 : 0
-
-    case "voice.run":
+    })
+    registry.register(ActionHandler(id: "voice.run") { bag, _ in
       var script = bag.string("script")
       var abi = bag.string("abi")
       var anchorsPack = bag.stringNonEmpty("anchors_pack")
@@ -134,8 +94,8 @@ struct ServiceExecutor {
                                           runsDir: bag.string("runs_dir") ?? "runs")
       let receipt = try await VoiceService.run(config: config)
       return receipt.status == "fail" ? 1 : 0
-
-    case "rack.install":
+    })
+    registry.register(ActionHandler(id: "rack.install") { bag, _ in
       var manifest = bag.string("manifest")
       var macroRegion = bag.string("macro_region")
       var anchorsPack = bag.stringNonEmpty("anchors_pack")
@@ -152,8 +112,8 @@ struct ServiceExecutor {
                                              runsDir: bag.string("runs_dir") ?? "runs")
       let receipt = try await RackInstallService.install(config: config)
       return receipt.status == "fail" ? 1 : 0
-
-    case "rack.verify":
+    })
+    registry.register(ActionHandler(id: "rack.verify") { bag, _ in
       var manifest = bag.string("manifest")
       var macroRegion = bag.string("macro_region")
       var anchorsPack = bag.stringNonEmpty("anchors_pack")
@@ -170,8 +130,8 @@ struct ServiceExecutor {
                                             runsDir: bag.string("runs_dir") ?? "runs")
       let receipt = try await RackVerifyService.verify(config: config)
       return receipt.status == "fail" ? 1 : 0
-
-    case "session.compile":
+    })
+    registry.register(ActionHandler(id: "session.compile") { bag, _ in
       guard let profile = bag.string("profile") else { throw ExecutionError.missingConfig }
       let config = SessionService.Config(profile: profile,
                                          profilePath: bag.string("profile_path"),
@@ -180,15 +140,15 @@ struct ServiceExecutor {
                                          runsDir: bag.string("runs_dir") ?? "runs")
       let receipt = try await SessionService.compile(config: config)
       return receipt.status == "fail" ? 1 : 0
-
-    case "index.build":
+    })
+    registry.register(ActionHandler(id: "index.build") { bag, _ in
       let config = IndexService.BuildConfig(repoVersion: bag.string("repo_version") ?? "v1.8.4",
                                             outDir: bag.string("out_dir") ?? "checksums/index",
                                             runsDir: bag.string("runs_dir") ?? "runs")
       _ = try IndexService.build(config: config)
       return 0
-
-    case "release.promote_profile":
+    })
+    registry.register(ActionHandler(id: "release.promote_profile") { bag, _ in
       guard let profile = bag.string("profile"),
             let rackId = bag.string("rack_id"),
             let macro = bag.string("macro"),
@@ -204,13 +164,13 @@ struct ServiceExecutor {
                                                 runsDir: bag.string("runs_dir") ?? "runs")
       let receipt = try await ReleaseService.promoteProfile(config: config)
       return receipt.status == "fail" ? 1 : 0
-
-    case "report.generate":
+    })
+    registry.register(ActionHandler(id: "report.generate") { bag, _ in
       guard let runDir = bag.string("run_dir") else { throw ExecutionError.missingConfig }
       _ = try ReportService.generate(config: .init(runDir: runDir, out: bag.string("out")))
       return 0
-
-    case "repair.run":
+    })
+    registry.register(ActionHandler(id: "repair.run") { bag, _ in
       let config = RepairService.Config(force: bag.bool("force") ?? false,
                                         anchorsPackHint: bag.string("anchors_pack_hint") ?? "specs/automation/anchors/<pack_id>",
                                         yes: bag.bool("yes") ?? false,
@@ -219,8 +179,8 @@ struct ServiceExecutor {
       let receipt = try await RepairService.run(config: config)
       if let receipt, receipt.status == "fail" { return 1 }
       return 0
-
-    case "station.status":
+    })
+    registry.register(ActionHandler(id: "station.status") { bag, _ in
       let config = StationStatusService.Config(format: bag.string("format") ?? "human",
                                                out: bag.string("out"),
                                                noWriteReport: bag.bool("no_write_report") ?? false,
@@ -228,10 +188,39 @@ struct ServiceExecutor {
                                                runsDir: bag.string("runs_dir") ?? "runs")
       _ = try await StationStatusService.run(config: config)
       return 0
+    })
+    return registry
+  }()
 
-    default:
+  static let supportedActionIds: Set<String> = handlers.ids
+
+  static func supports(actionId: String) -> Bool {
+    supportedActionIds.contains(actionId)
+  }
+
+  struct ConfigBag {
+    let raw: [String: Any]
+
+    func string(_ key: String) -> String? { raw[key] as? String }
+    func stringNonEmpty(_ key: String) -> String? {
+      guard let val = raw[key] as? String, !val.isEmpty else { return nil }
+      return val
+    }
+    func bool(_ key: String) -> Bool? { raw[key] as? Bool }
+    func int(_ key: String) -> Int? { raw[key] as? Int }
+    func double(_ key: String) -> Double? { raw[key] as? Double }
+    func stringArray(_ key: String) -> [String] { raw[key] as? [String] ?? [] }
+  }
+
+  enum ExecutionError: Error { case missingConfig, unsupportedAction(String) }
+
+  static func execute(step: CreativeOS.PlanStep) async throws -> Int32? {
+    guard let action = step.actionRef else { return nil }
+    let bag = try loadConfig(from: step)
+    guard let handler = handlers.handler(for: action.id) else {
       throw ExecutionError.unsupportedAction(action.id)
     }
+    return try await handler.execute(bag, step)
   }
 
   private static func loadConfig(from step: CreativeOS.PlanStep) throws -> ConfigBag {

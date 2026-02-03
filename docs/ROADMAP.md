@@ -29,7 +29,7 @@ execution safety, gating, and schema governance.
 10. PR 9 — CI governance (schema + checksum validation)
 11. PR 10 — Actuation subsystem boundary prep
 
-Status: PR 0–7 complete as of February 3, 2026.
+Status: PR 0–8 complete as of February 3, 2026.
 
 ## Versioning + Release Model (Proposal)
 

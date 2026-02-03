@@ -371,6 +371,10 @@ As the OS grows, a large switch statement becomes a merge-conflict magnet.
 
 **Rollback:** revert to switch.
 
+PR 8 progress:
+- [x] Introduce action handler registry.
+- [x] Move ServiceExecutor switch into registered handlers.
+
 ---
 
 ## PR 9 — Introduce schema validation + checksum verification in CI (OS governance)
