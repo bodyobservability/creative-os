@@ -15,6 +15,8 @@ struct WubCli: AsyncParsableCommand {
       WubPlan.self,
       Apply.self,
       WubSetup.self,
+      WubCheck.self,
+      WubPreflight.self,
 
       // UI tooling
       CaptureAnchor.self,
