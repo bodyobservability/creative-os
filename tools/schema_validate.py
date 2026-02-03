@@ -19,6 +19,7 @@ VALIDATION_TARGETS = [
     (SCHEMA_DIR / "pack_signatures.v1.schema.json", SPEC_ROOT / "recommendations" / "pack_signatures.v1.json"),
     (SCHEMA_DIR / "recommendations.v1.schema.json", SPEC_ROOT / "recommendations" / "recommendations.v1.json"),
     (SCHEMA_DIR / "substitutions.v1.schema.json", SPEC_ROOT / "substitutions" / "substitutions.v1.json"),
+    (SCHEMA_DIR / "creative_os_setup_receipt.v1.schema.json", SPEC_ROOT / "receipts" / "creative_os_setup_receipt.sample.v1.json"),
 ]
 
 errors = []

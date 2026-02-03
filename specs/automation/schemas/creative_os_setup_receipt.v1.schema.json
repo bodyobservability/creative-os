@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://studio-operator.local/specs/automation/schemas/creative_os_setup_receipt.v1.schema.json",
+  "title": "Creative OS Setup Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "created_at",
+    "status",
+    "apply",
+    "allowlist",
+    "plan_steps",
+    "executed_steps",
+    "skipped_steps",
+    "manual_steps",
+    "failures"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "minLength": 1
+    },
+    "apply": {
+      "type": "boolean"
+    },
+    "allowlist": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "plan_steps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/StepRef" }
+    },
+    "executed_steps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ExecutedStep" }
+    },
+    "skipped_steps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/SkippedStep" }
+    },
+    "manual_steps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/StepRef" }
+    },
+    "failures": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "$defs": {
+    "StepRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [ "step_id", "agent" ],
+      "properties": {
+        "step_id": { "type": "string", "minLength": 1 },
+        "agent": { "type": "string", "minLength": 1 },
+        "action_id": { "type": [ "string", "null" ], "minLength": 1 }
+      }
+    },
+    "ExecutedStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step_id",
+        "agent",
+        "action_id",
+        "status",
+        "started_at",
+        "finished_at"
+      ],
+      "properties": {
+        "step_id": { "type": "string", "minLength": 1 },
+        "agent": { "type": "string", "minLength": 1 },
+        "action_id": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "minLength": 1 },
+        "exit_code": { "type": [ "integer", "null" ] },
+        "error": { "type": [ "string", "null" ] },
+        "started_at": { "type": "string", "format": "date-time" },
+        "finished_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "SkippedStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [ "step_id", "agent", "reason" ],
+      "properties": {
+        "step_id": { "type": "string", "minLength": 1 },
+        "agent": { "type": "string", "minLength": 1 },
+        "action_id": { "type": [ "string", "null" ], "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
