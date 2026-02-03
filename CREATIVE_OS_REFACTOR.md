@@ -334,6 +334,10 @@ PR 6 progress:
 
 **Rollback:** revert to generic diff behavior.
 
+PR 7 progress:
+- [x] Convert state mismatches into typed checks (reduce generic plan steps).
+- [x] Keep manual plan steps only for missing observed state.
+
 ---
 
 ## PR 8 — Make ServiceExecutor pluggable (agent boundary hardening)

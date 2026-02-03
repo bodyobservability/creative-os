@@ -46,8 +46,10 @@ final class RuntimeDiffTests: XCTestCase {
     let agent = ProfileAgent(id: "profile",
                              slice: CreativeOS.ObservedStateSlice(agentId: "profile", data: nil, raw: json))
     let runtime = CreativeOS.Runtime(agents: [agent], profile: profile)
+    let sweep = try runtime.sweep()
     let plan = try runtime.plan()
-    XCTAssertEqual(plan.steps.count, 1)
-    XCTAssertEqual(plan.steps.first?.manualReason, "state_diff")
+    XCTAssertTrue(plan.steps.isEmpty)
+    XCTAssertEqual(sweep.checks.count, 1)
+    XCTAssertEqual(sweep.checks.first?.id, "state_mismatch_profile")
   }
 }

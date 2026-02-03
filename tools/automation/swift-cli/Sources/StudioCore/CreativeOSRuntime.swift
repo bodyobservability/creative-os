@@ -82,7 +82,7 @@ extension CreativeOS {
     func sweep() throws -> SweepReport {
       let observed = try observeState()
       let desired = desiredState()
-      let checks = try evaluateChecks()
+      let checks = try evaluateChecks(observed: observed, desired: desired)
       return SweepReport(observed: observed, desired: desired, checks: checks)
     }
 
@@ -116,13 +116,14 @@ extension CreativeOS {
       return DesiredState(slices: slices)
     }
 
-    private func evaluateChecks() throws -> [CheckResult] {
+    private func evaluateChecks(observed: ObservedState, desired: DesiredState) throws -> [CheckResult] {
       var registry = CheckRegistry()
       for agent in agents { agent.registerChecks(&registry) }
       var results: [CheckResult] = []
       for entry in registry.entries {
         results.append(try entry.run())
       }
+      results.append(contentsOf: mismatchChecks(observed: observed, desired: desired))
       return results.sorted { ($0.agent, $0.id) < ($1.agent, $1.id) }
     }
 
@@ -142,15 +143,7 @@ extension CreativeOS {
                                 manualReason: "observed_state_missing"))
           continue
         }
-        if !stateMatches(observed: observedSlice, desired: desiredSlice) {
-          steps.append(PlanStep(id: "state_mismatch_\(desiredSlice.agentId)",
-                                agent: desiredSlice.agentId,
-                                type: .manualRequired,
-                                description: "Align observed state for agent \(desiredSlice.agentId) with desired policy",
-                                effects: [],
-                                idempotent: true,
-                                manualReason: "state_diff"))
-        }
+        _ = observedSlice
       }
 
       return steps.sorted { ($0.agent, $0.id) < ($1.agent, $1.id) }
@@ -161,6 +154,50 @@ extension CreativeOS {
       if observed.data != desired.data { return false }
       if observed.raw != desired.raw { return false }
       return true
+    }
+
+    private func mismatchChecks(observed: ObservedState, desired: DesiredState) -> [CheckResult] {
+      let observedByAgent = Dictionary(uniqueKeysWithValues: observed.slices.map { ($0.agentId, $0) })
+      let desiredSorted = desired.slices.sorted { $0.agentId < $1.agentId }
+      var results: [CheckResult] = []
+
+      for desiredSlice in desiredSorted {
+        guard let observedSlice = observedByAgent[desiredSlice.agentId] else {
+          results.append(CheckResult(id: "state_missing_\(desiredSlice.agentId)",
+                                     agent: desiredSlice.agentId,
+                                     severity: .warn,
+                                     category: .policy,
+                                     observed: nil,
+                                     expected: slicePayload(desiredSlice),
+                                     evidence: [],
+                                     suggestedActions: []))
+          continue
+        }
+        if !stateMatches(observed: observedSlice, desired: desiredSlice) {
+          results.append(CheckResult(id: "state_mismatch_\(desiredSlice.agentId)",
+                                     agent: desiredSlice.agentId,
+                                     severity: .warn,
+                                     category: .policy,
+                                     observed: slicePayload(observedSlice),
+                                     expected: slicePayload(desiredSlice),
+                                     evidence: [],
+                                     suggestedActions: []))
+        }
+      }
+
+      return results
+    }
+
+    private func slicePayload(_ slice: ObservedStateSlice) -> JSONValue? {
+      if let raw = slice.raw { return raw }
+      if let data = slice.data { return .object(data) }
+      return nil
+    }
+
+    private func slicePayload(_ slice: DesiredStateSlice) -> JSONValue? {
+      if let raw = slice.raw { return raw }
+      if let data = slice.data { return .object(data) }
+      return nil
     }
 
     private func mergeObserved(_ slices: [ObservedStateSlice]) throws -> ObservedState {
