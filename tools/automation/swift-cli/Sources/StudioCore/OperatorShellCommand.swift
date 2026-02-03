@@ -70,13 +70,20 @@ struct UI: AsyncParsableCommand {
       lastRunDir = latestRunDir()
       lastFailuresDir = latestFailuresDir(inRunDir: lastRunDir)
 
-      let state = DashboardState.load(lastRunDir: lastRunDir)
-      let readyReport = latestReadyReport(inRunDir: lastRunDir)
-      let rec = recommendedNextAction(cfgAnchorsPack: cfg.anchorsPack,
-                                      state: state,
-                                      ready: readyReport,
-                                      hv: hv,
-                                      anchorsPack: ap)
+      let snapshot = StudioStateEvaluator.evaluate(config: .init(
+        repoRoot: repoRoot,
+        runsDir: "runs",
+        anchorsPack: cfg.anchorsPack,
+        now: Date(),
+        sweepStaleSeconds: 60 * 30,
+        readyStaleSeconds: 60 * 30
+      ))
+      let rec = RecommendedAction(
+        summary: snapshot.recommended.summary,
+        action: snapshot.recommended.command.map {
+          .init(command: $0, danger: snapshot.recommended.danger, label: $0.joined(separator: " "))
+        }
+      )
       let displayCheck = displayTargetCheck(anchorsPack: ap)
 
       printScreen(repoRoot: repoRoot,
@@ -89,14 +96,12 @@ struct UI: AsyncParsableCommand {
                   showAll: showAll,
                   lastRun: lastRunDir,
                   failuresDir: lastFailuresDir,
-                  state: state,
-                  recommended: rec.summary,
+                  snapshot: snapshot,
                   toastLine: toast.currentText,
                   items: items,
                   selected: selected,
                   lastExit: lastCommandExit,
-                  lastReceipt: lastReceiptPath,
-                  readyStatus: readyReport?.status)
+                  lastReceipt: lastReceiptPath)
 
       let key = readKey()
       switch key {
@@ -419,40 +424,35 @@ struct UI: AsyncParsableCommand {
                    showAll: Bool,
                    lastRun: String?,
                    failuresDir: String?,
-                   state: DashboardState,
-                   recommended: String,
+                   snapshot: StudioStateSnapshot,
                    toastLine: String?,
                    items: [MenuItem],
                    selected: Int,
                    lastExit: Int32?,
-                   lastReceipt: String?,
-                   readyStatus: String?) {
+                   lastReceipt: String?) {
     print("\u{001B}[2J\u{001B}[H", terminator: "")
-    print("WUB Operator Shell v1.7.15")
-    print("anchors-pack: \(anchorsPack)")
-    if let info = displayInfo {
-      print("display: \(info)")
-    }
-    if let warn = displayWarning {
-      print("display warning: \(warn)")
-    }
-    print("last run: \(lastRun ?? "(none)")")
-    if let fd = failuresDir { print("last failures: \(fd)") }
-    print("recommended: \(recommended)")
-    let readyBadge = readyStatus?.uppercased() ?? "-"
-    print("badges: ready=\(readyBadge) index=\(state.indexExists ? "✅" : "❌") pending=\(state.pendingArtifacts) drift=\(state.driftStatus ?? "-") exportAll=\(state.lastExportAllStatus ?? "-")")
-    if let e = lastExit { print("last exit: \(e)") }
-    if let r = lastReceipt { print("last receipt: \(r)") }
-
-    print(String(repeating: "-", count: 88))
-    let total = allItemsCount(anchorsPack: anchorsPack, hv: hv)
-    let visible = items.count
+    let stationLine = StationBarRender.renderLine(label: "STATION", gates: snapshot.gates, next: snapshot.recommended.command?.joined(separator: " "))
+    print(stationLine)
     let modeLabel = studioMode ? "SAFE" : (showAll ? "ALL" : "GUIDED")
     let viewLabel = studioMode ? "locked" : (showAll ? "ALL" : "GUIDED")
+    let total = allItemsCount(anchorsPack: anchorsPack, hv: hv)
+    let visible = items.count
     print("mode: \(modeLabel) (\(visible)/\(total))   view: \(viewLabel)\(studioMode ? "" : " (a)")")
     if studioMode {
       print("SAFE hides risky actions (exports/fix/repair/certify)")
     }
+    if let ap = snapshot.anchorsPack {
+      print("Anchors: \(ap)    Last: \(lastRun ?? "—")")
+    } else {
+      print("Anchors: NOT SET    Last: \(lastRun ?? "—")")
+    }
+    if let info = displayInfo { print("display: \(info)") }
+    if let warn = displayWarning { print("display warning: \(warn)") }
+    if let fd = failuresDir { print("last failures: \(fd)") }
+    if let e = lastExit { print("last exit: \(e)") }
+    if let r = lastReceipt { print("last receipt: \(r)") }
+
+    print(String(repeating: "-", count: 88))
     if let tl = toastLine { print(tl) }
     print("keys: ↑/↓ j/k • Enter run • Space recommended • p plan • c ready • g repair • R refresh • r/o/f/x • q quit")
     if voiceMode { print("voice hint: Say \"press 3\" (then Enter) or use number keys 1-9.") }
