@@ -7,7 +7,43 @@ struct VoiceRackSessionAgent: CreativeOS.Agent {
   let rackVerifyConfig: RackVerifyService.Config
   let sessionConfig: SessionService.Config
 
-  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
+  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {
+    r.register(id: "voice_rack_session_inputs") {
+      var observed: [String: CreativeOS.JSONValue] = [
+        "voice_regions_exists": .bool(FileManager.default.fileExists(atPath: voiceConfig.regions)),
+        "rack_install_manifest_exists": .bool(FileManager.default.fileExists(atPath: rackInstallConfig.manifest)),
+        "rack_verify_manifest_exists": .bool(FileManager.default.fileExists(atPath: rackVerifyConfig.manifest))
+      ]
+      var expected: [String: CreativeOS.JSONValue] = [
+        "voice_regions_exists": .bool(true),
+        "rack_install_manifest_exists": .bool(true),
+        "rack_verify_manifest_exists": .bool(true)
+      ]
+      let anchorsPack = voiceConfig.anchorsPack
+      if !anchorsPack.isEmpty {
+        let anchorsOk = FileManager.default.fileExists(atPath: anchorsPack)
+        observed["anchors_pack_exists"] = .bool(anchorsOk)
+        expected["anchors_pack_exists"] = .bool(true)
+      }
+      let ok = !observed.values.contains { value in
+        if case .bool(false) = value { return true }
+        return false
+      }
+      return CreativeOS.CheckResult(id: "voice_rack_session_inputs",
+                                    agent: id,
+                                    severity: ok ? .pass : .warn,
+                                    category: .filesystem,
+                                    observed: .object(observed),
+                                    expected: .object(expected),
+                                    evidence: [],
+                                    suggestedActions: [
+                                      CreativeOSActionCatalog.voiceRun.actionRef,
+                                      CreativeOSActionCatalog.rackInstall.actionRef,
+                                      CreativeOSActionCatalog.rackVerify.actionRef,
+                                      CreativeOSActionCatalog.sessionCompile.actionRef
+                                    ])
+    }
+  }
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let anchorsPack = voiceConfig.anchorsPack.isEmpty ? nil : voiceConfig.anchorsPack

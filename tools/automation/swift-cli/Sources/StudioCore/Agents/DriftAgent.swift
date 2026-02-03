@@ -5,7 +5,40 @@ struct DriftAgent: CreativeOS.Agent {
   let checkConfig: DriftService.Config
   let fixConfig: DriftFixService.Config
 
-  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
+  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {
+    r.register(id: "drift_inputs") {
+      let artifactOk = FileManager.default.fileExists(atPath: checkConfig.artifactIndex)
+      let receiptOk = FileManager.default.fileExists(atPath: checkConfig.receiptIndex)
+      var observed: [String: CreativeOS.JSONValue] = [
+        "artifact_index_exists": .bool(artifactOk),
+        "receipt_index_exists": .bool(receiptOk)
+      ]
+      var expected: [String: CreativeOS.JSONValue] = [
+        "artifact_index_exists": .bool(true),
+        "receipt_index_exists": .bool(true)
+      ]
+      if let hint = checkConfig.anchorsPackHint, !hint.isEmpty {
+        let anchorsOk = FileManager.default.fileExists(atPath: hint)
+        observed["anchors_pack_exists"] = .bool(anchorsOk)
+        expected["anchors_pack_exists"] = .bool(true)
+      }
+      let ok = !observed.values.contains { value in
+        if case .bool(false) = value { return true }
+        return false
+      }
+      return CreativeOS.CheckResult(id: "drift_inputs",
+                                    agent: id,
+                                    severity: ok ? .pass : .warn,
+                                    category: .filesystem,
+                                    observed: .object(observed),
+                                    expected: .object(expected),
+                                    evidence: [],
+                                    suggestedActions: [
+                                      CreativeOSActionCatalog.driftCheck.actionRef,
+                                      CreativeOSActionCatalog.driftFix.actionRef
+                                    ])
+    }
+  }
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let hint = checkConfig.anchorsPackHint ?? ""

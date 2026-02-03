@@ -80,7 +80,7 @@ struct CreativeOSActionCatalog {
       ConfigKey.runsDir
     ],
     requiresStationGate: false,
-    enabledInStateSetup: false
+    enabledInStateSetup: true
   )
 
   static let readyCheck = ActionSpec(
@@ -129,7 +129,7 @@ struct CreativeOSActionCatalog {
       ConfigKey.runsDir
     ],
     requiresStationGate: true,
-    enabledInStateSetup: false
+    enabledInStateSetup: true
   )
 
   static let assetsExportAll = ActionSpec(
@@ -154,7 +154,7 @@ struct CreativeOSActionCatalog {
       ConfigKey.force
     ],
     requiresStationGate: true,
-    enabledInStateSetup: false
+    enabledInStateSetup: true
   )
 
   static let voiceRun = ActionSpec(
@@ -174,7 +174,7 @@ struct CreativeOSActionCatalog {
       ConfigKey.sessionProfilePath
     ],
     requiresStationGate: true,
-    enabledInStateSetup: false
+    enabledInStateSetup: true
   )
 
   static let rackInstall = ActionSpec(
@@ -191,7 +191,7 @@ struct CreativeOSActionCatalog {
       ConfigKey.sessionProfilePath
     ],
     requiresStationGate: true,
-    enabledInStateSetup: false
+    enabledInStateSetup: true
   )
 
   static let rackVerify = ActionSpec(
@@ -208,7 +208,7 @@ struct CreativeOSActionCatalog {
       ConfigKey.sessionProfilePath
     ],
     requiresStationGate: true,
-    enabledInStateSetup: false
+    enabledInStateSetup: true
   )
 
   static let sessionCompile = ActionSpec(
@@ -223,7 +223,7 @@ struct CreativeOSActionCatalog {
       ConfigKey.runsDir
     ],
     requiresStationGate: true,
-    enabledInStateSetup: false
+    enabledInStateSetup: true
   )
 
   static let indexBuild = ActionSpec(
@@ -236,7 +236,7 @@ struct CreativeOSActionCatalog {
       ConfigKey.runsDir
     ],
     requiresStationGate: false,
-    enabledInStateSetup: false
+    enabledInStateSetup: true
   )
 
   static let releasePromoteProfile = ActionSpec(
@@ -254,7 +254,7 @@ struct CreativeOSActionCatalog {
       ConfigKey.runsDir
     ],
     requiresStationGate: true,
-    enabledInStateSetup: false
+    enabledInStateSetup: true
   )
 
   static let reportGenerate = ActionSpec(
@@ -266,7 +266,7 @@ struct CreativeOSActionCatalog {
       ConfigKey.out
     ],
     requiresStationGate: false,
-    enabledInStateSetup: false
+    enabledInStateSetup: true
   )
 
   static let repairRun = ActionSpec(
@@ -281,7 +281,7 @@ struct CreativeOSActionCatalog {
       ConfigKey.runsDir
     ],
     requiresStationGate: true,
-    enabledInStateSetup: false
+    enabledInStateSetup: true
   )
 
   static let stationStatus = ActionSpec(

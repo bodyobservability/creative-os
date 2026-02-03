@@ -4,7 +4,25 @@ struct StationAgent: CreativeOS.Agent {
   let id: String = "station"
   let config: StationStatusService.Config
 
-  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
+  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {
+    r.register(id: "station_inputs") {
+      let anchorsOk = FileManager.default.fileExists(atPath: config.anchorsPackHint)
+      let observed: CreativeOS.JSONValue = .object([
+        "anchors_pack_exists": .bool(anchorsOk)
+      ])
+      let expected: CreativeOS.JSONValue = .object([
+        "anchors_pack_exists": .bool(true)
+      ])
+      return CreativeOS.CheckResult(id: "station_inputs",
+                                    agent: id,
+                                    severity: anchorsOk ? .pass : .warn,
+                                    category: .filesystem,
+                                    observed: observed,
+                                    expected: expected,
+                                    evidence: [],
+                                    suggestedActions: [CreativeOSActionCatalog.stationStatus.actionRef])
+    }
+  }
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = "wub station status --format \(config.format)" + (config.noWriteReport ? " --no-write-report" : "")

@@ -4,7 +4,35 @@ struct AssetsAgent: CreativeOS.Agent {
   let id: String = "assets"
   let config: AssetsService.ExportAllConfig
 
-  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
+  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {
+    r.register(id: "assets_inputs") {
+      var observed: [String: CreativeOS.JSONValue] = [
+        "regions_config_exists": .bool(FileManager.default.fileExists(atPath: config.regionsConfig)),
+        "rack_verify_manifest_exists": .bool(FileManager.default.fileExists(atPath: config.rackVerifyManifest))
+      ]
+      var expected: [String: CreativeOS.JSONValue] = [
+        "regions_config_exists": .bool(true),
+        "rack_verify_manifest_exists": .bool(true)
+      ]
+      if let anchorsPack = config.anchorsPack, !anchorsPack.isEmpty {
+        let anchorsOk = FileManager.default.fileExists(atPath: anchorsPack)
+        observed["anchors_pack_exists"] = .bool(anchorsOk)
+        expected["anchors_pack_exists"] = .bool(true)
+      }
+      let ok = !observed.values.contains { value in
+        if case .bool(false) = value { return true }
+        return false
+      }
+      return CreativeOS.CheckResult(id: "assets_inputs",
+                                    agent: id,
+                                    severity: ok ? .pass : .warn,
+                                    category: .filesystem,
+                                    observed: .object(observed),
+                                    expected: .object(expected),
+                                    evidence: [],
+                                    suggestedActions: [CreativeOSActionCatalog.assetsExportAll.actionRef])
+    }
+  }
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = buildCommand()

@@ -23,7 +23,7 @@ This plan is intentionally surgical: small deltas, measurable outcomes, and mini
 
 These invariants should be true after every PR:
 
-1. `make test` / `.github/workflows/swift-tests.yml` remains green.
+1. `make test` / `.github/workflows/governance.yml` + `.github/workflows/swift-tests.yml` remain green.
 2. `wub state-sweep`, `wub state-plan`, and `wub state-setup` still run.
 3. No PR mixes file moves + behavior changes unless explicitly called out.
 4. Creative OS “setup” only executes steps that are explicitly safe to execute (station gating stays enforced at the right place).
@@ -339,6 +339,7 @@ PR 7 progress:
 - [x] Convert state mismatches into typed checks (reduce generic plan steps).
 - [x] Keep manual plan steps only for missing observed state.
 - [x] Enforce unique check keys + severity-first ordering with suggested actions.
+- [x] Add agent-owned input checks for core agents with suggested actions.
 
 ---
 
@@ -387,6 +388,7 @@ You already have checksum scripts and schemas. CI doesn’t enforce them.
 
 **Files touched:**
 
+- `.github/workflows/governance.yml`
 - `.github/workflows/swift-tests.yml`
 - `tools/checksum_verify.sh`
 - `specs/automation/schemas/*` (if missing schema for Creative OS receipt)

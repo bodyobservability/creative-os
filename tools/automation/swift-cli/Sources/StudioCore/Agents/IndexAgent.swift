@@ -4,7 +4,26 @@ struct IndexAgent: CreativeOS.Agent {
   let id: String = "index"
   let config: IndexService.BuildConfig
 
-  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
+  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {
+    r.register(id: "index_inputs") {
+      let artifactIndex = URL(fileURLWithPath: config.outDir).appendingPathComponent("artifact_index.v1.json").path
+      let artifactOk = FileManager.default.fileExists(atPath: artifactIndex)
+      let observed: CreativeOS.JSONValue = .object([
+        "artifact_index_exists": .bool(artifactOk)
+      ])
+      let expected: CreativeOS.JSONValue = .object([
+        "artifact_index_exists": .bool(true)
+      ])
+      return CreativeOS.CheckResult(id: "index_inputs",
+                                    agent: id,
+                                    severity: artifactOk ? .pass : .warn,
+                                    category: .filesystem,
+                                    observed: observed,
+                                    expected: expected,
+                                    evidence: [],
+                                    suggestedActions: [CreativeOSActionCatalog.indexBuild.actionRef])
+    }
+  }
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = "wub index build --repo-version \(config.repoVersion) --out-dir \(config.outDir) --runs-dir \(config.runsDir)"

@@ -4,7 +4,29 @@ struct ReadyAgent: CreativeOS.Agent {
   let id: String = "ready"
   let config: ReadyService.Config
 
-  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
+  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {
+    r.register(id: "ready_inputs") {
+      let artifactOk = FileManager.default.fileExists(atPath: config.artifactIndex)
+      let anchorsOk = FileManager.default.fileExists(atPath: config.anchorsPackHint)
+      let ok = artifactOk && anchorsOk
+      let observed: CreativeOS.JSONValue = .object([
+        "artifact_index_exists": .bool(artifactOk),
+        "anchors_pack_exists": .bool(anchorsOk)
+      ])
+      let expected: CreativeOS.JSONValue = .object([
+        "artifact_index_exists": .bool(true),
+        "anchors_pack_exists": .bool(true)
+      ])
+      return CreativeOS.CheckResult(id: "ready_inputs",
+                                    agent: id,
+                                    severity: ok ? .pass : .warn,
+                                    category: .filesystem,
+                                    observed: observed,
+                                    expected: expected,
+                                    evidence: [],
+                                    suggestedActions: [CreativeOSActionCatalog.readyCheck.actionRef])
+    }
+  }
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let hint = config.anchorsPackHint

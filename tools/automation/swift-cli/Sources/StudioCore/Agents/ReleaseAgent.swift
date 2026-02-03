@@ -4,7 +4,29 @@ struct ReleaseAgent: CreativeOS.Agent {
   let id: String = "release"
   let config: ReleaseService.PromoteConfig
 
-  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {}
+  func registerChecks(_ r: inout CreativeOS.CheckRegistry) {
+    r.register(id: "release_inputs") {
+      let manifestOk = FileManager.default.fileExists(atPath: config.rackManifest)
+      let sweepOk = FileManager.default.fileExists(atPath: config.currentSweep)
+      let observed: CreativeOS.JSONValue = .object([
+        "rack_manifest_exists": .bool(manifestOk),
+        "current_sweep_exists": .bool(sweepOk)
+      ])
+      let expected: CreativeOS.JSONValue = .object([
+        "rack_manifest_exists": .bool(true),
+        "current_sweep_exists": .bool(true)
+      ])
+      let ok = manifestOk && sweepOk
+      return CreativeOS.CheckResult(id: "release_inputs",
+                                    agent: id,
+                                    severity: ok ? .pass : .warn,
+                                    category: .filesystem,
+                                    observed: observed,
+                                    expected: expected,
+                                    evidence: [],
+                                    suggestedActions: [CreativeOSActionCatalog.releasePromoteProfile.actionRef])
+    }
+  }
 
   func registerPlans(_ p: inout CreativeOS.PlanRegistry) {
     let cmd = "wub release promote-profile --profile \(config.profile) --rack-id \(config.rackId) --macro \(config.macro) --baseline \(config.baseline) --current-sweep \(config.currentSweep)"
