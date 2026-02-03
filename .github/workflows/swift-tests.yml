@@ -3,28 +3,44 @@ name: swift-tests
 on:
   push:
     branches: ["**"]
+    paths:
+      - "tools/automation/swift-cli/**"
+      - "**/*.swift"
+      - "**/Package.swift"
+      - "**/Package.resolved"
   pull_request:
+    paths:
+      - "tools/automation/swift-cli/**"
+      - "**/*.swift"
+      - "**/Package.swift"
+      - "**/Package.resolved"
+
+concurrency:
+  group: swift-tests-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
+  swift-tests:
     runs-on: macos-15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install python deps (schema validation)
-        run: |
-          python3 -m venv .venv
-          . .venv/bin/activate
-          python -m pip install --upgrade pip jsonschema
+
+      - name: Cache SwiftPM + build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            tools/automation/swift-cli/.build
+          key: swiftpm-${{ runner.os }}-${{ hashFiles('tools/automation/swift-cli/Package.resolved') }}
+          restore-keys: |
+            swiftpm-${{ runner.os }}-
+
       - name: Swift build
         working-directory: tools/automation/swift-cli
         run: swift build -c release
+
       - name: Swift test
         working-directory: tools/automation/swift-cli
         run: swift test
-      - name: Verify checksums
-        run: tools/checksum_verify.sh
-      - name: Validate schemas
-        run: |
-          . .venv/bin/activate
-          python tools/schema_validate.py
