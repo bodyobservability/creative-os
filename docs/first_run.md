@@ -125,3 +125,8 @@ Symbols:
 - ▢ pending
 - ! warn
 - × fail
+
+
+## Help Overlay
+
+Press `?` in the Operator Shell to see the bar legend, mode meanings, and key bindings.

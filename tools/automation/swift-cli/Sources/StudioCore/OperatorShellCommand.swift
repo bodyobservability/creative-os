@@ -78,6 +78,23 @@ struct UI: AsyncParsableCommand {
         }
       )
       let displayCheck = displayTargetCheck(anchorsPack: ap)
+      let currentStatuses = Dictionary(uniqueKeysWithValues: snapshot.gates.map { ($0.key, $0.status) })
+      if !runner.lastGateStatuses.isEmpty {
+        for g in snapshot.gates {
+          let prev = runner.lastGateStatuses[g.key]
+          if prev != g.status && g.status == .pass {
+            switch g.key {
+            case "A": toast.success("Anchors configured", key: "gate_a_pass")
+            case "S": toast.success("Sweep passed — no blocking modals detected", key: "gate_s_pass")
+            case "I": toast.success("Index built", key: "gate_i_pass")
+            case "F": toast.success("Artifacts generated", key: "gate_f_pass")
+            case "R": toast.success("Studio ready", key: "gate_r_pass")
+            default: break
+            }
+          }
+        }
+      }
+      runner.lastGateStatuses = currentStatuses
 
       let confirming: Bool
       if case .confirming = runner.state { confirming = true } else { confirming = false }
@@ -290,6 +307,7 @@ struct UI: AsyncParsableCommand {
 
   final class RunnerState {
     var state: RunState = .idle
+    var lastGateStatuses: [String: GateStatus] = [:]
     var process: Process?
     var partialOutput: String = ""
     var logBuffer = LogBuffer()
@@ -486,20 +504,26 @@ struct UI: AsyncParsableCommand {
                    lastReceipt: String?,
                    showPreflight: Bool) {
     print("\u{001B}[2J\u{001B}[H", terminator: "")
-    let stationLine = StationBarRender.renderLine(label: "STATION", gates: snapshot.gates, next: snapshot.recommended.command?.joined(separator: " "))
+    let width = Int(ProcessInfo.processInfo.environment["COLUMNS"] ?? "100") ?? 100
+    let stationLine = renderStationLine(snapshot: snapshot, width: width)
     print(stationLine)
     let modeLabel = studioMode ? "SAFE" : (showAll ? "ALL" : "GUIDED")
     let viewLabel = studioMode ? "locked" : (showAll ? "ALL" : "GUIDED")
     let total = allItemsCount(anchorsPack: anchorsPack, wubBin: wubBin, showPreflight: showPreflight)
     let visible = items.count
     print("mode: \(modeLabel) (\(visible)/\(total))   view: \(viewLabel)\(studioMode ? "" : " (a)")")
-    if studioMode {
+    if studioMode && width >= 80 {
       print("SAFE hides risky actions (exports/fix/repair/certify)")
     }
+    let anchorMax = max(18, Int(Double(width) * 0.45))
+    let lastMax = max(14, Int(Double(width) * 0.30))
     if let ap = snapshot.anchorsPack {
-      print("Anchors: \(ap)    Last: \(lastRun ?? "—")")
+      let apText = truncatePath(ap, maxLen: anchorMax, repoRoot: repoRoot)
+      let lastText = truncateTail(lastRun ?? "—", maxLen: lastMax)
+      print("Anchors: \(apText)    Last: \(lastText)")
     } else {
-      print("Anchors: NOT SET    Last: \(lastRun ?? "—")")
+      let lastText = truncateTail(lastRun ?? "—", maxLen: lastMax)
+      print("Anchors: NOT SET    Last: \(lastText)")
     }
     if let info = displayInfo { print("display: \(info)") }
     if let warn = displayWarning { print("display warning: \(warn)") }
@@ -548,6 +572,51 @@ struct UI: AsyncParsableCommand {
 
   func allItemsCount(anchorsPack: String, wubBin: String, showPreflight: Bool) -> Int {
     return buildMenu(wubBin: wubBin, anchorsPack: anchorsPack, showPreflight: showPreflight).count
+  }
+
+  func truncateMiddle(_ s: String, maxLen: Int) -> String {
+    if s.count <= maxLen { return s }
+    if maxLen <= 1 { return "…" }
+    let head = (maxLen - 1) / 2
+    let tail = maxLen - 1 - head
+    let start = s.prefix(head)
+    let end = s.suffix(tail)
+    return String(start) + "…" + String(end)
+  }
+
+  func truncateTail(_ s: String, maxLen: Int) -> String {
+    if s.count <= maxLen { return s }
+    if maxLen <= 1 { return "…" }
+    return "…" + s.suffix(maxLen - 1)
+  }
+
+  func normalizePath(_ path: String, repoRoot: String) -> String {
+    if path.hasPrefix(repoRoot + "/") {
+      return "." + path.dropFirst(repoRoot.count)
+    }
+    let home = FileManager.default.homeDirectoryForCurrentUser.path
+    if path.hasPrefix(home + "/") {
+      return "~" + path.dropFirst(home.count)
+    }
+    return path
+  }
+
+  func truncatePath(_ path: String, maxLen: Int, repoRoot: String) -> String {
+    let norm = normalizePath(path, repoRoot: repoRoot)
+    if norm.count <= maxLen { return norm }
+    let parts = norm.split(separator: "/")
+    if parts.count >= 2 {
+      let head = norm.hasPrefix("~/") ? "~/" : (norm.hasPrefix("./") ? "./" : "/")
+      let tail = parts.suffix(2).joined(separator: "/")
+      let candidate = head + "…/" + tail
+      if candidate.count <= maxLen { return candidate }
+    }
+    return truncateTail(norm, maxLen: maxLen)
+  }
+
+  func renderStationLine(snapshot: StudioStateSnapshot, width: Int) -> String {
+    let base = StationBarRender.renderLine(label: "STATION", gates: snapshot.gates, next: snapshot.recommended.command?.joined(separator: " "))
+    return base.count <= width ? base : truncateTail(base, maxLen: width)
   }
 
   // MARK: FS helpers

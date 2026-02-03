@@ -21,3 +21,6 @@ Operator Shell modes are intentional and user-facing.
 ## One-liner
 
 If you can’t find Export ALL, you’re in SAFE.
+
+
+Tip: press `?` in the Operator Shell for a full legend and key list.
