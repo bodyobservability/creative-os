@@ -67,10 +67,10 @@ struct LocalConfig: Codable {
 
     guard let chosen = bestURL else { return nil }
 
-    let rootURL = URL(fileURLWithPath: repoRoot).standardizedFileURL
+    let rootStd = URL(fileURLWithPath: repoRoot).standardizedFileURL
     let std = chosen.standardizedFileURL
-    if std.path.hasPrefix(rootURL.path + "/") {
-      let rel = String(std.path.dropFirst(rootURL.path.count + 1))
+    if std.path.hasPrefix(rootStd.path + "/") {
+      let rel = String(std.path.dropFirst(rootStd.path.count + 1))
       return rel
     }
     return chosen.path
