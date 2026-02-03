@@ -113,7 +113,9 @@ struct UI: AsyncParsableCommand {
                   lastReceipt: runner.lastReceiptPath,
                   showPreflight: (cfg.firstRunCompleted ?? false) == false)
 
-      let key = InputDecoder.readKey(timeoutMs: runner.state == .running ? 100 : 250)
+      let isRunning: Bool
+      if case .running = runner.state { isRunning = true } else { isRunning = false }
+      let key = InputDecoder.readKey(timeoutMs: isRunning ? 100 : 250)
       let action = ActionRouter.route(key, context: context)
       switch action {
       case .quit:
@@ -280,7 +282,7 @@ struct UI: AsyncParsableCommand {
 
   // MARK: Menu & modes
 
-  enum RunState: Equatable {
+  enum RunState {
     case idle
     case confirming(RecommendedAction.Action)
     case running(RecommendedAction.Action)

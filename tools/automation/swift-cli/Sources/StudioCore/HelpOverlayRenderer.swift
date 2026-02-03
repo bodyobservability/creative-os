@@ -23,6 +23,7 @@ struct HelpOverlayRenderer {
       "Keys:",
       " \(legend)",
       "",
+      "Logs: runs/<id>/...",
       "Press ? to close"
     ]
   }

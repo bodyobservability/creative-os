@@ -14,12 +14,8 @@ enum InputKey {
 
 struct InputDecoder {
   static func readKey(timeoutMs: Int) -> InputKey {
-    var fds = fd_set()
-    FD_ZERO(&fds)
-    FD_SET(STDIN_FILENO, &fds)
-
-    var tv = timeval(tv_sec: timeoutMs / 1000, tv_usec: (timeoutMs % 1000) * 1000)
-    let rv = select(STDIN_FILENO + 1, &fds, nil, nil, &tv)
+    var pfd = pollfd(fd: STDIN_FILENO, events: Int16(POLLIN), revents: 0)
+    let rv = poll(&pfd, 1, Int32(timeoutMs))
     if rv <= 0 { return .none }
 
     var buf: [UInt8] = [0, 0, 0]

@@ -16,7 +16,7 @@ struct ActionCatalog {
       .init(id: "open_fail", legend: "f fail", help: "Open failures folder", order: 41, visible: { !$0.showHelp }),
       .init(id: "open_receipt", legend: "r receipt", help: "Open last receipt", order: 42, visible: { !$0.showHelp }),
       .init(id: "back", legend: "ESC back", help: "Back to actions", order: 50, visible: { $0.showLogs && !$0.showHelp }),
-      .init(id: "help", legend: "? help", help: "Toggle help", order: 90, visible: { true }),
+      .init(id: "help", legend: "? help", help: "Toggle help", order: 90, visible: { _ in true }),
       .init(id: "quit", legend: "q quit", help: "Quit shell", order: 99, visible: { !$0.showHelp }),
       .init(id: "confirm", legend: "y/n confirm", help: "Confirm or cancel", order: 5, visible: { $0.confirming && !$0.showHelp })
     ]

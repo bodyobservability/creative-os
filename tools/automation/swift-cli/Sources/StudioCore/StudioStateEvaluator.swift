@@ -48,17 +48,17 @@ struct StudioStateEvaluator {
     if let sig = sweepSignal {
       if sig.status == "pass" {
         if sweepStale {
-          gates.append(ReadinessGate(key: "S", label: "Sweep", status: .warn, detail: "stale", nextAction: "wub sweep --modal-test detect"))
+          gates.append(ReadinessGate(key: "S", label: "Sweep", status: .warn, detail: "stale", nextAction: "wub sweep --modal-test detect --allow-ocr-fallback"))
           warnings.append("Sweep is stale")
         } else {
           gates.append(ReadinessGate(key: "S", label: "Sweep", status: .pass, detail: nil, nextAction: nil))
         }
       } else {
-        gates.append(ReadinessGate(key: "S", label: "Sweep", status: .fail, detail: sig.status, nextAction: "wub sweep --modal-test detect"))
+        gates.append(ReadinessGate(key: "S", label: "Sweep", status: .fail, detail: sig.status, nextAction: "wub sweep --modal-test detect --allow-ocr-fallback"))
         blockers.append("Sweep failed")
       }
     } else {
-      gates.append(ReadinessGate(key: "S", label: "Sweep", status: .pending, detail: "not run", nextAction: "wub sweep --modal-test detect"))
+      gates.append(ReadinessGate(key: "S", label: "Sweep", status: .pending, detail: "not run", nextAction: "wub sweep --modal-test detect --allow-ocr-fallback"))
     }
 
     // I: Index

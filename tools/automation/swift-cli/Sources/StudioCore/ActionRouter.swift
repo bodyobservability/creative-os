@@ -3,9 +3,11 @@ import Foundation
 struct ActionRouter {
   static func route(_ key: InputKey, context: ShellContext) -> UserAction {
     if context.showHelp {
-      if key == .help { return .toggleHelp }
-      if key == .quit { return .quit }
-      return .none
+      switch key {
+      case .help: return .toggleHelp
+      case .quit: return .quit
+      default: return .none
+      }
     }
     switch key {
     case .quit: return .quit
