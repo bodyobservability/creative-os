@@ -17,6 +17,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Ensure checksums are up to date
+        run: |
+          bash tools/checksum_generate.sh
+          git diff --exit-code checksums/*.txt
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:

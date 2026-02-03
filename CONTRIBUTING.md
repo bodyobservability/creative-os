@@ -39,6 +39,22 @@ Examples:
 
 Follow the rules in `profiles/hvlien/notes/VERSIONING_RULES.md` and update specs in `profiles/hvlien/specs/` when making structural changes.
 
+## Checksum discipline
+
+This repo uses checksum manifests under `checksums/`. If you change any files under `specs/`, `docs/`, `profiles/*/specs`, `profiles/*/docs`, `notes` (excluding local-only configs), `controllers/`, or `ai/`, you must regenerate checksums before committing:
+
+```bash
+bash tools/checksum_generate.sh
+```
+
+To avoid missing this step, install the pre-commit hook:
+
+```bash
+bash tools/git-hooks/install.sh
+```
+
+CI enforces checksum freshness and will fail if checksums are out of date.
+
 ## Legacy files
 
 We do not keep legacy bundles or historical status docs solely for audit trails. If a file is superseded, remove it rather than archiving.
