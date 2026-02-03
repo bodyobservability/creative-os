@@ -43,6 +43,7 @@ Creative OS naming conventions:
 - Prefer deversioned filenames for docs/specs; keep versions inside the document body or metadata.
 - When a spec or doc is superseded, replace or move it into an explicit `history/` folder rather than keeping versioned filenames.
 
+
 ## Checksum discipline
 
 This repo uses checksum manifests under `checksums/`. If you change any files under `specs/`, `docs/`, `profiles/*/specs`, `profiles/*/docs`, `notes` (excluding local-only configs), `controllers/`, or `ai/`, you must regenerate checksums before committing:

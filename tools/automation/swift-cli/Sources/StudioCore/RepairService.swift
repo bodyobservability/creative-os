@@ -64,7 +64,7 @@ struct RepairService {
                                                                     preflight: true,
                                                                     runsDir: config.runsDir,
                                                                     regionsConfig: "tools/automation/swift-cli/config/regions.v1.json",
-                                                                    racksOut: WubDefaults.packPath("ableton/racks/BASS_RACKS_v1.0"),
+                                                                    racksOut: WubDefaults.packPath("ableton/racks/BASS_RACKS"),
                                                                     performanceOut: WubDefaults.packPath("ableton/performance-sets/BASS_PERFORMANCE_SET_v1.0.als"),
                                                                     baysSpec: WubDefaults.profileSpecPath("assets/export/finishing_bays_export.v1.yaml"),
                                                                     serumOut: "library/serum/SERUM_BASE_v1.0.fxp",

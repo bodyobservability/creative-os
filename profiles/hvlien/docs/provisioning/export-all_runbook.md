@@ -9,7 +9,7 @@ Version: current
 
 This is the one-command pipeline to produce the repo-required artifacts:
 
-- Export racks → packs/hvlien-defaults/ableton/racks/BASS_RACKS_v1.0/
+- Export racks → packs/hvlien-defaults/ableton/racks/BASS_RACKS/
 - Export performance set → packs/hvlien-defaults/ableton/performance-sets/HVLIEN_BASS_PERFORMANCE_SET_v1.0.als
 - Export finishing bays → packs/hvlien-defaults/ableton/finishing-bays/*.als
 - Export Serum base patch → library/serum/HVLIEN_SERUM_BASE_v1.0.fxp

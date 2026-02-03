@@ -54,7 +54,7 @@ struct ServiceExecutor {
                                                  preflight: bag.bool("preflight") ?? true,
                                                  runsDir: bag.string("runs_dir") ?? "runs",
                                                  regionsConfig: bag.string("regions_config") ?? "tools/automation/swift-cli/config/regions.v1.json",
-                                                 racksOut: bag.string("racks_out") ?? WubDefaults.packPath("ableton/racks/BASS_RACKS_v1.0"),
+                                                 racksOut: bag.string("racks_out") ?? WubDefaults.packPath("ableton/racks/BASS_RACKS"),
                                                  performanceOut: bag.string("performance_out") ?? WubDefaults.packPath("ableton/performance-sets/BASS_PERFORMANCE_SET_v1.0.als"),
                                                  baysSpec: bag.string("bays_spec") ?? WubDefaults.profileSpecPath("assets/export/finishing_bays_export.v1.yaml"),
                                                  serumOut: bag.string("serum_out") ?? "library/serum/SERUM_BASE_v1.0.fxp",

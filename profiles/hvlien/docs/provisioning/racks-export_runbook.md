@@ -12,7 +12,7 @@ Export real Ableton rack presets (`.adg`) into your repo folder with minimal/no 
 
 ## Command (planned)
 ```bash
-wub assets export-racks   --manifest profiles/hvlien/specs/library/racks/rack_pack_manifest.v1.json   --out packs/hvlien-defaults/ableton/racks/BASS_RACKS_v1.0   --anchors-pack specs/automation/anchors/<pack_id>   --overwrite ask   --interactive
+wub assets export-racks   --manifest profiles/hvlien/specs/library/racks/rack_pack_manifest.v1.json   --out packs/hvlien-defaults/ableton/racks/BASS_RACKS   --anchors-pack specs/automation/anchors/<pack_id>   --overwrite ask   --interactive
 ```
 
 ## Preconditions
@@ -25,7 +25,7 @@ wub assets export-racks   --manifest profiles/hvlien/specs/library/racks/rack_pa
 ## Output
 - plans: `runs/<run_id>/plans/export_rack_*.plan.v1.json`
 - receipt: `runs/<run_id>/racks_export_receipt.v1.json`
-- exported racks: `packs/hvlien-defaults/ableton/racks/BASS_RACKS_v1.0/*.adg`
+- exported racks: `packs/hvlien-defaults/ableton/racks/BASS_RACKS/*.adg`
 
 ## Debug ladder
 1) Dry run to confirm target filenames and tracks

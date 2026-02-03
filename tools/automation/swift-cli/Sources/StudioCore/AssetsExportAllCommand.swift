@@ -26,7 +26,7 @@ extension Assets {
     var preflight: Bool = true
 
     @Option(name: .long, help: "Output directory for racks export.")
-    var racksOut: String = WubDefaults.packPath("ableton/racks/BASS_RACKS_v1.0")
+    var racksOut: String = WubDefaults.packPath("ableton/racks/BASS_RACKS")
 
     @Option(name: .long, help: "Target path for performance set export.")
     var performanceOut: String = WubDefaults.packPath("ableton/performance-sets/BASS_PERFORMANCE_SET_v1.0.als")

@@ -1,4 +1,4 @@
-# BASS_RACKS_v1.0
+# BASS_RACKS
 
 This folder stores exported Ableton racks (`.adg`) that implement the HVLIEN profile bass instrument.
 

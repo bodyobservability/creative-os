@@ -10,7 +10,7 @@ inputs:
     theme: default
 
 output:
-  directory: packs/hvlien-defaults/ableton/racks/BASS_RACKS_v1.0
+  directory: packs/hvlien-defaults/ableton/racks/BASS_RACKS
   naming:
     mode: manifest_display_name
     sanitize: true

@@ -31,7 +31,7 @@ struct Assets: AsyncParsableCommand {
     var manifest: String = WubDefaults.profileSpecPath("library/racks/rack_pack_manifest.v1.json")
 
     @Option(name: .long, help: "Output directory for exported racks.")
-    var outDir: String = WubDefaults.packPath("ableton/racks/BASS_RACKS_v1.0")
+    var outDir: String = WubDefaults.packPath("ableton/racks/BASS_RACKS")
 
     @Option(name: .long, help: "Anchors pack path passed to apply.")
     var anchorsPack: String?

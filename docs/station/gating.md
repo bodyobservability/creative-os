@@ -1,4 +1,6 @@
-# v1.7.18 — Station Gate (via Station Status)
+# Station Gate (via Station Status)
+
+Version: current
 
 StationGate now evaluates safety by calling:
 ```bash

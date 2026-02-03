@@ -23,5 +23,5 @@ Adds UX improvements on top of v1.8.1/1.8.2:
 wub index build
 wub drift check --anchors-pack-hint specs/automation/anchors/<pack_id>
 wub drift plan  --anchors-pack-hint specs/automation/anchors/<pack_id>
-wub drift explain packs/hvlien-defaults/ableton/racks/BASS_RACKS_v1.0/SomeRack.adg
+wub drift explain packs/hvlien-defaults/ableton/racks/BASS_RACKS/SomeRack.adg
 ```
