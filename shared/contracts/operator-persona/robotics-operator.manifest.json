@@ -1,0 +1,31 @@
+{
+  "id": "robotics-operator",
+  "display_name": "Robotics Operator",
+  "version": "current",
+  "description": "Operator persona for robotics workflows: sensor/telemetry validation, safety-gated actuation planning, and receipted deployment across Jetson, Raspberry Pi, and ESP32 nodes without embedding domain semantics into the kernel.",
+  "asset_roots": {
+    "profiles": "operator/profiles/robotics",
+    "packs": "operator/packs/robotics",
+    "notes": "operator/notes/robotics"
+  },
+  "docs": {
+    "entrypoints": [
+      { "title": "Polymath Doctrine", "path": "docs/shared/philosophy/polymath.md" },
+      { "title": "Robotics Contracts Overview", "path": "docs/shared/robotics-overview.md" }
+    ]
+  },
+  "required_receipts": [
+    "runs/<run_id>/plan.json",
+    "runs/<run_id>/receipts/**",
+    "runs/<run_id>/evidence/**",
+    "runs/<run_id>/telemetry/**"
+  ],
+  "capabilities": [
+    "robotics.devices.inventory",
+    "robotics.telemetry.ingest",
+    "robotics.telemetry.validate",
+    "robotics.actuation.plan",
+    "robotics.actuation.execute",
+    "robotics.safety.gates"
+  ]
+}
