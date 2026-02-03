@@ -149,6 +149,11 @@ Right now configs are constructed in `WubAgents.swift` via `configEffect(...)` w
 
 **Rollback:** revert catalog; keep old `configEffect`.
 
+PR 2 progress:
+- [x] Add `CreativeOSActionCatalog` with action IDs and config key contracts.
+- [x] Update agents to use catalog config helpers + action refs.
+- [x] Test catalog covers all `ServiceExecutor` actions.
+
 ---
 
 ## PR 3 — Introduce a real Creative OS receipt for setup execution
