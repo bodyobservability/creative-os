@@ -1,99 +1,229 @@
 # Creative OS
 
-Creative OS is a safety-first execution kernel for studio stations: allowlisted actions, gated execution, deterministic receipts, and governance.
-Studio Operator is the operator persona and shell (TUI/voice/workflows) that drives Creative OS via `wub`.
+**Creative OS** is a **domain-agnostic execution kernel** for building, operating, and evolving creative and physical systems safely.
 
-## First Run
+It provides a single execution grammar:
+
+> **plan -> gate -> execute -> receipt**
+
+...and applies it consistently across:
+- music and studio automation
+- textiles and fabrication
+- robotics (Jetson, Raspberry Pi, ESP32)
+- future material- and body-coupled systems
+
+Creative OS is designed so new domains add **contracts and personas**, not kernel rewrites.
+
+---
+
+## What this repository is
+
+This repository contains the **Creative OS kernel**, its **operator personas**, and the **shared contracts** that allow polymath expansion without architectural drift.
+
+It is intentionally **not**:
+- a single application
+- a domain-specific framework
+- a collection of scripts
+
+It is an execution substrate.
+
+---
+
+## Core concepts
+
+### Kernel
+The kernel defines **how things happen**, not **what things are**.
+
+- deterministic planning
+- safety gating
+- allowlisted execution
+- immutable receipts
+- governance and validation
+
+The kernel never embeds domain semantics.
+
+---
+
+### Operator personas
+Operator personas define **how humans think and work**, not how execution works.
+
+Current personas:
+- **Studio Operator** -- studio workflows, automation, voice/TUI
+- **Atelier Operator** -- textiles, materials, fabrication planning
+- **Robotics Operator** -- robots, sensors, telemetry, gated actuation
+
+Personas are parallel and non-authoritative.
+They express **intent and constraints**, not execution power.
+
+---
+
+### Shared contracts
+Shared contracts define **truth across domains**.
+
+They are:
+- declarative
+- schema-validated
+- enforced by the kernel
+- free of execution logic
+
+Contracts currently include:
+- operator persona manifests
+- materials
+- robotics (devices, telemetry, actuation, safety)
+
+This is where new domains integrate.
+
+---
+
+## Repository layout
+
+```text
+kernel/
+  cli/                 # Creative OS kernel entrypoint (wub)
+  tools/               # kernel-owned tooling (validation, checksums, hooks)
+
+operator/
+  profiles/            # persona-specific intent & policy
+  packs/               # reusable, non-authoritative artifact bundles
+  notes/               # operator workflows & runbooks
+
+shared/
+  specs/               # authoritative schemas and specs
+  contracts/           # cross-domain contracts (materials, robotics, etc.)
+
+docs/
+  creative-os/         # kernel docs (execution, safety, governance)
+  studio-operator/     # Studio Operator docs
+  shared/              # system-wide docs (philosophy, release, compliance)
+
+runs/
+  <run_id>/            # plans, receipts, evidence, telemetry
+```
+
+---
+
+## First run
 
 ```bash
 make onboard
 ```
 
-See `docs/studio-operator/first-run.md`.
+This performs a gated preflight and produces receipts under `runs/`.
 
-## Studio Operator Shell
+See:
 
-```bash
-make studio
-```
+* `docs/studio-operator/first-run.md`
 
-See `operator/profiles/hvlien/docs/voice/operator-shell.md`.
+---
 
-## Capabilities
+## Build the CLI
 
-See `docs/studio-operator/capabilities.md`.
-
-## Modes
-
-See `docs/studio-operator/modes.md`.
-
-## Quickstart (manual)
-
-Build the CLI:
 ```bash
 cd kernel/cli
 swift build -c release
 ```
 
-Run the core commands:
+Run core commands:
+
 ```bash
 kernel/cli/.build/release/wub sweep
 kernel/cli/.build/release/wub plan --json
 kernel/cli/.build/release/wub setup --show-manual
 ```
 
-Select a profile:
+---
+
+## Safety model (read before execution)
+
+* All mutating actions are **planned** and **gated**
+* Only allowlisted actions execute
+* Every execution emits **receipts**
+* Evidence and telemetry are captured under `runs/<run_id>/`
+
+If something moves, changes, or actuates, it must leave evidence.
+
+---
+
+## Robotics posture
+
+Robotics is treated as a **first-class domain**, not a special case.
+
+* Jetson, Raspberry Pi, and ESP32 devices are modeled as **nodes**
+* Sensors emit schema-validated telemetry
+* Actuation is bounded, allowlisted, and receipted
+* Safety gates and interlocks are declarative contracts
+
+See:
+
+* `shared/contracts/robotics/`
+* `docs/shared/robotics-overview.md`
+
+---
+
+## Governance and validation
+
+Creative OS enforces its invariants automatically:
+
+* kernel must not reference operator paths
+* checksums are deterministic
+* schemas and contracts are validated
+* operator persona manifests are enforced
+
+Key tools:
+
 ```bash
-kernel/cli/.build/release/wub profile use hvlien
+bash kernel/tools/checksum_generate.sh
+bash kernel/tools/checksum_verify.sh
+python kernel/tools/schema_validate.py
+bash kernel/tools/validate_persona_manifests.sh
 ```
 
-Check station state:
-```bash
-kernel/cli/.build/release/wub station status --format json --no-write-report
-```
+---
 
-## Creative OS safety model (read before `setup`)
+## Philosophy
 
-- `wub setup` and `wub state-setup` default to dry-run and only execute allowlisted actions.
-- Mutating actions are gated by `StationGate` and emit receipts under `runs/<run_id>/`.
-- If an action is not in the allowlist, it will be visible in plans but not executed.
+Creative OS is a **polymath operating system**.
 
-## Studio Operator Shell
+It is designed so that:
 
-- Launch the Operator Shell (TUI): `wub ui`
-- See `operator/profiles/hvlien/docs/voice/operator-shell.md`
+* adding a new domain is a content decision
+* not an architectural refactor
 
-## Profiles and packs (kernel + operator)
+Read:
 
-- Profiles live in `operator/profiles/` (for example `operator/profiles/hvlien.profile.yaml`).
-- Packs live in `operator/packs/` and can be attached to a profile.
-- Active selection is stored in `operator/notes/WUB_CONFIG.json`.
-- Local-only overrides live in `operator/notes/LOCAL_CONFIG.json` (not committed).
+* `docs/shared/philosophy/polymath.md`
 
-## Repo layout (current)
+---
 
-- `kernel/cli/` — Creative OS kernel entrypoint (`wub`)
-- `kernel/tools/` — kernel-owned tooling (validation, checksums, hooks)
-- `operator/profiles/` — kernel-validated identity + policy
-- `operator/packs/` — optional operator payloads
-- `shared/specs/` — kernel contracts, schemas, and runbooks
-- `shared/contracts/` — cross-domain contracts (materials, manufacturing, evidence)
-- `docs/` — Creative OS + Studio Operator docs
-- `operator/notes/` — operational notes and checklists
+## Contributing
 
-## Maintainer workflow
+Before contributing, read:
 
-- CLI reference: `docs/creative-os/automation/cli_reference.md`
-- First machine checklist: `docs/shared/release/fresh_machine_smoke_checklist.md`
-- Versioning rules: `operator/profiles/hvlien/notes/versioning-rules.md`
-- After changing shared/specs/docs, regenerate checksums:
-  - `bash kernel/tools/checksum_generate.sh`
-- Schema validation:
-  - `kernel/tools/schema_validate.py`
-- CI workflows:
-  - `.github/workflows/governance.yml`
-  - `.github/workflows/swift-tests.yml`
+* `CONTRIBUTING.md`
 
-## Roadmap (Creative OS)
+Invariants are non-negotiable:
 
-The canonical roadmap lives in `docs/creative-os/ROADMAP.md`.
+* kernel neutrality
+* persona non-authority
+* contract-first integration
+* no hidden execution paths
+
+---
+
+## Roadmap
+
+The canonical roadmap lives at:
+
+* `docs/creative-os/ROADMAP.md`
+
+Operator-specific roadmaps live alongside their personas.
+
+---
+
+## Status
+
+Creative OS is under active development.
+The architecture is intentionally conservative so it can support long-lived, high-consequence systems.
+
+Exploration is encouraged.
+Entropy is not.
