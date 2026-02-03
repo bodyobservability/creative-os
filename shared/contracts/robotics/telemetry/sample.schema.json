@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creative-os.local/contracts/robotics/telemetry/sample.schema.json",
+  "title": "Telemetry Sample",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "node_id",
+    "timestamp",
+    "timebase",
+    "samples"
+  ],
+  "properties": {
+    "node_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "Node emitting telemetry. Must match devices/node.schema.json id."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event timestamp (ISO 8601)."
+    },
+    "timebase": {
+      "type": "string",
+      "enum": ["monotonic", "wall"],
+      "description": "Timestamp timebase. Prefer monotonic for ordering." 
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Optional monotonic sequence number from the node."
+    },
+    "samples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "value", "unit"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:\.[a-z0-9]+)*$",
+            "description": "Dot-delimited metric name."
+          },
+          "value": {
+            "type": ["number", "string", "boolean"],
+            "description": "Sample value."
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit string (e.g., m, m/s, deg, C)."
+          },
+          "bounds": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "min": { "type": "number" },
+              "max": { "type": "number" }
+            },
+            "description": "Optional expected bounds for validation."
+          },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional tags for filtering or grouping."
+          }
+        }
+      }
+    }
+  }
+}

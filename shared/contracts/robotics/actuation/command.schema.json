@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creative-os.local/contracts/robotics/actuation/command.schema.json",
+  "title": "Actuation Command",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "node_id",
+    "command",
+    "timestamp",
+    "timebase",
+    "bounds"
+  ],
+  "properties": {
+    "node_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "Target node id."
+    },
+    "command": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:\.[a-z0-9]+)*$",
+      "description": "Allowlisted command name."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Command time (ISO 8601)."
+    },
+    "timebase": {
+      "type": "string",
+      "enum": ["monotonic", "wall"],
+      "description": "Timestamp timebase. Prefer monotonic for ordering." 
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Command parameters (opaque to schema)."
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rate_hz", "envelope"],
+      "properties": {
+        "rate_hz": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Maximum command rate allowed."
+        },
+        "envelope": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Bounded parameter envelope (declarative)."
+        },
+        "expires_after_s": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Optional TTL for command validity."
+        }
+      }
+    },
+    "safety_gates": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Safety gates required for execution."
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "plan_id": { "type": "string" },
+        "receipt_path": { "type": "string" },
+        "telemetry_ref": { "type": "string" }
+      },
+      "description": "References for audit and receipts."
+    }
+  }
+}
