@@ -1,7 +1,7 @@
-# v9.5.2 — Performance Set Export Runbook
+# Performance Set Export Runbook
 
 ## Version
-Current: v9.5.2
+Version: v9.5.2
 
 ## History
 - (none)

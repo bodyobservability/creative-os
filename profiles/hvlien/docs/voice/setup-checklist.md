@@ -1,7 +1,7 @@
-# v9.2 Setup Checklist (Mac Runtime Bridge)
+# Setup Checklist (Mac Runtime Bridge)
 
 ## Version
-Current: v9.2
+Version: v9.2
 
 ## History
 - (none)
@@ -33,4 +33,3 @@ Current: v9.2
 
 If any test fails, use debug ladder:
 Terminal → KM → Voice.
-

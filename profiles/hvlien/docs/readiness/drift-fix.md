@@ -1,7 +1,7 @@
-# v1.8.4 — Drift Fix (Guarded)
+# Drift Fix (Guarded)
 
 ## Version
-Current: v1.8.4
+Version: v1.8.4
 
 ## History
 - (none)

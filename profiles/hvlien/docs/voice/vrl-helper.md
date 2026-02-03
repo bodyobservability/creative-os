@@ -1,7 +1,7 @@
-# WUB v9.2.1 Optional Helper
+# WUB Optional Helper
 
 ## Version
-Current: v9.2.1
+Version: v9.2.1
 
 ## History
 - (none)

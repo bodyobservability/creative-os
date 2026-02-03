@@ -5,7 +5,7 @@ extension Drift {
   struct Fix: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
       commandName: "fix",
-      abstract: "Execute the drift remediation plan with guarded prompts and emit a fix receipt (v1.8.4)."
+      abstract: "Execute the drift remediation plan with guarded prompts and emit a fix receipt."
     )
 
     @Flag(name: .long, help: "Override station gating (dangerous).")

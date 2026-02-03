@@ -1,7 +1,7 @@
-# v1.8.3 — Drift UX Polish + Fix Planning
+# Drift UX Polish + Fix Planning
 
 ## Version
-Current: v1.8.3
+Version: v1.8.3
 
 ## History
 - history/drift-legacy.md

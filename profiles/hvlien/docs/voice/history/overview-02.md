@@ -1,4 +1,7 @@
-# HVLIEN v1.7.6 — Operator Shell Stateful Upgrade
+# Operator Shell Stateful Upgrade
+
+Version: v1.7.6
+
 
 Features:
 - Space runs recommended next action

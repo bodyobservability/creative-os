@@ -1,4 +1,7 @@
-# v1.8.0 — Artifact & Receipt Index
+# Artifact & Receipt Index
+
+Version: v1.8.0
+
 
 This bundle adds a first-pass indexer that builds:
 - `checksums/index/receipt_index.v1.json`

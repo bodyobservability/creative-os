@@ -1,4 +1,7 @@
-# HVLIEN v1.8.1 — Drift Detection UX Bundle
+# Drift Detection UX Bundle
+
+Version: v1.8.1
+
 
 Includes:
 - Drift report schema: profiles/hvlien/specs/index/drift_report.v1.schema.json

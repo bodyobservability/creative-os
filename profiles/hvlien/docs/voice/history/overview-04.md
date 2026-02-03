@@ -1,4 +1,7 @@
-# HVLIEN v1.7.8 — Operator Shell Voice + Studio Modes
+# Operator Shell Voice + Studio Modes
+
+Version: v1.7.8
+
 
 Adds:
 - Voice Mode (`v`): numbered actions + “Say 'press N'” prompts; number keys 1–9 select.

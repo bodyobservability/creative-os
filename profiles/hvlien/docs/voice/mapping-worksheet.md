@@ -1,7 +1,7 @@
-# v9.2 Mapping Worksheet (Phrase → MIDI)
+# Mapping Worksheet (Phrase → MIDI)
 
 ## Version
-Current: v9.2
+Version: v9.2
 
 ## History
 - (none)
@@ -26,4 +26,3 @@ Fill this in while configuring Voice Control + KM.
 Notes:
 - Prefer explicit ON/OFF notes instead of toggles.
 - Keep phrases short and distinct; add “hv” prefix if needed.
-

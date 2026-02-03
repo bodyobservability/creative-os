@@ -1,4 +1,7 @@
-# HVLIEN v1.8.2 — Index Precision Bundle
+# Index Precision Bundle
+
+Version: v1.8.2
+
 
 Includes:
 - Updated expected artifact parsing for racks (manifest expansion)

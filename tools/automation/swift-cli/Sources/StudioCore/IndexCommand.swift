@@ -4,7 +4,7 @@ import ArgumentParser
 struct Index: ParsableCommand {
   static let configuration = CommandConfiguration(
     commandName: "index",
-    abstract: "Build and inspect artifact/receipt indexes (v1.8).",
+    abstract: "Build and inspect artifact/receipt indexes.",
     subcommands: [Build.self, Status.self]
   )
 
@@ -14,7 +14,7 @@ struct Index: ParsableCommand {
       abstract: "Build artifact_index.v1.json and receipt_index.v1.json."
     )
 
-    @Option(name: .long, help: "Repo version string to embed in the index (default: v1.8.4).")
+    @Option(name: .long, help: "Repo version string to embed in the index.")
     var repoVersion: String = "v1.8.4"
 
     @Option(name: .long, help: "Output directory for indexes (default: checksums/index).")

@@ -1,7 +1,7 @@
 # make ready
 
 ## Version
-Current: v1.8.4
+Version: v1.8.4
 
 ## History
 - (none)
@@ -11,7 +11,7 @@ This patch adds/updates a `ready` target in your Makefile.
 
 ## What `make ready` does
 
-It runs the **Ready verifier** (v1.7.14):
+It runs the **Ready verifier**:
 
 1) Ensures the CLI is built (`make build` dependency)
 2) Runs:

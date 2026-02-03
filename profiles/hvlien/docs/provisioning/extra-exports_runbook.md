@@ -1,7 +1,7 @@
-# v9.5.5 — Extra Exports Runbook
+# Extra Exports Runbook
 
 ## Version
-Current: v9.5.5
+Version: v9.5.5
 
 ## History
 - (none)

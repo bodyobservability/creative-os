@@ -44,7 +44,7 @@ struct DriftFixService {
       return receipt
     }
 
-    print("DRIFT FIX (v1.8.4)")
+    print("DRIFT FIX")
     print("Plan commands (\(commands.count)):\n")
     for c in commands { print("  " + c) }
     print("")

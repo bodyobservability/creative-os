@@ -1,7 +1,7 @@
-# HVLIEN v1.8.4 — Drift Fix (Guarded Execution)
+# Drift Fix (Guarded Execution)
 
 ## Version
-Current: v1.8.4
+Version: v1.8.4
 
 ## History
 - history/overview-04.md

@@ -41,7 +41,7 @@ validate‑anchors (OpenCV build required):
 OpenCV build guide:
   tools/automation/swift-cli/docs/OPENCV_BUILD.md
 
-## Index + drift (v1.8)
+## Index + drift
 
 Index build/status:
   wub index build

@@ -4,7 +4,7 @@ import ArgumentParser
 struct Drift: ParsableCommand {
   static let configuration = CommandConfiguration(
     commandName: "drift",
-    abstract: "Drift detection (v1.8.x).",
+    abstract: "Drift detection.",
     subcommands: [Check.self, Explain.self, Plan.self, Fix.self]
   )
 
@@ -46,7 +46,7 @@ struct Drift: ParsableCommand {
       }
 
       // Human output
-      print("DRIFT CHECK (v1.8.3)")
+      print("DRIFT CHECK")
       print("status: \(report.status)")
       print(report.summary)
       print("")
@@ -106,7 +106,7 @@ struct Drift: ParsableCommand {
         return
       }
 
-      print("# Drift remediation plan (v1.8.3)")
+      print("# Drift remediation plan")
       for fx in recommended {
         print(fx.command)
       }

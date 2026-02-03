@@ -1,7 +1,7 @@
-# v9.2 — Mac Runtime Bridge (Voice → MIDI)
+# Mac Runtime Bridge (Voice → MIDI)
 
 ## Version
-Current: v9.2
+Version: v9.2
 
 ## History
 - (none)
@@ -146,4 +146,3 @@ v9.2.0 does not generate macros automatically — it documents the bridge.
   - one Track/Scene trigger
 - All events arrive on `WUB_VOICE` consistently.
 - Terminal → KM → Voice debug ladder works end-to-end.
-

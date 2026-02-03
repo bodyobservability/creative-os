@@ -1,4 +1,7 @@
-# HVLIEN v1.8.0 — Index Build Bundle
+# Index Build Bundle
+
+Version: v1.8.0
+
 
 Includes:
 - JSON Schemas:

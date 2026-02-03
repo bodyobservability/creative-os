@@ -1,7 +1,7 @@
-# v9.5.6 — Export All (Repo TODO Cleanup)
+# Export All (Repo TODO Cleanup)
 
 ## Version
-Current: v9.5.6
+Version: v9.5.6
 
 ## History
 - (none)

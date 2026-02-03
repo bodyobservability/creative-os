@@ -1,12 +1,10 @@
+# Voice Runtime Mapping Card (ABI-Compliant)
 
 ## Version
-Current: v9.3
+Version: v9.3
 
 ## History
 - history/mapping-card-legacy.md
-
-HVLIEN v9.3 — Voice Runtime Mapping Card (ABI-Compliant)
-======================================================
 
 MIDI BUS: WUB_VOICE | Channel: 1
 

@@ -1,7 +1,7 @@
-# v9.3.2 — True Automation Runbook
+# True Automation Runbook
 
 ## Version
-Current: v9.3.2
+Version: v9.3.2
 
 ## History
 - history/runbook-legacy.md

@@ -1,4 +1,7 @@
-# HVLIEN v1.7.4 — Operator Shell (Full Bundle)
+# Operator Shell (Full Bundle)
+
+Version: v1.7.4
+
 
 This bundle is the **complete** Operator Shell package combining v1.7.2 + v1.7.3 + v1.7.4 features.
 

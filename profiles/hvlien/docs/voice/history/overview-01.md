@@ -1,4 +1,7 @@
-# HVLIEN v1.7.5 — Operator Shell Anchor Auto-Detect
+# Operator Shell Anchor Auto-Detect
+
+Version: v1.7.5
+
 
 This bundle updates the operator shell to auto-detect the newest anchor pack folder in the repo,
 and persist it to `notes/LOCAL_CONFIG.json`.

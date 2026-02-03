@@ -1,7 +1,7 @@
-# Ready verifier (v1.7.14)
+# Ready verifier
 
 ## Version
-Current: v1.8.4
+Version: v1.8.4
 
 ## History
 - (none)

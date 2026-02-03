@@ -1,4 +1,7 @@
-# v1.8.1 — Drift Detection UX
+# Drift Detection UX
+
+Version: v1.8.1
+
 
 Adds:
 - `wub drift check`

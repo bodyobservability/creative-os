@@ -1,7 +1,7 @@
-# v9.5.4 — Serum Base Patch Export Runbook
+# Serum Base Patch Export Runbook
 
 ## Version
-Current: v9.5.4
+Version: v9.5.4
 
 ## History
 - (none)

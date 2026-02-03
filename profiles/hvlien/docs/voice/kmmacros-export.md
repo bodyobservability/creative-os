@@ -1,7 +1,7 @@
-# WUB v9.2.2 — Keyboard Maestro Export
+# WUB Keyboard Maestro Export
 
 ## Version
-Current: v9.2.2
+Version: v9.2.2
 
 ## History
 - (none)
