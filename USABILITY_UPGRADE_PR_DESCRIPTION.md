@@ -192,7 +192,7 @@ without reading code or guessing modes.
 
 **New**
 
-* `InputDecoder.swift` (select() + ESC parsing)
+* `InputDecoder.swift` (poll() + ESC parsing)
 * `StreamingProcess.swift`
 
 **Edits**

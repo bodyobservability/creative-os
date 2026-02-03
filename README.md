@@ -16,7 +16,7 @@ See `docs/first_run.md`.
 make studio
 ```
 
-See `profiles/hvlien/docs/voice_runtime/operator_shell.md`.
+See `profiles/hvlien/docs/voice/operator-shell.md`.
 
 ## Capabilities
 
@@ -57,13 +57,10 @@ tools/automation/swift-cli/.build/release/wub station status --format json --no-
 - Mutating actions are gated by `StationGate` and emit receipts under `runs/<run_id>/`.
 - If an action is not in the allowlist, it will be visible in plans but not executed.
 
-## Operator Shell + Wizard
+## Operator Shell
 
 - Launch the Operator Shell (TUI): `wub ui`
-- The legacy wizard records a receipt at `runs/<wizard_run_id>/wizard_receipt.v1.json`
-- See:
-  - `profiles/hvlien/docs/voice_runtime/operator_shell.md`
-  - `profiles/hvlien/docs/voice_runtime/operator_shell_wizard.md`
+- See `profiles/hvlien/docs/voice/operator-shell.md`
 
 ## Profiles and packs
 

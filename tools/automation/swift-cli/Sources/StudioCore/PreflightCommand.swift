@@ -73,6 +73,10 @@ struct WubPreflight: AsyncParsableCommand {
 
       throw ExitCode(3)
     }
+
+    print("\nCLEARED")
+    print("\nNext:")
+    print("- wub ui")
   }
 
   private func resolveWubBinary(repoRoot: String) -> String? {

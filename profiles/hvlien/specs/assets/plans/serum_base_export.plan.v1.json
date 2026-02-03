@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "run_id": "serum_base_export_v9_5_4",
+  "run_id": "serum_base_export",
   "mode": "apply",
   "targets": {
     "os": "macos",

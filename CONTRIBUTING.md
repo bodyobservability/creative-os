@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping keep the Studio Operator (HVLIEN profile) consistent and versioned.
+Thanks for helping keep the Studio Operator (Creative OS profile) consistent and versioned.
 
 ## Commit message standard
 
@@ -37,7 +37,11 @@ Examples:
 
 ## Versioning and artifacts
 
-Follow the rules in `profiles/hvlien/notes/VERSIONING_RULES.md` and update specs in `profiles/hvlien/specs/` when making structural changes.
+Follow the rules in `profiles/hvlien/notes/versioning-rules.md` and update specs in `profiles/hvlien/specs/` when making structural changes.
+
+Creative OS naming conventions:
+- Prefer deversioned filenames for docs/specs; keep versions inside the document body or metadata.
+- When a spec or doc is superseded, replace or move it into an explicit `history/` folder rather than keeping versioned filenames.
 
 ## Checksum discipline
 

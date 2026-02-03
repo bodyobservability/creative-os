@@ -3,7 +3,7 @@ import Darwin
 
 enum InputKey {
   case up, down, enter, quit
-  case openReceipt, openRun, openFailures
+  case openReceipt, openRun, openFailures, openReport
   case toggleAll, refresh, runRecommended, previewDriftPlan, readyVerify, repairRun
   case toggleVoiceMode, toggleStudioMode, toggleLogs, escape, bottom
   case help
@@ -52,6 +52,7 @@ struct InputDecoder {
     if c == asciiByte("r") { return .openReceipt }
     if c == asciiByte("f") { return .openFailures }
     if c == asciiByte("o") { return .openRun }
+    if c == asciiByte("P") { return .openReport }
     if c == asciiByte("a") { return .toggleAll }
     if c == asciiByte("R") { return .refresh }
     if c == asciiByte("k") { return .up }

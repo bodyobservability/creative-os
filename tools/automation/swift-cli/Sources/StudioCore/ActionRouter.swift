@@ -22,6 +22,7 @@ struct ActionRouter {
     case .openRun: return .openRun
     case .openFailures: return .openFailures
     case .openReceipt: return .openReceipt
+    case .openReport: return .openReport
     case .escape: return .back
     case .bottom: return .bottom
     case .refresh: return .refresh

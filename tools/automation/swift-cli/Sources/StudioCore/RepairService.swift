@@ -71,7 +71,7 @@ struct RepairService {
                                                                     extrasSpec: WubDefaults.profileSpecPath("assets/export/extra_exports.v1.yaml"),
                                                                     postcheck: true,
                                                                     rackVerifyManifest: WubDefaults.profileSpecPath("library/racks/rack_pack_manifest.v1.json"),
-                                                                    vrlMapping: WubDefaults.profileSpecPath("voice_runtime/v9_3_ableton_mapping.v1.yaml"),
+                                                                    vrlMapping: WubDefaults.profileSpecPath("voice/runtime/vrl_mapping.v1.yaml"),
                                                                     force: config.force))
       return receipt.status == "fail" ? 1 : 0
     }

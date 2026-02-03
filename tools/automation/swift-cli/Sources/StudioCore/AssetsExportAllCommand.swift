@@ -47,7 +47,7 @@ extension Assets {
     var rackVerifyManifest: String = WubDefaults.profileSpecPath("library/racks/rack_pack_manifest.v1.json")
 
     @Option(name: .long, help: "VRL mapping spec path (postcheck).")
-    var vrlMapping: String = WubDefaults.profileSpecPath("voice_runtime/v9_3_ableton_mapping.v1.yaml")
+    var vrlMapping: String = WubDefaults.profileSpecPath("voice/runtime/vrl_mapping.v1.yaml")
 
     func run() async throws {
       let receipt = try await AssetsService.exportAll(config: .init(anchorsPack: anchorsPack,

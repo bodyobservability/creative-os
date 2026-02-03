@@ -23,6 +23,7 @@ enum UserAction {
   case openRun
   case openFailures
   case openReceipt
+  case openReport
   case back
   case bottom
   case refresh

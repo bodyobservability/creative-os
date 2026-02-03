@@ -64,7 +64,8 @@ struct UI: AsyncParsableCommand {
         sweepStaleSeconds: 60 * 10,
         readyStaleSeconds: 60 * 10
       ))
-      if (cfg.firstRunCompleted ?? false) == false && snapshot.blockers.isEmpty {
+      let allGatesPass = snapshot.gates.allSatisfy { $0.status == .pass }
+      if (cfg.firstRunCompleted ?? false) == false && allGatesPass {
         cfg.firstRunCompleted = true
         try? cfg.save(atRepoRoot: repoRoot)
       }
@@ -92,9 +93,13 @@ struct UI: AsyncParsableCommand {
       } else {
         noteLine = nil
       }
-      if Date().timeIntervalSince(runner.lastStationCheck) > 5 {
-        runner.lastStationSummary = stationSummary(wubBin: wubBin)
-        runner.lastStationCheck = Date()
+      if Date().timeIntervalSince(runner.lastStationCheck) > 5 && !runner.stationStatusInFlight {
+        runner.stationStatusInFlight = true
+        stationSummaryAsync(wubBin: wubBin, timeoutMs: 600) { summary in
+          runner.lastStationSummary = summary
+          runner.lastStationCheck = Date()
+          runner.stationStatusInFlight = false
+        }
       }
       let currentStatuses = Dictionary(uniqueKeysWithValues: snapshot.gates.map { ($0.key, $0.status) })
       if !runner.lastGateStatuses.isEmpty {
@@ -112,6 +117,10 @@ struct UI: AsyncParsableCommand {
           }
         }
       }
+      if allGatesPass && runner.lastAllGatesPass == false {
+        toast.success("Studio ready (CLEARED)", key: "studio_cleared", ttl: 1.8)
+      }
+      runner.lastAllGatesPass = allGatesPass
       runner.lastGateStatuses = currentStatuses
 
       let confirming: Bool
@@ -267,6 +276,13 @@ struct UI: AsyncParsableCommand {
         } else {
           toast.blocked("No receipt recorded yet", key: "open_receipt_missing")
         }
+      case .openReport:
+        if let report = latestReportPath() {
+          _ = try? await OperatorShellService.openPath(report)
+          toast.success("Opened report", key: "open_report_ok")
+        } else {
+          toast.blocked("No report recorded yet", key: "open_report_missing")
+        }
       case .openRun:
         if let rd = runner.lastRunDir {
           _ = try? await OperatorShellService.openPath(rd)
@@ -329,7 +345,9 @@ struct UI: AsyncParsableCommand {
     var state: RunState = .idle
     var lastStationSummary: String = "unk."
     var lastStationCheck: Date = Date.distantPast
+    var stationStatusInFlight: Bool = false
     var lastGateStatuses: [String: GateStatus] = [:]
+    var lastAllGatesPass: Bool = false
     var process: Process?
     var partialOutput: String = ""
     var logBuffer = LogBuffer()
@@ -356,41 +374,299 @@ struct UI: AsyncParsableCommand {
     let danger: Bool
     let category: String
     let isGuided: Bool
+    let explain: [String]
   }
 
   func buildMenu(wubBin: String, anchorsPack: String, showPreflight: Bool) -> [MenuItem] {
     var items: [MenuItem] = []
     if showPreflight {
-      items.append(.init(title: "Preflight (first run)", command: [wubBin, "preflight", "--auto"], danger: false, category: "Onboarding", isGuided: true))
+      let title = "Preflight (first run)"
+      items.append(.init(title: title,
+                         command: [wubBin, "preflight", "--auto"],
+                         danger: false,
+                         category: "Onboarding",
+                         isGuided: true,
+                         explain: explainLines(title: title, category: "Onboarding")))
     }
-    items.append(.init(title: "Select Anchors Pack…", command: [wubBin, "anchors", "select"], danger: false, category: "Onboarding", isGuided: true))
+    do {
+      let title = "Select Anchors Pack…"
+      items.append(.init(title: title,
+                         command: [wubBin, "anchors", "select"],
+                         danger: false,
+                         category: "Onboarding",
+                         isGuided: true,
+                         explain: explainLines(title: title, category: "Onboarding")))
+    }
 
     items += [
-      .init(title: "Sweep (modal guard)", command: [wubBin, "sweep", "--modal-test", "detect", "--allow-ocr-fallback"], danger: false, category: "Safety", isGuided: true),
-      .init(title: "MIDI list", command: [wubBin, "midi", "list"], danger: false, category: "Runtime", isGuided: false),
-      .init(title: "VRL validate", command: [wubBin, "vrl", "validate", "--mapping", WubDefaults.profileSpecPath("voice_runtime/v9_3_ableton_mapping.v1.yaml")], danger: false, category: "Runtime", isGuided: true),
-
-      .init(title: "Assets: export ALL (repo completeness)", command: [wubBin, "assets", "export-all", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports", isGuided: true),
-      .init(title: "Assets: export racks", command: [wubBin, "assets", "export-racks", "--anchors-pack", anchorsPack, "--overwrite", "ask"], danger: true, category: "Exports", isGuided: false),
-      .init(title: "Assets: export performance set", command: [wubBin, "assets", "export-performance-set", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports", isGuided: false),
-      .init(title: "Assets: export finishing bays", command: [wubBin, "assets", "export-finishing-bays", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports", isGuided: false),
-      .init(title: "Assets: export serum base", command: [wubBin, "assets", "export-serum-base", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports", isGuided: false),
-      .init(title: "Assets: export extras", command: [wubBin, "assets", "export-extras", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports", isGuided: false),
-
-      .init(title: "Index: build", command: [wubBin, "index", "build"], danger: false, category: "Index", isGuided: true),
-      .init(title: "Index: status", command: [wubBin, "index", "status"], danger: false, category: "Index", isGuided: false),
-      .init(title: "Drift: check", command: [wubBin, "drift", "check", "--anchors-pack-hint", anchorsPack], danger: false, category: "Drift", isGuided: true),
-      .init(title: "Drift: plan", command: [wubBin, "drift", "plan", "--anchors-pack-hint", anchorsPack], danger: false, category: "Drift", isGuided: true),
-      .init(title: "Drift: fix (guarded)", command: [wubBin, "drift", "fix", "--anchors-pack-hint", anchorsPack], danger: true, category: "Drift", isGuided: true),
-
-      .init(title: "Ready: verify", command: [wubBin, "ready", "--anchors-pack-hint", anchorsPack], danger: false, category: "Governance", isGuided: true),
-      .init(title: "Repair: run recipe (guarded)", command: [wubBin, "repair", "--anchors-pack-hint", anchorsPack], danger: true, category: "Governance", isGuided: true),
-      .init(title: "Station: certify", command: [wubBin, "station", "certify"], danger: true, category: "Governance", isGuided: true),
-      .init(title: "Open last report", command: ["bash","-lc", "open " + (latestReportPath() ?? "runs")], danger: false, category: "Open", isGuided: true),
-      .init(title: "Open last run folder", command: ["bash","-lc", "open " + (latestRunDir() ?? "runs")], danger: false, category: "Open", isGuided: true)
+      {
+        let title = "Sweep (modal guard)"
+        return .init(title: title,
+                     command: [wubBin, "sweep", "--modal-test", "detect", "--allow-ocr-fallback"],
+                     danger: false,
+                     category: "Safety",
+                     isGuided: true,
+                     explain: explainLines(title: title, category: "Safety"))
+      }(),
+      {
+        let title = "MIDI list"
+        return .init(title: title,
+                     command: [wubBin, "midi", "list"],
+                     danger: false,
+                     category: "Runtime",
+                     isGuided: false,
+                     explain: explainLines(title: title, category: "Runtime"))
+      }(),
+      {
+        let title = "VRL validate"
+        return .init(title: title,
+                     command: [wubBin, "vrl", "validate", "--mapping", WubDefaults.profileSpecPath("voice/runtime/vrl_mapping.v1.yaml")],
+                     danger: false,
+                     category: "Runtime",
+                     isGuided: true,
+                     explain: explainLines(title: title, category: "Runtime"))
+      }(),
+      {
+        let title = "Assets: export ALL (repo completeness)"
+        return .init(title: title,
+                     command: [wubBin, "assets", "export-all", "--anchors-pack", anchorsPack, "--overwrite"],
+                     danger: true,
+                     category: "Exports",
+                     isGuided: true,
+                     explain: explainLines(title: title, category: "Exports"))
+      }(),
+      {
+        let title = "Assets: export racks"
+        return .init(title: title,
+                     command: [wubBin, "assets", "export-racks", "--anchors-pack", anchorsPack, "--overwrite", "ask"],
+                     danger: true,
+                     category: "Exports",
+                     isGuided: false,
+                     explain: explainLines(title: title, category: "Exports"))
+      }(),
+      {
+        let title = "Assets: export performance set"
+        return .init(title: title,
+                     command: [wubBin, "assets", "export-performance-set", "--anchors-pack", anchorsPack, "--overwrite"],
+                     danger: true,
+                     category: "Exports",
+                     isGuided: false,
+                     explain: explainLines(title: title, category: "Exports"))
+      }(),
+      {
+        let title = "Assets: export finishing bays"
+        return .init(title: title,
+                     command: [wubBin, "assets", "export-finishing-bays", "--anchors-pack", anchorsPack, "--overwrite"],
+                     danger: true,
+                     category: "Exports",
+                     isGuided: false,
+                     explain: explainLines(title: title, category: "Exports"))
+      }(),
+      {
+        let title = "Assets: export serum base"
+        return .init(title: title,
+                     command: [wubBin, "assets", "export-serum-base", "--anchors-pack", anchorsPack, "--overwrite"],
+                     danger: true,
+                     category: "Exports",
+                     isGuided: false,
+                     explain: explainLines(title: title, category: "Exports"))
+      }(),
+      {
+        let title = "Assets: export extras"
+        return .init(title: title,
+                     command: [wubBin, "assets", "export-extras", "--anchors-pack", anchorsPack, "--overwrite"],
+                     danger: true,
+                     category: "Exports",
+                     isGuided: false,
+                     explain: explainLines(title: title, category: "Exports"))
+      }(),
+      {
+        let title = "Index: build"
+        return .init(title: title,
+                     command: [wubBin, "index", "build"],
+                     danger: false,
+                     category: "Index",
+                     isGuided: true,
+                     explain: explainLines(title: title, category: "Index"))
+      }(),
+      {
+        let title = "Index: status"
+        return .init(title: title,
+                     command: [wubBin, "index", "status"],
+                     danger: false,
+                     category: "Index",
+                     isGuided: false,
+                     explain: explainLines(title: title, category: "Index"))
+      }(),
+      {
+        let title = "Drift: check"
+        return .init(title: title,
+                     command: [wubBin, "drift", "check", "--anchors-pack-hint", anchorsPack],
+                     danger: false,
+                     category: "Drift",
+                     isGuided: true,
+                     explain: explainLines(title: title, category: "Drift"))
+      }(),
+      {
+        let title = "Drift: plan"
+        return .init(title: title,
+                     command: [wubBin, "drift", "plan", "--anchors-pack-hint", anchorsPack],
+                     danger: false,
+                     category: "Drift",
+                     isGuided: true,
+                     explain: explainLines(title: title, category: "Drift"))
+      }(),
+      {
+        let title = "Drift: fix (guarded)"
+        return .init(title: title,
+                     command: [wubBin, "drift", "fix", "--anchors-pack-hint", anchorsPack],
+                     danger: true,
+                     category: "Drift",
+                     isGuided: true,
+                     explain: explainLines(title: title, category: "Drift"))
+      }(),
+      {
+        let title = "Ready: verify"
+        return .init(title: title,
+                     command: [wubBin, "ready", "--anchors-pack-hint", anchorsPack],
+                     danger: false,
+                     category: "Governance",
+                     isGuided: true,
+                     explain: explainLines(title: title, category: "Governance"))
+      }(),
+      {
+        let title = "Repair: run recipe (guarded)"
+        return .init(title: title,
+                     command: [wubBin, "repair", "--anchors-pack-hint", anchorsPack],
+                     danger: true,
+                     category: "Governance",
+                     isGuided: true,
+                     explain: explainLines(title: title, category: "Governance"))
+      }(),
+      {
+        let title = "Station: certify"
+        return .init(title: title,
+                     command: [wubBin, "station", "certify"],
+                     danger: true,
+                     category: "Governance",
+                     isGuided: true,
+                     explain: explainLines(title: title, category: "Governance"))
+      }(),
+      {
+        let title = "Open last report"
+        return .init(title: title,
+                     command: ["bash","-lc", "open " + (latestReportPath() ?? "runs")],
+                     danger: false,
+                     category: "Open",
+                     isGuided: true,
+                     explain: explainLines(title: title, category: "Open"))
+      }(),
+      {
+        let title = "Open last run folder"
+        return .init(title: title,
+                     command: ["bash","-lc", "open " + (latestRunDir() ?? "runs")],
+                     danger: false,
+                     category: "Open",
+                     isGuided: true,
+                     explain: explainLines(title: title, category: "Open"))
+      }()
     ]
 
     return items
+  }
+
+  func explainLines(title: String, category: String) -> [String] {
+    switch title {
+    case "Preflight (first run)":
+      return [
+        "When: first run or environment changes.",
+        "Prereqs: none.",
+        "Outputs: readiness summary + blockers.",
+        "Recovery: follow the next action."
+      ]
+    case "Select Anchors Pack…":
+      return [
+        "When: anchors pack is missing or stale.",
+        "Prereqs: packs present under specs/automation/anchors.",
+        "Outputs: saves anchors pack to local config.",
+        "Recovery: re-run if UI automation fails."
+      ]
+    case "Open last report":
+      return [
+        "When: review the latest report output.",
+        "Prereqs: at least one report run.",
+        "Outputs: opens report file in runs/<id>/...",
+        "Recovery: run a report command to regenerate."
+      ]
+    case "Open last run folder":
+      return [
+        "When: inspect receipts/logs for the latest run.",
+        "Prereqs: at least one run exists.",
+        "Outputs: opens runs/<id>/ folder.",
+        "Recovery: run any command to create a run."
+      ]
+    default:
+      break
+    }
+
+    switch category {
+    case "Safety":
+      return [
+        "When: before automation if UI may block.",
+        "Prereqs: anchors pack configured.",
+        "Outputs: sweep report under runs/<id>/...",
+        "Recovery: close modals, then re-run sweep."
+      ]
+    case "Runtime":
+      return [
+        "When: validating runtime setup or mappings.",
+        "Prereqs: mapping files present.",
+        "Outputs: validation output or device list.",
+        "Recovery: fix mapping/device issues and re-run."
+      ]
+    case "Exports":
+      return [
+        "When: artifacts missing or placeholders exist.",
+        "Prereqs: anchors pack + sweep pass.",
+        "Outputs: export receipts + updated assets.",
+        "Recovery: re-run export-all for missing categories."
+      ]
+    case "Index":
+      return [
+        "When: after exporting or editing assets.",
+        "Prereqs: artifacts present on disk.",
+        "Outputs: checksums/index/artifact_index.v1.json.",
+        "Recovery: re-run index build."
+      ]
+    case "Drift":
+      return [
+        "When: before certification or release.",
+        "Prereqs: index exists.",
+        "Outputs: drift report under runs/<id>/...",
+        "Recovery: run drift fix if required."
+      ]
+    case "Governance":
+      return [
+        "When: verifying readiness or repairing state.",
+        "Prereqs: anchors, sweep, index, artifacts.",
+        "Outputs: ready report or repair receipts.",
+        "Recovery: follow recommended next action."
+      ]
+    case "Open":
+      return [
+        "When: inspect recent receipts and logs.",
+        "Prereqs: runs/<id>/ exists.",
+        "Outputs: opens target path.",
+        "Recovery: run any command to create a run."
+      ]
+    default:
+      return [
+        "When: run as needed.",
+        "Prereqs: see command details.",
+        "Outputs: receipts/logs under runs/<id>/...",
+        "Recovery: follow recommended next action."
+      ]
+    }
   }
 
   func visibleItems(all: [MenuItem], studioMode: Bool, showAll: Bool) -> [MenuItem] {
@@ -491,12 +767,12 @@ struct UI: AsyncParsableCommand {
           toast.success("Completed successfully", key: "action_ok")
         } else {
           let tail = runner.lastRunDir ?? "runs/<id>/"
-          toast.blocked("Action failed — see \(tail) for details", key: "action_fail")
+          toast.blocked("Action failed — see \(tail) for details. Next: wub check", key: "action_fail")
         }
       })
     } catch {
       runner.state = .idle
-      toast.blocked("Action failed to start — see logs", key: "action_start_fail")
+      toast.blocked("Action failed to start — see logs. Next: wub check", key: "action_start_fail")
     }
   }
 
@@ -535,22 +811,26 @@ struct UI: AsyncParsableCommand {
     let viewLabel = studioMode ? "locked" : (showAll ? "ALL" : "GUIDED")
     let total = allItemsCount(anchorsPack: anchorsPack, wubBin: wubBin, showPreflight: showPreflight)
     let visible = items.count
-    print("mode: \(modeLabel) (\(visible)/\(total))   view: \(viewLabel)\(studioMode ? "" : " (a)")")
-    if studioMode && width >= 80 {
-      print("SAFE hides risky actions (exports/fix/repair/certify)")
-    }
+    let modeLine = "mode: \(modeLabel) (\(visible)/\(total))   view: \(viewLabel)\(studioMode ? "" : " (a)")"
+    print(truncateTail(modeLine, maxLen: width))
     let anchorMax = max(18, Int(Double(width) * 0.45))
     let lastMax = max(14, Int(Double(width) * 0.30))
     if let ap = snapshot.anchorsPack {
       let apText = truncatePath(ap, maxLen: anchorMax, repoRoot: repoRoot)
       let lastText = truncateTail(lastRun ?? "—", maxLen: lastMax)
-      print("Anchors: \(apText)    Station: \(stationSummary)    Last: \(lastText)")
+      let line3 = "Anchors: \(apText)    Station: \(stationSummary)    Last: \(lastText)"
+      print(truncateTail(line3, maxLen: width))
     } else {
       let lastText = truncateTail(lastRun ?? "—", maxLen: lastMax)
-      print("Anchors: NOT SET    Station: \(stationSummary)    Last: \(lastText)")
+      let line3 = "Anchors: NOT SET    Station: \(stationSummary)    Last: \(lastText)"
+      print(truncateTail(line3, maxLen: width))
     }
     if let info = displayInfo { print("display: \(info)") }
-    if let note = noteLine { print(note) }
+    if let note = noteLine {
+      print(truncateTail(note, maxLen: width))
+    } else if let detail = firstFailDetailLine(snapshot: snapshot) {
+      print(truncateTail(detail, maxLen: width))
+    }
     if let warn = displayWarning { print("display warning: \(warn)") }
     if let fd = failuresDir { print("last failures: \(fd)") }
     if let e = lastExit { print("last exit: \(e)") }
@@ -587,6 +867,13 @@ struct UI: AsyncParsableCommand {
         }
       }
       print("\n(*) risky (hidden in Studio Mode)")
+      if !items.isEmpty {
+        let item = items[selected]
+        if !item.explain.isEmpty {
+          print("\nExplain:")
+          for line in item.explain { print(line) }
+        }
+      }
       if confirming {
         print("confirm: This action modifies studio state. Proceed?  (y)es / (n)o")
       } else if let tl = toastLine {
@@ -597,6 +884,12 @@ struct UI: AsyncParsableCommand {
 
   func allItemsCount(anchorsPack: String, wubBin: String, showPreflight: Bool) -> Int {
     return buildMenu(wubBin: wubBin, anchorsPack: anchorsPack, showPreflight: showPreflight).count
+  }
+
+  func firstFailDetailLine(snapshot: StudioStateSnapshot) -> String? {
+    guard let fail = snapshot.gates.first(where: { $0.status == .fail }),
+          let detail = fail.detail else { return nil }
+    return "detail: \(fail.key) \(detail)"
   }
 
   func truncateMiddle(_ s: String, maxLen: Int) -> String {
@@ -644,34 +937,42 @@ struct UI: AsyncParsableCommand {
     return base.count <= width ? base : truncateTail(base, maxLen: width)
   }
 
-  func stationSummary(wubBin: String) -> String {
-    let output = runShell("\(wubBin) station status --format json --no-write-report")
-    guard !output.isEmpty, let data = output.data(using: .utf8) else { return "unk." }
-    struct Envelope: Decodable { let stationState: String?; enum CodingKeys: String, CodingKey { case stationState = "station_state" } }
-    let env = try? JSONDecoder().decode(Envelope.self, from: data)
-    let state = env?.stationState ?? "unknown"
-    switch state {
-    case "detected": return "det."
-    case "blocked": return "blk"
-    case "offline": return "off"
-    default: return "unk."
-    }
-  }
-
-  func runShell(_ cmd: String) -> String {
+  func stationSummaryAsync(wubBin: String, timeoutMs: Int, completion: @escaping (String) -> Void) {
     let p = Process()
-    p.executableURL = URL(fileURLWithPath: "/bin/zsh")
-    p.arguments = ["-lc", cmd]
+    p.executableURL = URL(fileURLWithPath: wubBin)
+    p.arguments = ["station", "status", "--format", "json", "--no-write-report"]
     let out = Pipe()
-    let err = Pipe()
     p.standardOutput = out
-    p.standardError = err
-    do { try p.run() } catch { return "" }
-    p.waitUntilExit()
-    let od = out.fileHandleForReading.readDataToEndOfFile()
-    let ed = err.fileHandleForReading.readDataToEndOfFile()
-    let s = (String(data: od, encoding: .utf8) ?? "") + (String(data: ed, encoding: .utf8) ?? "")
-    return s.trimmingCharacters(in: .whitespacesAndNewlines)
+    do { try p.run() } catch {
+      completion("unk.")
+      return
+    }
+
+    let timer = DispatchSource.makeTimerSource()
+    timer.schedule(deadline: .now() + .milliseconds(timeoutMs))
+    timer.setEventHandler {
+      if p.isRunning { p.terminate() }
+    }
+    timer.resume()
+
+    p.terminationHandler = { _ in
+      timer.cancel()
+      let od = out.fileHandleForReading.readDataToEndOfFile()
+      let output = String(data: od, encoding: .utf8) ?? ""
+      guard !output.isEmpty, let data = output.data(using: .utf8) else {
+        DispatchQueue.main.async { completion("unk.") }
+        return
+      }
+      struct Envelope: Decodable { let stationState: String?; enum CodingKeys: String, CodingKey { case stationState = "station_state" } }
+      let env = try? JSONDecoder().decode(Envelope.self, from: data)
+      let state = env?.stationState ?? "unknown"
+      switch state {
+      case "detected": DispatchQueue.main.async { completion("det.") }
+      case "blocked": DispatchQueue.main.async { completion("blk") }
+      case "offline": DispatchQueue.main.async { completion("off") }
+      default: DispatchQueue.main.async { completion("unk.") }
+      }
+    }
   }
 
   // MARK: FS helpers

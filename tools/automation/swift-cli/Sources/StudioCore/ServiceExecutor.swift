@@ -61,7 +61,7 @@ struct ServiceExecutor {
                                                  extrasSpec: bag.string("extras_spec") ?? WubDefaults.profileSpecPath("assets/export/extra_exports.v1.yaml"),
                                                  postcheck: bag.bool("postcheck") ?? true,
                                                  rackVerifyManifest: bag.string("rack_verify_manifest") ?? WubDefaults.profileSpecPath("library/racks/rack_pack_manifest.v1.json"),
-                                                 vrlMapping: bag.string("vrl_mapping") ?? WubDefaults.profileSpecPath("voice_runtime/v9_3_ableton_mapping.v1.yaml"),
+                                                 vrlMapping: bag.string("vrl_mapping") ?? WubDefaults.profileSpecPath("voice/runtime/vrl_mapping.v1.yaml"),
                                                  force: bag.bool("force") ?? false)
       let receipt = try await AssetsService.exportAll(config: config)
       return receipt.status == "fail" ? 1 : 0

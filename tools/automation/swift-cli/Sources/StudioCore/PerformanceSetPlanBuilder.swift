@@ -11,7 +11,7 @@ enum PerformanceSetPlanBuilder {
 
     return [
       "schema_version": 1,
-      "run_id": "performance_set_export_v9_5_2",
+      "run_id": "performance_set_export",
       "mode": "apply",
       "targets": ["os":"macos","ableton":"12.3"],
       "ops": ops

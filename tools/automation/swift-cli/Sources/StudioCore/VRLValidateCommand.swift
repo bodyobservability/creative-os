@@ -5,20 +5,20 @@ import CoreGraphics
 struct VRL: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     commandName: "vrl",
-    abstract: "Voice Runtime Layer tools (v9.x).",
+    abstract: "Voice Runtime Layer tools.",
     subcommands: [Validate.self]
   )
 
   struct Validate: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
       commandName: "validate",
-      abstract: "Validate v9.3 Ableton runtime mapping prerequisites and emit a receipt (v9.4)."
+      abstract: "Validate Ableton runtime mapping prerequisites and emit a receipt."
     )
 
     @OptionGroup var common: CommonOptions
 
-    @Option(name: .long, help: "Path to v9.3 mapping spec YAML.")
-    var mapping: String = WubDefaults.profileSpecPath("voice_runtime/v9_3_ableton_mapping.v1.yaml")
+    @Option(name: .long, help: "Path to mapping spec YAML.")
+    var mapping: String = WubDefaults.profileSpecPath("voice/runtime/vrl_mapping.v1.yaml")
 
     @Option(name: .long, help: "Regions config path (must include tracks.list, device.chain, rack.macros).")
     var regions: String = "tools/automation/swift-cli/config/regions.v1.json"

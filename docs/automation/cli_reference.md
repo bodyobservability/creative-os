@@ -29,7 +29,7 @@ This is the full CLI reference for automation operations. If you are operating i
 
 ## Voice runtime layer
 ```bash
-.build/release/wub vrl validate --mapping profiles/hvlien/specs/voice_runtime/v9_3_ableton_mapping.v1.yaml
+.build/release/wub vrl validate --mapping profiles/hvlien/specs/voice/runtime/vrl_mapping.v1.yaml
 .build/release/wub midi list
 .build/release/wub ui --anchors-pack specs/automation/anchors/<pack_id>
 ```

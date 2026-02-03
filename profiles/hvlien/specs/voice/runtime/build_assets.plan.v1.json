@@ -1,0 +1,700 @@
+{
+  "schema_version": 1,
+  "run_id": "build_assets",
+  "mode": "apply",
+  "targets": {
+    "os": "macos",
+    "ableton": "12.3"
+  },
+  "ops": [
+    {
+      "id": "focus_ableton",
+      "do": {
+        "type": "sleep",
+        "ms": 100
+      },
+      "retries": 0
+    },
+    {
+      "id": "select_basslead",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "tracks.list",
+        "match": {
+          "text": "BassLead",
+          "mode": "contains",
+          "min_conf": 0.75
+        }
+      },
+      "post": [
+        {
+          "type": "ui_text_contains",
+          "region": "tracks.list",
+          "text": "BassLead",
+          "min_conf": 0.7
+        }
+      ],
+      "retries": 2,
+      "timeout_ms": 8000
+    },
+    {
+      "id": "browser_search_rack",
+      "do": {
+        "type": "search_browser",
+        "query": "Instrument Rack",
+        "fallback_region": "browser.search"
+      },
+      "post": [
+        {
+          "type": "ui_text_contains",
+          "region": "browser.results",
+          "text": "Instrument Rack",
+          "min_conf": 0.65
+        }
+      ],
+      "retries": 2,
+      "timeout_ms": 9000
+    },
+    {
+      "id": "insert_rack",
+      "do": {
+        "type": "dblclick_ocr_match",
+        "region": "browser.results",
+        "match": {
+          "text": "Instrument Rack",
+          "mode": "contains",
+          "min_conf": 0.65
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 12000
+    },
+    {
+      "id": "ensure_macro_view",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+OPT+L"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 3000,
+      "notes": "Ensure device view visible; user must ensure macros section visible for rack."
+    },
+    {
+      "id": "rename_macro_1",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "rack.macros",
+        "match": {
+          "text": "Macro 1",
+          "mode": "contains",
+          "min_conf": 0.55
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 8000,
+      "notes": "If Macro labels differ, adjust rack.macros region and OCR target."
+    },
+    {
+      "id": "rename_macro_1_cmdr",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+R"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "type_macro_1_name",
+      "do": {
+        "type": "type_text",
+        "text": "Energy"
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "confirm_macro_1_name",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "ENTER"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "rename_macro_2",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "rack.macros",
+        "match": {
+          "text": "Macro 2",
+          "mode": "contains",
+          "min_conf": 0.55
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 8000,
+      "notes": "If Macro labels differ, adjust rack.macros region and OCR target."
+    },
+    {
+      "id": "rename_macro_2_cmdr",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+R"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "type_macro_2_name",
+      "do": {
+        "type": "type_text",
+        "text": "Motion"
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "confirm_macro_2_name",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "ENTER"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "rename_macro_3",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "rack.macros",
+        "match": {
+          "text": "Macro 3",
+          "mode": "contains",
+          "min_conf": 0.55
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 8000,
+      "notes": "If Macro labels differ, adjust rack.macros region and OCR target."
+    },
+    {
+      "id": "rename_macro_3_cmdr",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+R"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "type_macro_3_name",
+      "do": {
+        "type": "type_text",
+        "text": "Tone"
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "confirm_macro_3_name",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "ENTER"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "rename_macro_4",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "rack.macros",
+        "match": {
+          "text": "Macro 4",
+          "mode": "contains",
+          "min_conf": 0.55
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 8000,
+      "notes": "If Macro labels differ, adjust rack.macros region and OCR target."
+    },
+    {
+      "id": "rename_macro_4_cmdr",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+R"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "type_macro_4_name",
+      "do": {
+        "type": "type_text",
+        "text": "Texture"
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "confirm_macro_4_name",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "ENTER"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "rename_macro_5",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "rack.macros",
+        "match": {
+          "text": "Macro 5",
+          "mode": "contains",
+          "min_conf": 0.55
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 8000,
+      "notes": "If Macro labels differ, adjust rack.macros region and OCR target."
+    },
+    {
+      "id": "rename_macro_5_cmdr",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+R"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "type_macro_5_name",
+      "do": {
+        "type": "type_text",
+        "text": "Width"
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "confirm_macro_5_name",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "ENTER"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "rename_macro_6",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "rack.macros",
+        "match": {
+          "text": "Macro 6",
+          "mode": "contains",
+          "min_conf": 0.55
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 8000,
+      "notes": "If Macro labels differ, adjust rack.macros region and OCR target."
+    },
+    {
+      "id": "rename_macro_6_cmdr",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+R"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "type_macro_6_name",
+      "do": {
+        "type": "type_text",
+        "text": "Space"
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "confirm_macro_6_name",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "ENTER"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "rename_macro_7",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "rack.macros",
+        "match": {
+          "text": "Macro 7",
+          "mode": "contains",
+          "min_conf": 0.55
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 8000,
+      "notes": "If Macro labels differ, adjust rack.macros region and OCR target."
+    },
+    {
+      "id": "rename_macro_7_cmdr",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+R"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "type_macro_7_name",
+      "do": {
+        "type": "type_text",
+        "text": "Impact"
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "confirm_macro_7_name",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "ENTER"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "rename_macro_8",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "rack.macros",
+        "match": {
+          "text": "Macro 8",
+          "mode": "contains",
+          "min_conf": 0.55
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 8000,
+      "notes": "If Macro labels differ, adjust rack.macros region and OCR target."
+    },
+    {
+      "id": "rename_macro_8_cmdr",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+R"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "type_macro_8_name",
+      "do": {
+        "type": "type_text",
+        "text": "Morph"
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "confirm_macro_8_name",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "ENTER"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "enter_midi_map",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+M"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "select_motion_macro",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "rack.macros",
+        "match": {
+          "text": "Motion",
+          "mode": "contains",
+          "min_conf": 0.6
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 8000
+    },
+    {
+      "id": "map_motion_low",
+      "do": {
+        "type": "send_midi_cc",
+        "midi_dest": "WUB_VOICE",
+        "channel": 1,
+        "cc": 14,
+        "value": 32
+      },
+      "retries": 1,
+      "timeout_ms": 1000
+    },
+    {
+      "id": "select_motion_macro_2",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "rack.macros",
+        "match": {
+          "text": "Motion",
+          "mode": "contains",
+          "min_conf": 0.6
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 8000
+    },
+    {
+      "id": "map_motion_high",
+      "do": {
+        "type": "send_midi_cc",
+        "midi_dest": "WUB_VOICE",
+        "channel": 1,
+        "cc": 14,
+        "value": 96
+      },
+      "retries": 1,
+      "timeout_ms": 1000
+    },
+    {
+      "id": "select_tone_macro",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "rack.macros",
+        "match": {
+          "text": "Tone",
+          "mode": "contains",
+          "min_conf": 0.6
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 8000
+    },
+    {
+      "id": "map_tone_dark",
+      "do": {
+        "type": "send_midi_cc",
+        "midi_dest": "WUB_VOICE",
+        "channel": 1,
+        "cc": 21,
+        "value": 40
+      },
+      "retries": 1,
+      "timeout_ms": 1000
+    },
+    {
+      "id": "select_tone_macro_2",
+      "do": {
+        "type": "click_ocr_match",
+        "region": "rack.macros",
+        "match": {
+          "text": "Tone",
+          "mode": "contains",
+          "min_conf": 0.6
+        }
+      },
+      "retries": 2,
+      "timeout_ms": 8000
+    },
+    {
+      "id": "map_tone_bright",
+      "do": {
+        "type": "send_midi_cc",
+        "midi_dest": "WUB_VOICE",
+        "channel": 1,
+        "cc": 21,
+        "value": 110
+      },
+      "retries": 1,
+      "timeout_ms": 1000
+    },
+    {
+      "id": "exit_midi_map",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+M"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "save_rack",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+S"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "type_rack_name",
+      "do": {
+        "type": "type_text",
+        "text": "HVLIEN_VRL_ControlRack"
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "confirm_rack_save",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "ENTER"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 3000
+    },
+    {
+      "id": "save_set_as",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "CMD+SHIFT+S"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "type_set_name",
+      "do": {
+        "type": "type_text",
+        "text": "HVLIEN_BASS_TEMPLATE_VRL"
+      },
+      "retries": 1,
+      "timeout_ms": 2000
+    },
+    {
+      "id": "confirm_set_save",
+      "do": {
+        "type": "press_keys",
+        "keys": [
+          "ENTER"
+        ]
+      },
+      "retries": 1,
+      "timeout_ms": 3000
+    },
+    {
+      "id": "final_verify_macros",
+      "do": {
+        "type": "sleep",
+        "ms": 150
+      },
+      "post": [
+        {
+          "type": "ui_text_contains",
+          "region": "rack.macros",
+          "text": "Energy",
+          "min_conf": 0.65
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "rack.macros",
+          "text": "Motion",
+          "min_conf": 0.65
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "rack.macros",
+          "text": "Tone",
+          "min_conf": 0.65
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "rack.macros",
+          "text": "Texture",
+          "min_conf": 0.65
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "rack.macros",
+          "text": "Width",
+          "min_conf": 0.65
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "rack.macros",
+          "text": "Space",
+          "min_conf": 0.65
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "rack.macros",
+          "text": "Impact",
+          "min_conf": 0.65
+        },
+        {
+          "type": "ui_text_contains",
+          "region": "rack.macros",
+          "text": "Morph",
+          "min_conf": 0.65
+        }
+      ],
+      "retries": 2,
+      "timeout_ms": 9000
+    }
+  ]
+}

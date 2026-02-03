@@ -13,6 +13,8 @@ Outcome is always one of:
 - CLEARED: Studio is ready. Voice + automation are safe to use.
 - BLOCKED: Blockers, next commands, and where to look in `runs/<id>/...`.
 
+`wub check` is the meter (read-only truth). `wub preflight` is the gate (enforces readiness).
+
 ## Readiness Pipeline (Definition of Done)
 
 1. Anchors pack configured
