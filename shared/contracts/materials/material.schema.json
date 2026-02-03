@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creative-os.local/contracts/materials/material.schema.json",
+  "title": "Material Contract",
+  "type": "object",
+  "required": ["id", "display_name", "category", "properties"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable material identifier"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "description": "High-level category (e.g. textile, polymer, composite)"
+    },
+    "properties": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["number", "string", "boolean"]
+      },
+      "description": "Declarative material properties and constraints"
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

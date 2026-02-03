@@ -55,3 +55,8 @@ jobs:
         run: |
           . .venv/bin/activate
           python kernel/tools/schema_validate.py
+
+      - name: Validate operator persona manifests
+        run: |
+          . .venv/bin/activate
+          bash kernel/tools/validate_persona_manifests.sh
