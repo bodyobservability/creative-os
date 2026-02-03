@@ -23,6 +23,7 @@ struct WubCli: AsyncParsableCommand {
       ValidateAnchors.self,
       CalibrateRegions.self,
       RegionsSelect.self,
+      AnchorsSelect.self,
 
       // Safety + ops
       MidiList.self,

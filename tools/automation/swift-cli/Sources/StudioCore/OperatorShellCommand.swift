@@ -33,15 +33,6 @@ struct UI: AsyncParsableCommand {
     let ap = cfg.anchorsPack ?? "specs/automation/anchors/<pack_id>"
     let hv = resolveWubBinary(repoRoot: repoRoot) ?? "wub"
 
-    // First-run wizard (runs once; stored in notes/LOCAL_CONFIG.json)
-    if (cfg.firstRunCompleted ?? false) == false {
-      try await runFirstRunWizard(repoRoot: repoRoot,
-                                  hv: hv,
-                                  anchorsPack: cfg.anchorsPack ?? "specs/automation/anchors/<pack_id>",
-                                  cfg: &cfg)
-    }
-
-
     let allItems: [MenuItem] = buildMenu(hv: hv, anchorsPack: ap)
 
     // UI modes
@@ -320,6 +311,8 @@ struct UI: AsyncParsableCommand {
 
   func buildMenu(hv: String, anchorsPack: String) -> [MenuItem] {
     [
+      .init(title: "Preflight (first run)", command: [hv, "preflight", "--auto"], danger: false, category: "Onboarding", isGuided: true),
+      .init(title: "Select Anchors Pack…", command: [hv, "anchors", "select"], danger: false, category: "Onboarding", isGuided: true),
       .init(title: "Sweep (modal guard)", command: [hv, "sweep", "--modal-test", "detect", "--allow-ocr-fallback"], danger: false, category: "Safety", isGuided: true),
       .init(title: "MIDI list", command: [hv, "midi", "list"], danger: false, category: "Runtime", isGuided: false),
       .init(title: "VRL validate", command: [hv, "vrl", "validate", "--mapping", WubDefaults.profileSpecPath("voice_runtime/v9_3_ableton_mapping.v1.yaml")], danger: false, category: "Runtime", isGuided: true),
@@ -932,4 +925,3 @@ struct UI: AsyncParsableCommand {
     return .init(info: info, warning: nil)
   }
 }
-
