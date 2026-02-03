@@ -34,11 +34,27 @@ Check station state:
 tools/automation/swift-cli/.build/release/wub station status --format json --no-write-report
 ```
 
+## Safety model (read before `setup`)
+
+- `wub setup` and `wub state-setup` default to dry-run and only execute allowlisted actions.
+- Mutating actions are gated by `StationGate` and emit receipts under `runs/<run_id>/`.
+- If an action is not in the allowlist, it will be visible in plans but not executed.
+
+## Operator Shell + Wizard
+
+- Launch the Operator Shell (TUI): `wub ui`
+- The first-run wizard guides build → sweep → index and records a receipt at:
+  - `runs/<wizard_run_id>/wizard_receipt.v1.json`
+- See:
+  - `profiles/hvlien/docs/voice_runtime/operator_shell.md`
+  - `profiles/hvlien/docs/voice_runtime/operator_shell_wizard.md`
+
 ## Profiles and packs
 
 - Profiles live in `profiles/` (for example `profiles/hvlien.profile.yaml`).
 - Packs live in `packs/` and can be attached to a profile.
 - Active selection is stored in `notes/WUB_CONFIG.json`.
+- Local-only overrides live in `notes/LOCAL_CONFIG.json` (not committed).
 
 ## Repo layout (current)
 
@@ -49,7 +65,19 @@ tools/automation/swift-cli/.build/release/wub station status --format json --no-
 - `docs/` — system docs and runbooks
 - `notes/` — operational notes and checklists
 
+## Maintainer workflow
+
+- CLI reference: `docs/automation/cli_reference.md`
+- First machine checklist: `docs/release/fresh_machine_smoke_checklist.md`
+- Versioning rules: `profiles/hvlien/notes/VERSIONING_RULES.md`
+- After changing specs/docs, regenerate checksums:
+  - `bash tools/checksum_generate.sh`
+- Schema validation:
+  - `tools/schema_validate.py`
+- CI workflows:
+  - `.github/workflows/governance.yml`
+  - `.github/workflows/swift-tests.yml`
+
 ## Roadmap (Studio Operator)
 
-The canonical roadmap lives in `docs/ROADMAP.md` and includes the
-Creative OS kernel plan plus the Studio Operator milestones.
+The canonical roadmap lives in `docs/ROADMAP.md`.

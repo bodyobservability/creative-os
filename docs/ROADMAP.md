@@ -11,9 +11,8 @@ Creative OS refactor plan.
 
 ## Creative OS kernel (safety-first refactor)
 
-The kernel roadmap is tracked as a staged PR sequence in
-`CREATIVE_OS_REFACTOR.md`. That plan is the authoritative reference for
-execution safety, gating, and schema governance.
+The kernel roadmap is tracked below as a staged PR sequence. Execution
+safety, gating, and schema governance are now enforced in code and CI.
 
 ### Kernel refactor sequence (summary)
 
