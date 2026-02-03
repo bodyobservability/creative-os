@@ -434,6 +434,9 @@ This repo contains a serious UI automation runtime (ApplyRunner, actuators, OCR,
 
 **Rollback:** revert move-only PR.
 
+PR 10 progress:
+- [x] Move actuation-related files into `Sources/StudioCore/Actuation/`.
+
 ---
 
 ## Definition of done
