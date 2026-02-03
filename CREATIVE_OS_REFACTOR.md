@@ -405,6 +405,10 @@ You already have checksum scripts and schemas. CI doesn’t enforce them.
 
 **Rollback:** revert CI steps.
 
+PR 9 progress:
+- [x] Add checksum verification to CI.
+- [x] Add schema validation script + CI step (skips missing docs).
+
 ---
 
 ## PR 10 — Actuation subsystem boundary prep (optional, later)

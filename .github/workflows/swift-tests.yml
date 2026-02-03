@@ -17,3 +17,7 @@ jobs:
       - name: Swift test
         working-directory: tools/automation/swift-cli
         run: swift test
+      - name: Verify checksums
+        run: tools/checksum_verify.sh
+      - name: Validate schemas
+        run: tools/schema_validate.py
