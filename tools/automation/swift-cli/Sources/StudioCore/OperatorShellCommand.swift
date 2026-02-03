@@ -51,14 +51,9 @@ struct UI: AsyncParsableCommand {
     var selected = 0
 
     // transient state
-    var lastCommandExit: Int32? = nil
-    var lastReceiptPath: String? = nil
-    var lastRunDir: String? = nil
-    var lastFailuresDir: String? = nil
-    var toast = ToastManager()
-    var showLogs = false
+    let runner = RunnerState()
+    let toast = ToastState()
     var logScroll = 0
-    var logBuffer = LogBuffer()
 
     let stdinRaw = StdinRawMode()
     try stdinRaw.enable()
@@ -70,8 +65,8 @@ struct UI: AsyncParsableCommand {
       let items = visibleItems(all: allItems, studioMode: studioMode, showAll: showAll)
       selected = min(selected, max(0, items.count - 1))
 
-      lastRunDir = latestRunDir()
-      lastFailuresDir = latestFailuresDir(inRunDir: lastRunDir)
+      runner.lastRunDir = latestRunDir()
+      runner.lastFailuresDir = latestFailuresDir(inRunDir: runner.lastRunDir)
 
       let snapshot = StudioStateEvaluator.evaluate(config: .init(
         repoRoot: repoRoot,
@@ -81,7 +76,7 @@ struct UI: AsyncParsableCommand {
         sweepStaleSeconds: 60 * 30,
         readyStaleSeconds: 60 * 30
       ))
-      let logLines = logBuffer.window(count: 20, scroll: logScroll)
+      let logLines = runner.logBuffer.window(count: 20, scroll: logScroll)
       let rec = RecommendedAction(
         summary: snapshot.recommended.summary,
         action: snapshot.recommended.command.map {
@@ -90,6 +85,8 @@ struct UI: AsyncParsableCommand {
       )
       let displayCheck = displayTargetCheck(anchorsPack: ap)
 
+      let confirming: Bool
+      if case .confirming = runner.state { confirming = true } else { confirming = false }
       printScreen(repoRoot: repoRoot,
                   hv: hv,
                   anchorsPack: ap,
@@ -98,18 +95,19 @@ struct UI: AsyncParsableCommand {
                   voiceMode: voiceMode,
                   studioMode: studioMode,
                   showAll: showAll,
-                  lastRun: lastRunDir,
-                  failuresDir: lastFailuresDir,
+                  lastRun: runner.lastRunDir,
+                  failuresDir: runner.lastFailuresDir,
                   snapshot: snapshot,
                   toastLine: toast.currentText,
-                  showLogs: showLogs,
+                  showLogs: runner.showLogs,
                   logLines: logLines,
+                  confirming: confirming,
                   items: items,
                   selected: selected,
-                  lastExit: lastCommandExit,
-                  lastReceipt: lastReceiptPath)
+                  lastExit: runner.lastExit,
+                  lastReceipt: runner.lastReceiptPath)
 
-      let key = readKey()
+      let key = InputDecoder.readKey(timeoutMs: runner.state == .running ? 100 : 250)
       switch key {
       case .quit:
         return
@@ -135,19 +133,19 @@ struct UI: AsyncParsableCommand {
         toast.info(showAll ? "All actions visible" : "Guided mode — essential actions only", key: "view_toggle")
         continue
       case .toggleLogs:
-        showLogs.toggle()
+        runner.showLogs.toggle()
         logScroll = 0
-        toast.info(showLogs ? "Logs opened" : "Logs hidden", key: "logs_toggle")
+        toast.info(runner.showLogs ? "Logs opened" : "Logs hidden", key: "logs_toggle")
         continue
       case .escape:
-        if showLogs {
-          showLogs = false
+        if runner.showLogs {
+          runner.showLogs = false
           toast.info("Back to actions", key: "logs_back")
           continue
         }
         continue
       case .bottom:
-        if showLogs {
+        if runner.showLogs {
           logScroll = 0
           toast.info("Jumped to bottom", key: "logs_bottom", ttl: 1.0)
           continue
@@ -158,57 +156,30 @@ struct UI: AsyncParsableCommand {
         continue
 
       case .up:
-        if showLogs {
-          logScroll = min(logScroll + 1, max(0, logBuffer.lines.count - 1))
+        if runner.showLogs {
+          logScroll = min(logScroll + 1, max(0, runner.logBuffer.lines.count - 1))
         } else {
           selected = max(0, selected - 1)
         }
 
       case .down:
-        if showLogs {
+        if runner.showLogs {
           logScroll = max(0, logScroll - 1)
         } else {
           selected = min(items.count - 1, selected + 1)
         }
 
       case .previewDriftPlan:
-        stdinRaw.disable()
-        print("\n# Drift remediation plan (preview)\n")
-        if dryRun {
-          print("(dry-run) would run: \(hv) drift plan --anchors-pack-hint \(ap)\n")
-        } else {
-          let output = try await captureProcessOutput([hv, "drift", "plan", "--anchors-pack-hint", ap])
-          print(output.isEmpty ? "(no output)" : output)
-        }
-        print("\nPress Enter to return…", terminator: "")
-        _ = readLine()
-        try stdinRaw.enable()
+        startAction(.init(command: [hv, "drift", "plan", "--anchors-pack-hint", ap], danger: false, label: "Drift: plan"),
+                    runner: runner, toast: toast, dryRun: dryRun)
 
       case .readyVerify:
-        stdinRaw.disable()
-        print("\n# READY verifier\n")
-        if dryRun {
-          print("(dry-run) would run: \(hv) ready --anchors-pack-hint \(ap)\n")
-        } else {
-          let output = try await captureProcessOutput([hv, "ready", "--anchors-pack-hint", ap])
-          print(output.isEmpty ? "(no output)" : output)
-        }
-        print("\nPress Enter to return…", terminator: "")
-        _ = readLine()
-        try stdinRaw.enable()
+        startAction(.init(command: [hv, "ready", "--anchors-pack-hint", ap], danger: false, label: "Ready: verify"),
+                    runner: runner, toast: toast, dryRun: dryRun)
 
       case .repairRun:
-        stdinRaw.disable()
-        print("\n# Repair recipe\n")
-        if dryRun {
-          print("(dry-run) would run: \(hv) repair --anchors-pack-hint \(ap)\n")
-        } else {
-          let output = try await captureProcessOutput([hv, "repair", "--anchors-pack-hint", ap])
-          print(output.isEmpty ? "(no output)" : output)
-        }
-        print("\nPress Enter to return…", terminator: "")
-        _ = readLine()
-        try stdinRaw.enable()
+        startAction(.init(command: [hv, "repair", "--anchors-pack-hint", ap], danger: true, label: "Repair: run recipe"),
+                    runner: runner, toast: toast, dryRun: dryRun)
 
       case .runRecommended:
         if let action = rec.action {
@@ -216,21 +187,15 @@ struct UI: AsyncParsableCommand {
             toast.blocked("Next action is risky and hidden — press s to proceed", key: "next_hidden_safe")
             continue
           }
-          try await runAction(action, stdinRaw: stdinRaw, dryRun: dryRun,
-                              lastExit: &lastCommandExit, lastReceipt: &lastReceiptPath,
-                              lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
-          appendRunSummary(action: action,
-                           logBuffer: &logBuffer,
-                           lastExit: lastCommandExit,
-                           lastRunDir: lastRunDir,
-                           lastReceipt: lastReceiptPath)
-          showLogs = true
-          if let code = lastCommandExit, code == 0 {
-            toast.success("Completed successfully", key: "action_ok")
-          } else if let _ = lastCommandExit {
-            let tail = lastRunDir ?? "runs/<id>/"
-            toast.blocked("Action failed — see \(tail) for details", key: "action_fail")
+          if case .running = runner.state {
+            toast.info("Action running — wait", key: "action_running")
+            continue
           }
+          if case .confirming = runner.state {
+            toast.info("Confirmation pending", key: "action_confirm_pending")
+            continue
+          }
+          startAction(action, runner: runner, toast: toast, dryRun: dryRun)
         } else {
           toast.info("No pending actions — studio is ready", key: "no_next_action", ttl: 1.8)
         }
@@ -238,39 +203,33 @@ struct UI: AsyncParsableCommand {
 
       case .enter:
         let item = items[selected]
-        try await runAction(.init(command: item.command, danger: item.danger, label: item.title),
-                            stdinRaw: stdinRaw, dryRun: dryRun,
-                            lastExit: &lastCommandExit, lastReceipt: &lastReceiptPath,
-                            lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
-        appendRunSummary(action: .init(command: item.command, danger: item.danger, label: item.title),
-                         logBuffer: &logBuffer,
-                         lastExit: lastCommandExit,
-                         lastRunDir: lastRunDir,
-                         lastReceipt: lastReceiptPath)
-        showLogs = true
-        if let code = lastCommandExit, code == 0 {
-          toast.success("Completed successfully", key: "action_ok")
-        } else if let _ = lastCommandExit {
-          let tail = lastRunDir ?? "runs/<id>/"
-          toast.blocked("Action failed — see \(tail) for details", key: "action_fail")
+        if case .running = runner.state {
+          toast.info("Action running — wait", key: "action_running")
+          continue
         }
+        if case .confirming = runner.state {
+          toast.info("Confirmation pending", key: "action_confirm_pending")
+          continue
+        }
+        startAction(.init(command: item.command, danger: item.danger, label: item.title),
+                    runner: runner, toast: toast, dryRun: dryRun)
 
       case .openReceipt:
-        if let rp = lastReceiptPath {
+        if let rp = runner.lastReceiptPath {
           _ = try? await OperatorShellService.openPath(rp)
           toast.success("Opened receipt", key: "open_receipt_ok")
         } else {
           toast.blocked("No receipt recorded yet", key: "open_receipt_missing")
         }
       case .openRun:
-        if let rd = lastRunDir {
+        if let rd = runner.lastRunDir {
           _ = try? await OperatorShellService.openPath(rd)
           toast.success("Opened run folder", key: "open_run_ok")
         } else {
           toast.blocked("No run folder yet", key: "open_run_missing")
         }
       case .openFailures:
-        if let fd = lastFailuresDir {
+        if let fd = runner.lastFailuresDir {
           _ = try? await OperatorShellService.openPath(fd)
           toast.success("Opened failures folder", key: "open_fail_ok")
         } else {
@@ -282,24 +241,27 @@ struct UI: AsyncParsableCommand {
         if n >= 1 && n <= items.count {
           selected = n - 1
           let item = items[selected]
-          try await runAction(.init(command: item.command, danger: item.danger, label: item.title),
-                              stdinRaw: stdinRaw, dryRun: dryRun,
-                              lastExit: &lastCommandExit, lastReceipt: &lastReceiptPath,
-                              lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
-          appendRunSummary(action: .init(command: item.command, danger: item.danger, label: item.title),
-                           logBuffer: &logBuffer,
-                           lastExit: lastCommandExit,
-                           lastRunDir: lastRunDir,
-                           lastReceipt: lastReceiptPath)
-          showLogs = true
-          if let code = lastCommandExit, code == 0 {
-            toast.success("Completed successfully", key: "action_ok")
-          } else if let _ = lastCommandExit {
-            let tail = lastRunDir ?? "runs/<id>/"
-            toast.blocked("Action failed — see \(tail) for details", key: "action_fail")
+          if case .running = runner.state {
+            toast.info("Action running — wait", key: "action_running")
+            continue
           }
+          if case .confirming = runner.state {
+            toast.info("Confirmation pending", key: "action_confirm_pending")
+            continue
+          }
+          startAction(.init(command: item.command, danger: item.danger, label: item.title),
+                      runner: runner, toast: toast, dryRun: dryRun)
         } else {
           toast.info("No action at that number", key: "no_action_number")
+        }
+      case .yes:
+        if case .confirming(let action) = runner.state {
+          beginRun(action, runner: runner, toast: toast, dryRun: dryRun)
+        }
+      case .no:
+        if case .confirming = runner.state {
+          runner.state = .idle
+          toast.info("Action cancelled — studio state unchanged", key: "danger_cancel", ttl: 1.8)
         }
       case .none:
         continue
@@ -308,6 +270,34 @@ struct UI: AsyncParsableCommand {
   }
 
   // MARK: Menu & modes
+
+  enum RunState: Equatable {
+    case idle
+    case confirming(RecommendedAction.Action)
+    case running(RecommendedAction.Action)
+  }
+
+  final class RunnerState {
+    var state: RunState = .idle
+    var process: Process?
+    var partialOutput: String = ""
+    var logBuffer = LogBuffer()
+    var lastExit: Int32? = nil
+    var lastReceiptPath: String? = nil
+    var lastRunDir: String? = nil
+    var lastFailuresDir: String? = nil
+    var showLogs: Bool = false
+  }
+
+  final class ToastState {
+    var manager = ToastManager()
+
+    func tick() { manager.tick() }
+    var currentText: String? { manager.currentText }
+    func info(_ msg: String, key: String, ttl: TimeInterval = 1.5) { manager.info(msg, key: key, ttl: ttl) }
+    func success(_ msg: String, key: String, ttl: TimeInterval = 1.2) { manager.success(msg, key: key, ttl: ttl) }
+    func blocked(_ msg: String, key: String, ttl: TimeInterval = 2.5) { manager.blocked(msg, key: key, ttl: ttl) }
+  }
 
   struct MenuItem {
     let title: String
@@ -481,10 +471,84 @@ struct UI: AsyncParsableCommand {
                         lastExit: Int32?,
                         lastRunDir: String?,
                         lastReceipt: String?) {
-    logBuffer.append("> " + action.command.joined(separator: " "))
     if let exit = lastExit { logBuffer.append("exit: \(exit)") }
     if let rd = lastRunDir { logBuffer.append("run: \(rd)") }
     if let rp = lastReceipt { logBuffer.append("receipt: \(rp)") }
+  }
+
+  func startAction(_ action: RecommendedAction.Action,
+                   runner: RunnerState,
+                   toast: ToastState,
+                   dryRun: Bool) {
+    if action.danger && !dryRun {
+      runner.state = .confirming(action)
+      toast.blocked("This action modifies the studio state — confirmation required", key: "danger_confirm", ttl: 1.0)
+      return
+    }
+    beginRun(action, runner: runner, toast: &toast, dryRun: dryRun)
+  }
+
+  func beginRun(_ action: RecommendedAction.Action,
+                runner: RunnerState,
+                toast: ToastState,
+                dryRun: Bool) {
+    runner.logBuffer.append("> " + action.command.joined(separator: " "))
+    runner.showLogs = true
+    runner.state = .running(action)
+    runner.partialOutput = ""
+
+    if dryRun {
+      runner.lastExit = 0
+      runner.lastRunDir = latestRunDir()
+      runner.lastReceiptPath = discoverLatestReceipt(inRunDir: runner.lastRunDir)
+      runner.lastFailuresDir = latestFailuresDir(inRunDir: runner.lastRunDir)
+      appendRunSummary(action: action,
+                       logBuffer: &runner.logBuffer,
+                       lastExit: runner.lastExit,
+                       lastRunDir: runner.lastRunDir,
+                       lastReceipt: runner.lastReceiptPath)
+      runner.state = .idle
+      toast.success("Completed successfully", key: "action_ok")
+      return
+    }
+
+    do {
+      runner.process = try StreamingProcess.start(args: action.command, onChunk: { chunk in
+        let normalized = chunk.replacingOccurrences(of: "\r", with: "")
+        runner.partialOutput.append(normalized)
+        let parts = runner.partialOutput.split(separator: "\n", omittingEmptySubsequences: false)
+        if parts.count > 1 {
+          for line in parts.dropLast() {
+            runner.logBuffer.append(String(line))
+          }
+          runner.partialOutput = String(parts.last ?? "")
+        }
+      }, onExit: { code in
+        if !runner.partialOutput.isEmpty {
+          runner.logBuffer.append(runner.partialOutput)
+          runner.partialOutput = ""
+        }
+        runner.lastExit = code
+        runner.lastRunDir = self.latestRunDir()
+        runner.lastReceiptPath = self.discoverLatestReceipt(inRunDir: runner.lastRunDir)
+        runner.lastFailuresDir = self.latestFailuresDir(inRunDir: runner.lastRunDir)
+        self.appendRunSummary(action: action,
+                              logBuffer: &runner.logBuffer,
+                              lastExit: runner.lastExit,
+                              lastRunDir: runner.lastRunDir,
+                              lastReceipt: runner.lastReceiptPath)
+        runner.state = .idle
+        if code == 0 {
+          toast.success("Completed successfully", key: "action_ok")
+        } else {
+          let tail = runner.lastRunDir ?? "runs/<id>/"
+          toast.blocked("Action failed — see \(tail) for details", key: "action_fail")
+        }
+      })
+    } catch {
+      runner.state = .idle
+      toast.blocked("Action failed to start — see logs", key: "action_start_fail")
+    }
   }
 
   // MARK: render
@@ -503,6 +567,7 @@ struct UI: AsyncParsableCommand {
                    toastLine: String?,
                    showLogs: Bool,
                    logLines: [String],
+                   confirming: Bool,
                    items: [MenuItem],
                    selected: Int,
                    lastExit: Int32?,
@@ -538,7 +603,11 @@ struct UI: AsyncParsableCommand {
     if showLogs {
       print("LOG  (last run)")
       for line in logLines { print(line) }
-      if let tl = toastLine { print(tl) }
+      if confirming {
+        print("confirm: This action modifies studio state. Proceed?  (y)es / (n)o")
+      } else if let tl = toastLine {
+        print(tl)
+      }
       print("keys: ↑/↓ scroll • 0 bottom • ESC back • o run • f fail • r receipt • q quit")
     } else {
       // In voice mode, show explicit numeric guidance
@@ -553,7 +622,11 @@ struct UI: AsyncParsableCommand {
         }
       }
       print("\n(*) risky (hidden in Studio Mode)")
-      if let tl = toastLine { print(tl) }
+      if confirming {
+        print("confirm: This action modifies studio state. Proceed?  (y)es / (n)o")
+      } else if let tl = toastLine {
+        print(tl)
+      }
       print("keys: ↑/↓ j/k • Enter run • Space recommended • l logs • o run • f fail • r receipt • q quit")
     }
   }
@@ -630,58 +703,6 @@ struct UI: AsyncParsableCommand {
       }
       do { try p.run() } catch { cont.resume(throwing: error) }
     }
-  }
-
-  // MARK: input
-
-  enum Key {
-    case up, down, enter, quit
-    case openReceipt, openRun, openFailures
-    case toggleAll, refresh, runRecommended, previewDriftPlan, readyVerify, repairRun
-    case toggleVoiceMode, toggleStudioMode, toggleLogs, escape, bottom
-    case selectNumber(Int)
-    case none
-  }
-
-  func readKey() -> Key {
-    var buf: [UInt8] = [0,0,0]
-    let n = read(STDIN_FILENO, &buf, 3)
-    if n <= 0 { return .none }
-    if buf[0] == 0x1B && buf[1] == 0x5B {
-      if buf[2] == 0x41 { return .up }
-      if buf[2] == 0x42 { return .down }
-      return .none
-    }
-    if buf[0] == 0x1B { return .escape }
-    let c = buf[0]
-
-    // number keys 1-9 -> select
-    if c >= asciiByte("1") && c <= asciiByte("9") {
-      return .selectNumber(Int(c - asciiByte("0")))
-    }
-
-    if c == 0x20 { return .runRecommended }
-    if c == asciiByte("p") { return .previewDriftPlan }
-    if c == asciiByte("c") { return .readyVerify }
-    if c == asciiByte("g") { return .repairRun }
-    if c == asciiByte("v") { return .toggleVoiceMode }
-    if c == asciiByte("s") { return .toggleStudioMode }
-    if c == asciiByte("l") { return .toggleLogs }
-    if c == asciiByte("0") { return .bottom }
-    if c == 0x0D || c == 0x0A { return .enter }
-    if c == asciiByte("q") { return .quit }
-    if c == asciiByte("r") { return .openReceipt }
-    if c == asciiByte("f") { return .openFailures }
-    if c == asciiByte("o") { return .openRun }
-    if c == asciiByte("a") { return .toggleAll }
-    if c == asciiByte("R") { return .refresh }
-    if c == asciiByte("k") { return .up }
-    if c == asciiByte("j") { return .down }
-    return .none
-  }
-
-  private func asciiByte(_ s: String) -> UInt8 {
-    return s.utf8.first ?? 0
   }
 
   // MARK: First-run wizard
