@@ -694,11 +694,7 @@ private func emit<T: Encodable>(_ value: T, json: Bool) throws {
   printSummary(value)
 }
 
-let stateSetupAllowlist: Set<String> = [
-  "ready.check",
-  "drift.check",
-  "station.status"
-]
+let stateSetupAllowlist: Set<String> = CreativeOSActionCatalog.stateSetupAllowlist
 
 struct SetupEvaluation {
   let executable: [CreativeOS.PlanStep]
@@ -707,6 +703,15 @@ struct SetupEvaluation {
 }
 
 func evaluateSetupSteps(_ steps: [CreativeOS.PlanStep], allowlist: Set<String>) -> SetupEvaluation {
+  for actionId in allowlist {
+    guard CreativeOSActionCatalog.spec(for: actionId) != nil else {
+      fatalError("state-setup allowlist contains unknown action id '\(actionId)' (missing from CreativeOSActionCatalog)")
+    }
+    guard ServiceExecutor.supports(actionId: actionId) else {
+      fatalError("state-setup allowlist contains unsupported action id '\(actionId)' (no ServiceExecutor handler)")
+    }
+  }
+
   var executable: [CreativeOS.PlanStep] = []
   var skipped: [(CreativeOS.PlanStep, String)] = []
   var manual: [CreativeOS.PlanStep] = []

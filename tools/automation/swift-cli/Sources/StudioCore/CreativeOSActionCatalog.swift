@@ -7,6 +7,7 @@ struct CreativeOSActionCatalog {
     let description: String
     let configKeys: [String]
     let requiresStationGate: Bool
+    let enabledInStateSetup: Bool
 
     var actionRef: CreativeOS.ActionRef {
       CreativeOS.ActionRef(id: id, kind: kind, description: description)
@@ -78,7 +79,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.regionsConfig,
       ConfigKey.runsDir
     ],
-    requiresStationGate: false
+    requiresStationGate: false,
+    enabledInStateSetup: false
   )
 
   static let readyCheck = ActionSpec(
@@ -91,7 +93,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.runDir,
       ConfigKey.writeReport
     ],
-    requiresStationGate: false
+    requiresStationGate: false,
+    enabledInStateSetup: true
   )
 
   static let driftCheck = ActionSpec(
@@ -107,7 +110,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.groupByFix,
       ConfigKey.onlyFail
     ],
-    requiresStationGate: false
+    requiresStationGate: false,
+    enabledInStateSetup: true
   )
 
   static let driftFix = ActionSpec(
@@ -124,7 +128,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.out,
       ConfigKey.runsDir
     ],
-    requiresStationGate: true
+    requiresStationGate: true,
+    enabledInStateSetup: false
   )
 
   static let assetsExportAll = ActionSpec(
@@ -148,7 +153,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.vrlMapping,
       ConfigKey.force
     ],
-    requiresStationGate: true
+    requiresStationGate: true,
+    enabledInStateSetup: false
   )
 
   static let voiceRun = ActionSpec(
@@ -167,7 +173,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.sessionProfile,
       ConfigKey.sessionProfilePath
     ],
-    requiresStationGate: true
+    requiresStationGate: true,
+    enabledInStateSetup: false
   )
 
   static let rackInstall = ActionSpec(
@@ -183,7 +190,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.sessionProfile,
       ConfigKey.sessionProfilePath
     ],
-    requiresStationGate: true
+    requiresStationGate: true,
+    enabledInStateSetup: false
   )
 
   static let rackVerify = ActionSpec(
@@ -199,7 +207,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.sessionProfile,
       ConfigKey.sessionProfilePath
     ],
-    requiresStationGate: true
+    requiresStationGate: true,
+    enabledInStateSetup: false
   )
 
   static let sessionCompile = ActionSpec(
@@ -213,7 +222,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.fix,
       ConfigKey.runsDir
     ],
-    requiresStationGate: true
+    requiresStationGate: true,
+    enabledInStateSetup: false
   )
 
   static let indexBuild = ActionSpec(
@@ -225,7 +235,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.outDir,
       ConfigKey.runsDir
     ],
-    requiresStationGate: false
+    requiresStationGate: false,
+    enabledInStateSetup: false
   )
 
   static let releasePromoteProfile = ActionSpec(
@@ -242,7 +253,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.rackManifest,
       ConfigKey.runsDir
     ],
-    requiresStationGate: true
+    requiresStationGate: true,
+    enabledInStateSetup: false
   )
 
   static let reportGenerate = ActionSpec(
@@ -253,7 +265,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.runDir,
       ConfigKey.out
     ],
-    requiresStationGate: false
+    requiresStationGate: false,
+    enabledInStateSetup: false
   )
 
   static let repairRun = ActionSpec(
@@ -267,7 +280,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.overwrite,
       ConfigKey.runsDir
     ],
-    requiresStationGate: true
+    requiresStationGate: true,
+    enabledInStateSetup: false
   )
 
   static let stationStatus = ActionSpec(
@@ -281,7 +295,8 @@ struct CreativeOSActionCatalog {
       ConfigKey.anchorsPackHint,
       ConfigKey.runsDir
     ],
-    requiresStationGate: false
+    requiresStationGate: false,
+    enabledInStateSetup: true
   )
 
   static let all: [ActionSpec] = [
@@ -303,6 +318,10 @@ struct CreativeOSActionCatalog {
 
   static func spec(for id: String) -> ActionSpec? {
     all.first { $0.id == id }
+  }
+
+  static var stateSetupAllowlist: Set<String> {
+    Set(all.filter { $0.enabledInStateSetup }.map { $0.id })
   }
 
   static func sweeperConfig(anchorsPack: String?,

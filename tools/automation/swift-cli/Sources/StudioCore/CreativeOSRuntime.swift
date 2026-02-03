@@ -1,6 +1,17 @@
 import Foundation
 
 extension CreativeOS {
+  enum CheckSetError: Error, CustomStringConvertible {
+    case duplicateCheckKey(String)
+
+    var description: String {
+      switch self {
+      case .duplicateCheckKey(let key):
+        return "duplicate check key '\(key)' (expected unique agent/id per sweep)"
+      }
+    }
+  }
+
   protocol Agent {
     var id: String { get }
     func registerChecks(_ r: inout CheckRegistry)
@@ -124,7 +135,8 @@ extension CreativeOS {
         results.append(try entry.run())
       }
       results.append(contentsOf: mismatchChecks(observed: observed, desired: desired))
-      return results.sorted { ($0.agent, $0.id) < ($1.agent, $1.id) }
+      try enforceUniqueCheckKeys(results)
+      return results.sorted(by: checkOrder)
     }
 
     private func diff(observed: ObservedState, desired: DesiredState) -> [PlanStep] {
@@ -170,7 +182,8 @@ extension CreativeOS {
                                      observed: nil,
                                      expected: slicePayload(desiredSlice),
                                      evidence: [],
-                                     suggestedActions: []))
+                                     suggestedActions: mismatchSuggestedActions(agentId: desiredSlice.agentId,
+                                                                              kind: "observed_state_missing")))
           continue
         }
         if !stateMatches(observed: observedSlice, desired: desiredSlice) {
@@ -181,7 +194,8 @@ extension CreativeOS {
                                      observed: slicePayload(observedSlice),
                                      expected: slicePayload(desiredSlice),
                                      evidence: [],
-                                     suggestedActions: []))
+                                     suggestedActions: mismatchSuggestedActions(agentId: desiredSlice.agentId,
+                                                                              kind: "observed_state_mismatch")))
         }
       }
 
@@ -218,6 +232,49 @@ extension CreativeOS {
         "packs": .array(profile.packs.map { .string($0) })
       ])
       return DesiredStateSlice(agentId: "profile", data: nil, raw: json)
+    }
+
+    // MARK: - Check ordering + uniqueness
+
+    private func enforceUniqueCheckKeys(_ results: [CheckResult]) throws {
+      var seen = Set<String>()
+      for result in results {
+        let key = "\(result.agent)/\(result.id)"
+        if seen.contains(key) { throw CheckSetError.duplicateCheckKey(key) }
+        seen.insert(key)
+      }
+    }
+
+    private func severityRank(_ severity: CheckSeverity) -> Int {
+      switch severity {
+      case .fail: return 0
+      case .warn: return 1
+      case .pass: return 2
+      }
+    }
+
+    private func checkOrder(_ lhs: CheckResult, _ rhs: CheckResult) -> Bool {
+      let lhsRank = severityRank(lhs.severity)
+      let rhsRank = severityRank(rhs.severity)
+      if lhsRank != rhsRank { return lhsRank < rhsRank }
+      if lhs.agent != rhs.agent { return lhs.agent < rhs.agent }
+      return lhs.id < rhs.id
+    }
+
+    // MARK: - Minimal suggested actions for mismatch checks
+
+    private func mismatchSuggestedActions(agentId: String, kind: String) -> [ActionRef] {
+      let docs = ActionRef(
+        id: "docs.\(agentId).\(kind)",
+        kind: .docs,
+        description: "Review runbook for \(agentId) (\(kind))"
+      )
+      let open = ActionRef(
+        id: "open.\(agentId).state",
+        kind: .open,
+        description: "Open state details for \(agentId)"
+      )
+      return [docs, open]
     }
   }
 
