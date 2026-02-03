@@ -1,4 +1,6 @@
-# AI WORKLOAD SPEC v1.2 - CONTROLLER MAPPING (OFFLINE)
+# Controller Mapping Workload (Offline)
+
+Version: current
 
 Status: Active
 
@@ -32,7 +34,7 @@ It does NOT:
 The workload outputs a **Controller Mapping Recommendation Bundle** directory:
 
 ```
-ai/bundles/controller_mapping/v1.2/<bundle_id>/
+ai/bundles/controller_mapping/current/<bundle_id>/
   mapping_bundle.json
   families.json
   features_summary.json
@@ -78,7 +80,7 @@ Example family names (illustrative):
 - SUBHEAVY
 
 ## 5. Macro inference and recommendations
-Macro taxonomy is fixed (see `controllers/MACRO_TAXONOMY_v1.0.md`).
+Macro taxonomy is fixed (see `controllers/macro_taxonomy.md`).
 
 For each family, recommend:
 - which underlying device parameters should map to each macro

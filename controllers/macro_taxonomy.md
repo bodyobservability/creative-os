@@ -1,4 +1,6 @@
-# Macro Taxonomy v1.0
+# Macro Taxonomy
+
+Version: current
 
 This is the contract for bass performance control.
 

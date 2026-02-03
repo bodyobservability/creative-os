@@ -54,7 +54,7 @@ Stop and ask if anything deviates.
 
 ## 4) Build checklist for each finishing bay
 
-### 4.1 Primary Bay: `HVLIEN_FINISHING_BAY_v1.als`
+### 4.1 Primary Bay: `HVLIEN_FINISHING_BAY.als`
 Follow `profiles/hvlien/specs/creative_os_audio_system_ableton_artifacts_v1.0-a.md`, Section 3.
 
 Must verify:

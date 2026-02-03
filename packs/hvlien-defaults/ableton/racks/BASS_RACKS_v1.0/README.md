@@ -16,7 +16,7 @@ Examples:
 
 ## Required macros (contract)
 Every rack MUST expose **8 macros** following:
-- `controllers/MACRO_TAXONOMY_v1.0.md`
+- `controllers/macro_taxonomy.md`
 
 Macro order must remain 1..8. Do not shuffle.
 

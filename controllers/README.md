@@ -10,9 +10,9 @@ These docs are not optional: the goal is to make bass production repeatable at h
 - Change log for mapping semantics
 
 ## Files
-- `MACRO_TAXONOMY_v1.0.md` - the 8-macro contract (must not drift)
-- `APC40_LAYOUT_v1.0.md` - energy and capture surface
-- `MPK_MINI_LAYOUT_v1.0.md` - pitch and intent surface
+- `macro_taxonomy.md` - the 8-macro contract (must not drift)
+- `apc40_layout.md` - energy and capture surface
+- `mpk_mini_layout.md` - pitch and intent surface
 
 ## Implementation notes
 These docs must be implemented in Ableton as:

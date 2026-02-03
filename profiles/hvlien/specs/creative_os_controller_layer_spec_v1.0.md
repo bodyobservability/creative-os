@@ -7,7 +7,7 @@ Hvlien's throughput depends on a tight loop: 1) Capture emotion fast (iOS Voloco
  Macros touch synth/device parameters.
  Audio is committed early. ## 1. Non-negotiables
 1) Macro-only control
- Controllers map to a fixed macro taxonomy (see controllers/MACRO_TAXONOMY_v1.0.md).
+ Controllers map to a fixed macro taxonomy (see controllers/macro_taxonomy.md).
  Normal play does NOT directly map knobs to dozens of raw parameters. 2) Session-invariant mappings
  The same knob/fader does the same conceptual thing in every bass session.
  Changes require a version bump and a written change log. 3) Performance first
@@ -69,4 +69,4 @@ AI may produce a Controller Mapping Recommendation Bundle for a given corpus of 
  sound-family clusters
  suggested macro assignments
  suggested ranges and curves
- suggested APC40 bank layouts The bundle is human-reviewed and then manually implemented in Ableton/Serum. Reference: ai/workloads/AI_WORKLOAD_SPEC_v1.2_CONTROLLER_MAPPING.md
+ suggested APC40 bank layouts The bundle is human-reviewed and then manually implemented in Ableton/Serum. Reference: ai/workloads/controller_mapping.md

@@ -1,6 +1,6 @@
 # HVLIEN AUDIO SYSTEM — ABLETON ARTIFACTS
 ## SPEC v1.0-A (EXTENSION) This document specifies the required Ableton artifacts and their canonical structure.  ## 1. ABLETON ARTIFACT INVENTORY (REQUIRED) ### Ableton Project Files
- `packs/hvlien-defaults/ableton/finishing-bays/HVLIEN_FINISHING_BAY_v1.als`
+ `packs/hvlien-defaults/ableton/finishing-bays/HVLIEN_FINISHING_BAY.als`
  `packs/hvlien-defaults/ableton/finishing-bays/HVLIEN_FINISHING_BAY_DARK.als`
  `packs/hvlien-defaults/ableton/finishing-bays/HVLIEN_FINISHING_BAY_LIGHT.als`  ## 2. GLOBAL PREFERENCES (MUST MATCH) | Setting | Value |
 |-|-|
@@ -13,7 +13,7 @@
 | CPU Multicore | ON |
 | File Save Compression | OFF |
 | Arrangement Loop | OFF |  ## 3. PRIMARY FINISHING BAY — DETAIL ### File
-`HVLIEN_FINISHING_BAY_v1.als` ### Track Layout (Exact)
+`HVLIEN_FINISHING_BAY.als` ### Track Layout (Exact)
  `VOLOCO_STEM` (Audio) → `MUSIC_BUS` (Group) → Master
  `LOW_CONTROL` (Audio, sends only, muted) for sidechain reference
  `MASTER_PRINT` (Audio, resampling) to print final pass ### VOLOCO_STEM

@@ -1,4 +1,6 @@
-# APC40 Layout v1.0
+# APC40 Layout
+
+Version: current
 
 Purpose: make bass sound design and capture **performable**. APC40 is the "energy and commitment" surface.
 
@@ -10,7 +12,7 @@ This layout is written so it can be implemented on APC40 mk1 or mk2. If a contro
   2) BASS_RESAMPLE (audio)
   3) VOCAL_REFERENCE (optional)
   4) DRUMS/KEY (optional)
-- BASS_MAIN exposes 8 macros (Macro 1..8) per `MACRO_TAXONOMY_v1.0.md`.
+- BASS_MAIN exposes 8 macros (Macro 1..8) per `macro_taxonomy.md`.
 - BASS_RESAMPLE is armed and ready for capture when in bass mode.
 
 ## High-level mapping strategy

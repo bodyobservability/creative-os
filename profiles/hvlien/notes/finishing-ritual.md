@@ -5,7 +5,7 @@ Goal: produce a release-ready master in one pass, with zero creative decisions.
 ## Steps
 1. Export WAV from Voloco (source of truth).
 2. Open the chosen finishing bay:
-   - Primary: `HVLIEN_FINISHING_BAY_v1.als`
+   - Primary: `HVLIEN_FINISHING_BAY.als`
    - Dark: `HVLIEN_FINISHING_BAY_DARK.als`
    - Light: `HVLIEN_FINISHING_BAY_LIGHT.als`
 3. Drag the WAV onto `VOLOCO_STEM`.

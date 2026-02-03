@@ -1,4 +1,6 @@
-# AI_WORKLOAD_SPEC_v1.1
+# AI Workload Spec
+
+Version: current
 
 Primary canonical input: **Voloco WAV exports**.
 

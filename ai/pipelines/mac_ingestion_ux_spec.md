@@ -1,4 +1,6 @@
-# MAC_INGESTION_UX_SPEC_v1.1
+# Mac Ingestion UX Spec
+
+Version: current
 
 Goal: ingest AI outputs without adding drag or new UI dependencies.
 

@@ -64,5 +64,5 @@
  system quality improves over time without added drag  ## 7.4 Controller mapping bundles (catalog-level)
 Controller mapping bundles are generated against the whole catalog (or a defined subset) and are versioned separately from per-track bundles. Suggested structure: ```
 /HVLIEN/AI/inbox/controller_mapping/<bundle_id>/ mapping_bundle.json families.json curves.json features_summary.json README.md
-``` These bundles are advisory and must be implemented manually in Ableton/Serum, then versioned under `controllers/` and `ableton/`. Reference workload: `ai/workloads/AI_WORKLOAD_SPEC_v1.2_CONTROLLER_MAPPING.md`
+``` These bundles are advisory and must be implemented manually in Ableton/Serum, then versioned under `controllers/` and `ableton/`. Reference workload: `ai/workloads/controller_mapping.md`
 # END SPEC v1.1

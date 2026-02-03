@@ -1,4 +1,6 @@
-# MPK Mini Layout v1.0
+# MPK Mini Layout
+
+Version: current
 
 Purpose: MPK Mini is the "pitch and intent" surface.
 
