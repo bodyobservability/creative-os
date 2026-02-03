@@ -8,21 +8,21 @@ exports:
     description: Export the Space return FX rack preset.
     track_name: Space
     device_name_contains: "HVLIEN"
-    output_path: packs/hvlien-defaults/ableton/racks/RETURNS_v1.0/HVLIEN_RETURN_SPACE_v1.0.adg
+    output_path: packs/hvlien-defaults/ableton/racks/RETURNS/HVLIEN_RETURN_SPACE_v1.0.adg
 
   - id: return_delay_rack
     kind: rack_preset
     description: Export the Delay return FX rack preset.
     track_name: Delay
     device_name_contains: "HVLIEN"
-    output_path: packs/hvlien-defaults/ableton/racks/RETURNS_v1.0/HVLIEN_RETURN_DELAY_v1.0.adg
+    output_path: packs/hvlien-defaults/ableton/racks/RETURNS/HVLIEN_RETURN_DELAY_v1.0.adg
 
   - id: master_safety_rack
     kind: rack_preset
     description: Export the Master safety chain preset (Limiter/Utility/Glue etc).
     track_name: Master
     device_name_contains: "HVLIEN"
-    output_path: packs/hvlien-defaults/ableton/racks/MASTER_v1.0/HVLIEN_MASTER_SAFETY_v1.0.adg
+    output_path: packs/hvlien-defaults/ableton/racks/MASTER/HVLIEN_MASTER_SAFETY_v1.0.adg
 
 verification:
   file_must_exist: true
