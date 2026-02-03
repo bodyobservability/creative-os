@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://studio-operator.local/profiles/hvlien/specs/sonic/schemas/sonic_receipt.v1.schema.json",
+  "$id": "https://creative-os.local/profiles/hvlien/specs/sonic/schemas/sonic_receipt.v1.schema.json",
   "title": "HVLIEN Sonic Receipt v1",
   "type": "object",
   "additionalProperties": false,

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://studio-operator.local/specs/automation/schemas/pack_signatures.v1.schema.json",
+  "$id": "https://creative-os.local/specs/automation/schemas/pack_signatures.v1.schema.json",
   "title": "Studio Pack Signatures v1",
   "type": "object",
   "additionalProperties": false,
