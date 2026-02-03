@@ -47,7 +47,7 @@ struct UI: AsyncParsableCommand {
     // UI modes
     var voiceMode = false           // minimizes letters/keys, emphasizes numbers
     var studioMode = true           // hide risky commands by default
-    var showAll = false             // TOP/ALL view (when studioMode is off, this is the normal toggle)
+    var showAll = false             // GUIDED/ALL view (when studioMode is off, this is the normal toggle)
     var selected = 0
 
     // transient state
@@ -110,6 +110,10 @@ struct UI: AsyncParsableCommand {
         continue
 
       case .toggleAll:
+        if studioMode {
+          // View is locked in SAFE mode.
+          continue
+        }
         showAll.toggle()
         selected = 0
         continue
@@ -209,32 +213,33 @@ struct UI: AsyncParsableCommand {
     let command: [String]
     let danger: Bool
     let category: String
+    let isGuided: Bool
   }
 
   func buildMenu(hv: String, anchorsPack: String) -> [MenuItem] {
     [
-      .init(title: "Sweep (modal guard)", command: [hv, "sweep", "--modal-test", "detect", "--allow-ocr-fallback"], danger: false, category: "Safety"),
-      .init(title: "MIDI list", command: [hv, "midi", "list"], danger: false, category: "Runtime"),
-      .init(title: "VRL validate", command: [hv, "vrl", "validate", "--mapping", WubDefaults.profileSpecPath("voice_runtime/v9_3_ableton_mapping.v1.yaml")], danger: false, category: "Runtime"),
+      .init(title: "Sweep (modal guard)", command: [hv, "sweep", "--modal-test", "detect", "--allow-ocr-fallback"], danger: false, category: "Safety", isGuided: true),
+      .init(title: "MIDI list", command: [hv, "midi", "list"], danger: false, category: "Runtime", isGuided: false),
+      .init(title: "VRL validate", command: [hv, "vrl", "validate", "--mapping", WubDefaults.profileSpecPath("voice_runtime/v9_3_ableton_mapping.v1.yaml")], danger: false, category: "Runtime", isGuided: true),
 
-      .init(title: "Assets: export ALL (repo completeness)", command: [hv, "assets", "export-all", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports"),
-      .init(title: "Assets: export racks", command: [hv, "assets", "export-racks", "--anchors-pack", anchorsPack, "--overwrite", "ask"], danger: true, category: "Exports"),
-      .init(title: "Assets: export performance set", command: [hv, "assets", "export-performance-set", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports"),
-      .init(title: "Assets: export finishing bays", command: [hv, "assets", "export-finishing-bays", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports"),
-      .init(title: "Assets: export serum base", command: [hv, "assets", "export-serum-base", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports"),
-      .init(title: "Assets: export extras", command: [hv, "assets", "export-extras", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports"),
+      .init(title: "Assets: export ALL (repo completeness)", command: [hv, "assets", "export-all", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports", isGuided: true),
+      .init(title: "Assets: export racks", command: [hv, "assets", "export-racks", "--anchors-pack", anchorsPack, "--overwrite", "ask"], danger: true, category: "Exports", isGuided: false),
+      .init(title: "Assets: export performance set", command: [hv, "assets", "export-performance-set", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports", isGuided: false),
+      .init(title: "Assets: export finishing bays", command: [hv, "assets", "export-finishing-bays", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports", isGuided: false),
+      .init(title: "Assets: export serum base", command: [hv, "assets", "export-serum-base", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports", isGuided: false),
+      .init(title: "Assets: export extras", command: [hv, "assets", "export-extras", "--anchors-pack", anchorsPack, "--overwrite"], danger: true, category: "Exports", isGuided: false),
 
-      .init(title: "Index: build", command: [hv, "index", "build"], danger: false, category: "Index"),
-      .init(title: "Index: status", command: [hv, "index", "status"], danger: false, category: "Index"),
-      .init(title: "Drift: check", command: [hv, "drift", "check", "--anchors-pack-hint", anchorsPack], danger: false, category: "Drift"),
-      .init(title: "Drift: plan", command: [hv, "drift", "plan", "--anchors-pack-hint", anchorsPack], danger: false, category: "Drift"),
-      .init(title: "Drift: fix (guarded)", command: [hv, "drift", "fix", "--anchors-pack-hint", anchorsPack], danger: true, category: "Drift"),
+      .init(title: "Index: build", command: [hv, "index", "build"], danger: false, category: "Index", isGuided: true),
+      .init(title: "Index: status", command: [hv, "index", "status"], danger: false, category: "Index", isGuided: false),
+      .init(title: "Drift: check", command: [hv, "drift", "check", "--anchors-pack-hint", anchorsPack], danger: false, category: "Drift", isGuided: true),
+      .init(title: "Drift: plan", command: [hv, "drift", "plan", "--anchors-pack-hint", anchorsPack], danger: false, category: "Drift", isGuided: true),
+      .init(title: "Drift: fix (guarded)", command: [hv, "drift", "fix", "--anchors-pack-hint", anchorsPack], danger: true, category: "Drift", isGuided: true),
 
-      .init(title: "Ready: verify", command: [hv, "ready", "--anchors-pack-hint", anchorsPack], danger: false, category: "Governance"),
-      .init(title: "Repair: run recipe (guarded)", command: [hv, "repair", "--anchors-pack-hint", anchorsPack], danger: true, category: "Governance"),
-      .init(title: "Station: certify", command: [hv, "station", "certify"], danger: true, category: "Governance"),
-      .init(title: "Open last report", command: ["bash","-lc", "open " + (latestReportPath() ?? "runs")], danger: false, category: "Open"),
-      .init(title: "Open last run folder", command: ["bash","-lc", "open " + (latestRunDir() ?? "runs")], danger: false, category: "Open"),
+      .init(title: "Ready: verify", command: [hv, "ready", "--anchors-pack-hint", anchorsPack], danger: false, category: "Governance", isGuided: true),
+      .init(title: "Repair: run recipe (guarded)", command: [hv, "repair", "--anchors-pack-hint", anchorsPack], danger: true, category: "Governance", isGuided: true),
+      .init(title: "Station: certify", command: [hv, "station", "certify"], danger: true, category: "Governance", isGuided: true),
+      .init(title: "Open last report", command: ["bash","-lc", "open " + (latestReportPath() ?? "runs")], danger: false, category: "Open", isGuided: true),
+      .init(title: "Open last run folder", command: ["bash","-lc", "open " + (latestRunDir() ?? "runs")], danger: false, category: "Open", isGuided: true),
     ]
   }
 
@@ -246,23 +251,9 @@ struct UI: AsyncParsableCommand {
       // Keep top essentials even if dangerous? no: studio mode is strict.
       return safe
     } else {
-      // Non-studio mode: TOP vs ALL
+      // Non-studio mode: GUIDED vs ALL
       if showAll { return all }
-      let topTitles: Set<String> = [
-        "DubSweeper (modal guard sanity)",
-        "Assets: export ALL (repo completeness)",
-        "Index: build",
-        "Drift: check",
-        "Drift: plan",
-        "Drift: fix (guarded)",
-        "VRL validate",
-        "Ready: verify",
-        "Repair: run recipe (guarded)",
-        "Station: certify",
-        "Open last report",
-        "Open last run folder"
-      ]
-      return all.filter { topTitles.contains($0.title) }
+      return all.filter { $0.isGuided }
     }
   }
 
@@ -421,7 +412,14 @@ struct UI: AsyncParsableCommand {
     if let r = lastReceipt { print("last receipt: \(r)") }
 
     print(String(repeating: "-", count: 88))
-    print("modes: voice=\(voiceMode ? "ON" : "OFF") (v)  studio=\(studioMode ? "ON" : "OFF") (s)  all=\(showAll ? "ON" : "OFF") (a)")
+    let total = allItemsCount(anchorsPack: anchorsPack, hv: hv)
+    let visible = items.count
+    let modeLabel = studioMode ? "SAFE" : (showAll ? "ALL" : "GUIDED")
+    let viewLabel = studioMode ? "locked" : (showAll ? "ALL" : "GUIDED")
+    print("mode: \(modeLabel) (\(visible)/\(total))   view: \(viewLabel)\(studioMode ? "" : " (a)")")
+    if studioMode {
+      print("SAFE hides risky actions (exports/fix/repair/certify)")
+    }
     print("keys: ↑/↓ j/k • Enter run • Space recommended • p plan • c ready • g repair • R refresh • r/o/f/x • q quit")
     if voiceMode { print("voice hint: Say \"press 3\" (then Enter) or use number keys 1-9.") }
     print(String(repeating: "-", count: 88))
@@ -438,6 +436,10 @@ struct UI: AsyncParsableCommand {
       }
     }
     print("\n(*) risky (hidden in Studio Mode)")
+  }
+
+  func allItemsCount(anchorsPack: String, hv: String) -> Int {
+    return buildMenu(hv: hv, anchorsPack: anchorsPack).count
   }
 
   // MARK: FS helpers
