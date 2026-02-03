@@ -1,6 +1,6 @@
 # Operator Shell (Full Bundle)
 
-Version: v1.7.4
+Version: current
 
 
 This bundle is the **complete** Operator Shell package combining v1.7.2 + v1.7.3 + v1.7.4 features.

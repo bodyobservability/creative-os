@@ -1,7 +1,7 @@
 # Operator Shell — Voice Mode + Studio Mode
 
 ## Version
-Version: v1.7.8
+Version: current
 
 ## History
 - history/overview-04.md

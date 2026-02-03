@@ -1,7 +1,7 @@
 # Drift Fix (Guarded Execution)
 
 ## Version
-Version: v1.8.4
+Version: current
 
 ## History
 - history/overview-04.md

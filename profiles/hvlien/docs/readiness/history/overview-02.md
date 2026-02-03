@@ -1,6 +1,6 @@
 # Drift Detection UX Bundle
 
-Version: v1.8.1
+Version: current
 
 
 Includes:

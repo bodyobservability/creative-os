@@ -1,7 +1,7 @@
 # Mac Runtime Bridge (Voice → MIDI)
 
 ## Version
-Version: v9.2
+Version: current
 
 ## History
 - (none)

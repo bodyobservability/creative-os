@@ -1,7 +1,7 @@
 # Runtime Mapping Validator
 
 ## Version
-Version: v9.4
+Version: current
 
 ## History
 - (none)

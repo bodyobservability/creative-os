@@ -1,6 +1,6 @@
 # Operator Shell Voice + Studio Modes
 
-Version: v1.7.8
+Version: current
 
 
 Adds:

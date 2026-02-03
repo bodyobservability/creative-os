@@ -1,6 +1,6 @@
 # Index Precision Bundle
 
-Version: v1.8.2
+Version: current
 
 
 Includes:

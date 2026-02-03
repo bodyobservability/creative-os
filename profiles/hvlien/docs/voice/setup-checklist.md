@@ -1,7 +1,7 @@
 # Setup Checklist (Mac Runtime Bridge)
 
 ## Version
-Version: v9.2
+Version: current
 
 ## History
 - (none)

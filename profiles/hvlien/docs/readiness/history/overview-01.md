@@ -1,6 +1,6 @@
 # Index Build Bundle
 
-Version: v1.8.0
+Version: current
 
 
 Includes:

@@ -1,7 +1,7 @@
 # Voice Runtime Mapping Card (ABI-Compliant)
 
 ## Version
-Version: v9.3
+Version: current
 
 ## History
 - history/mapping-card-legacy.md

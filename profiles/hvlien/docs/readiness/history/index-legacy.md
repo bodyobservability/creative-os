@@ -1,6 +1,6 @@
 # Artifact & Receipt Index
 
-Version: v1.8.0
+Version: current
 
 
 This bundle adds a first-pass indexer that builds:

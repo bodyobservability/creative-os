@@ -1,6 +1,6 @@
 # Drift Detection UX
 
-Version: v1.8.1
+Version: current
 
 
 Adds:

@@ -1,7 +1,7 @@
 # Racks Export Automation Runbook
 
 ## Version
-Version: v9.5.1
+Version: current
 
 ## History
 - history/racks-export.md

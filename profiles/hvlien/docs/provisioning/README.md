@@ -1,7 +1,7 @@
 # Final TODO Cleanup (Export All)
 
 ## Version
-Version: v9.5.6
+Version: current
 
 ## History
 - history/overview-06.md

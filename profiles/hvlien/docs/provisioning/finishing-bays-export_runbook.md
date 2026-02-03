@@ -1,7 +1,7 @@
 # Finishing Bays Export Runbook
 
 ## Version
-Version: v9.5.3
+Version: current
 
 ## History
 - (none)

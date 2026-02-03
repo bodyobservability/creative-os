@@ -1,6 +1,6 @@
 # Drift UX Polish Bundle
 
-Version: v1.8.3
+Version: current
 
 
 Includes:

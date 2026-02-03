@@ -1,7 +1,7 @@
 # Index Precision + Stale Detection
 
 ## Version
-Version: v1.8.2
+Version: current
 
 ## History
 - history/index-legacy.md

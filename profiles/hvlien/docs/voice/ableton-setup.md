@@ -1,7 +1,7 @@
 # Ableton Runtime Setup (Voice → MIDI)
 
 ## Version
-Version: v9.3
+Version: current
 
 ## History
 - (none)

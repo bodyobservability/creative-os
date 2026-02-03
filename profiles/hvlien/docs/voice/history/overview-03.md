@@ -1,6 +1,6 @@
 # Operator Shell Drift Plan Preview
 
-Version: v1.7.7
+Version: current
 
 
 Drop-in replacement for OperatorShellCommand.swift.

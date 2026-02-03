@@ -1,6 +1,6 @@
 # Operator Shell Stateful Upgrade
 
-Version: v1.7.6
+Version: current
 
 
 Features:

@@ -1,6 +1,6 @@
 # Operator Shell Anchor Auto-Detect
 
-Version: v1.7.5
+Version: current
 
 
 This bundle updates the operator shell to auto-detect the newest anchor pack folder in the repo,

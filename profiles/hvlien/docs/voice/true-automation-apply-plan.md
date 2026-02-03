@@ -1,7 +1,7 @@
 # True Automation (Apply Plan)
 
 ## Version
-Version: v9.3.2
+Version: current
 
 ## History
 - (none)
