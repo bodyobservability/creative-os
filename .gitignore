@@ -13,6 +13,8 @@ Thumbs.db
 **/Backup*/
 **/Temp*/
 *.asd
+!**/templates/
+!**/templates/**
 
 # Audio outputs (do not commit masters/exports here by default)
 exports/
