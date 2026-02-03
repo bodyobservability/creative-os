@@ -1,7 +1,7 @@
 # Makefile aliases for wub workflows
 # Note: This file assumes the Swift CLI builds to tools/automation/swift-cli/.build/release/wub
 
-.PHONY: build sweep plan setup profile station studio
+.PHONY: build sweep plan setup profile station studio onboard check preflight
 
 WUB=tools/automation/swift-cli/.build/release/wub
 
@@ -25,3 +25,12 @@ station: build
 
 studio: build
 	$(WUB) ui
+
+onboard: build
+	$(WUB) preflight --auto
+
+check: build
+	$(WUB) check
+
+preflight: build
+	$(WUB) preflight

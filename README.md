@@ -2,7 +2,31 @@
 
 Creative OS for studio workflows. The CLI is `wub`, and identity lives in profiles.
 
-## Quickstart
+## First Run
+
+```bash
+make onboard
+```
+
+See `docs/first_run.md`.
+
+## Operator Shell
+
+```bash
+make studio
+```
+
+See `profiles/hvlien/docs/voice_runtime/operator_shell.md`.
+
+## Capabilities
+
+See `docs/capabilities.md`.
+
+## Modes
+
+See `docs/modes.md`.
+
+## Quickstart (manual)
 
 Build the CLI:
 ```bash
@@ -15,13 +39,6 @@ Run the core commands:
 tools/automation/swift-cli/.build/release/wub sweep
 tools/automation/swift-cli/.build/release/wub plan --json
 tools/automation/swift-cli/.build/release/wub setup --show-manual
-```
-
-Launch the Operator Shell (TUI):
-```bash
-make studio
-# or
-tools/automation/swift-cli/.build/release/wub ui
 ```
 
 Select a profile:
@@ -43,8 +60,7 @@ tools/automation/swift-cli/.build/release/wub station status --format json --no-
 ## Operator Shell + Wizard
 
 - Launch the Operator Shell (TUI): `wub ui`
-- The first-run wizard guides build → sweep → index and records a receipt at:
-  - `runs/<wizard_run_id>/wizard_receipt.v1.json`
+- The legacy wizard records a receipt at `runs/<wizard_run_id>/wizard_receipt.v1.json`
 - See:
   - `profiles/hvlien/docs/voice_runtime/operator_shell.md`
   - `profiles/hvlien/docs/voice_runtime/operator_shell_wizard.md`
