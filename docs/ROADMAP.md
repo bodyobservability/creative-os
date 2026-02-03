@@ -14,19 +14,9 @@ Creative OS refactor plan.
 The kernel roadmap is tracked below as a staged PR sequence. Execution
 safety, gating, and schema governance are now enforced in code and CI.
 
-### Kernel refactor sequence (summary)
+### Kernel refactor sequence (completed)
 
-1. PR 0 — Safety harness (tests + fixtures)
-2. PR 1 — Permissioned execution model (deny-by-default)
-3. PR 2 — Action catalog + config contracts
-4. PR 3 — Setup receipts (schema-first)
-5. PR 4 — Agent modularization (move-only)
-6. PR 5 — Service config consolidation
-7. PR 6 — Station gating consolidation
-8. PR 7 — Agent-owned checks + deterministic merges
-9. PR 8 — Pluggable service executor
-10. PR 9 — CI governance (schema + checksum validation)
-11. PR 10 — Actuation subsystem boundary prep
+Completed PR sequence: PR 0 safety harness; PR 1 permissioned execution; PR 2 action catalog + config contracts; PR 3 setup receipts; PR 4 agent modularization; PR 5 service config consolidation; PR 6 station gating; PR 7 agent-owned checks + deterministic merges; PR 8 pluggable executor; PR 9 CI governance; PR 10 actuation boundary prep.
 
 Status: PR 0–10 complete as of February 3, 2026. Follow-up hardening (PR7 checks + PR9 governance + allowlist centralization) completed February 3, 2026. CI split into governance + swift-tests workflows February 3, 2026.
 
