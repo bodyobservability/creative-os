@@ -4,13 +4,13 @@ on:
   push:
     branches: ["**"]
     paths:
-      - "tools/automation/swift-cli/**"
+      - "kernel/cli/**"
       - "**/*.swift"
       - "**/Package.swift"
       - "**/Package.resolved"
   pull_request:
     paths:
-      - "tools/automation/swift-cli/**"
+      - "kernel/cli/**"
       - "**/*.swift"
       - "**/Package.swift"
       - "**/Package.resolved"
@@ -32,15 +32,15 @@ jobs:
         with:
           path: |
             ~/Library/Caches/org.swift.swiftpm
-            tools/automation/swift-cli/.build
-          key: swiftpm-${{ runner.os }}-${{ hashFiles('tools/automation/swift-cli/Package.resolved') }}
+            kernel/cli/.build
+          key: swiftpm-${{ runner.os }}-${{ hashFiles('kernel/cli/Package.resolved') }}
           restore-keys: |
             swiftpm-${{ runner.os }}-
 
       - name: Swift build
-        working-directory: tools/automation/swift-cli
+        working-directory: kernel/cli
         run: swift build -c release
 
       - name: Swift test
-        working-directory: tools/automation/swift-cli
+        working-directory: kernel/cli
         run: swift test

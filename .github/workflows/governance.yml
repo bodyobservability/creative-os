@@ -17,9 +17,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Enforce kernel/operator boundary
+        run: |
+          if rg -n "operator/" kernel/; then
+            echo "ERROR: kernel/ must not reference operator/ paths"
+            exit 1
+          fi
+
       - name: Ensure checksums are up to date
         run: |
-          bash tools/checksum_generate.sh
+          bash kernel/tools/checksum_generate.sh
           git diff --exit-code checksums/*.txt
 
       - name: Setup Python
@@ -31,7 +38,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('tools/schema_validate.py') }}
+          key: pip-${{ runner.os }}-${{ hashFiles('kernel/tools/schema_validate.py') }}
           restore-keys: |
             pip-${{ runner.os }}-
 
@@ -42,9 +49,9 @@ jobs:
           python -m pip install --upgrade pip jsonschema
 
       - name: Verify checksums
-        run: bash tools/checksum_verify.sh
+        run: bash kernel/tools/checksum_verify.sh
 
       - name: Validate schemas
         run: |
           . .venv/bin/activate
-          python tools/schema_validate.py
+          python kernel/tools/schema_validate.py

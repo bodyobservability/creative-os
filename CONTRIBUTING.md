@@ -37,7 +37,7 @@ Examples:
 
 ## Versioning and artifacts
 
-Follow the rules in `profiles/hvlien/notes/versioning-rules.md` and update specs in `profiles/hvlien/specs/` when making structural changes.
+Follow the rules in `operator/profiles/hvlien/notes/versioning-rules.md` and update specs in `shared/specs/profiles/hvlien/` when making structural changes.
 
 Creative OS naming conventions:
 - Prefer deversioned filenames for docs/specs; keep versions inside the document body or metadata.
@@ -46,16 +46,16 @@ Creative OS naming conventions:
 
 ## Checksum discipline
 
-This repo uses checksum manifests under `checksums/`. If you change any files under `specs/`, `docs/`, `profiles/*/specs`, `profiles/*/docs`, `notes` (excluding local-only configs), `controllers/`, or `ai/`, you must regenerate checksums before committing:
+This repo uses checksum manifests under `checksums/`. If you change any files under `shared/specs/`, `shared/contracts/`, `docs/`, `operator/profiles/*/specs`, `operator/profiles/*/docs`, `operator/notes` (excluding local-only configs), `controllers/`, or `ai/`, you must regenerate checksums before committing:
 
 ```bash
-bash tools/checksum_generate.sh
+bash kernel/tools/checksum_generate.sh
 ```
 
 To avoid missing this step, install the pre-commit hook:
 
 ```bash
-bash tools/git-hooks/install.sh
+bash kernel/tools/git-hooks/install.sh
 ```
 
 This also installs a pre-push hook that verifies checksums before push.

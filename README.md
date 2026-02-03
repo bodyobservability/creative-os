@@ -9,7 +9,7 @@ Studio Operator is the operator persona and shell (TUI/voice/workflows) that dri
 make onboard
 ```
 
-See `docs/first_run.md`.
+See `docs/studio-operator/first_run.md`.
 
 ## Studio Operator Shell
 
@@ -17,39 +17,39 @@ See `docs/first_run.md`.
 make studio
 ```
 
-See `profiles/hvlien/docs/voice/operator-shell.md`.
+See `operator/profiles/hvlien/docs/voice/operator-shell.md`.
 
 ## Capabilities
 
-See `docs/capabilities.md`.
+See `docs/studio-operator/capabilities.md`.
 
 ## Modes
 
-See `docs/modes.md`.
+See `docs/studio-operator/modes.md`.
 
 ## Quickstart (manual)
 
 Build the CLI:
 ```bash
-cd tools/automation/swift-cli
+cd kernel/cli
 swift build -c release
 ```
 
 Run the core commands:
 ```bash
-tools/automation/swift-cli/.build/release/wub sweep
-tools/automation/swift-cli/.build/release/wub plan --json
-tools/automation/swift-cli/.build/release/wub setup --show-manual
+kernel/cli/.build/release/wub sweep
+kernel/cli/.build/release/wub plan --json
+kernel/cli/.build/release/wub setup --show-manual
 ```
 
 Select a profile:
 ```bash
-tools/automation/swift-cli/.build/release/wub profile use hvlien
+kernel/cli/.build/release/wub profile use hvlien
 ```
 
 Check station state:
 ```bash
-tools/automation/swift-cli/.build/release/wub station status --format json --no-write-report
+kernel/cli/.build/release/wub station status --format json --no-write-report
 ```
 
 ## Creative OS safety model (read before `setup`)
@@ -61,37 +61,39 @@ tools/automation/swift-cli/.build/release/wub station status --format json --no-
 ## Studio Operator Shell
 
 - Launch the Operator Shell (TUI): `wub ui`
-- See `profiles/hvlien/docs/voice/operator-shell.md`
+- See `operator/profiles/hvlien/docs/voice/operator-shell.md`
 
 ## Profiles and packs (kernel + operator)
 
-- Profiles live in `profiles/` (for example `profiles/hvlien.profile.yaml`).
-- Packs live in `packs/` and can be attached to a profile.
-- Active selection is stored in `notes/WUB_CONFIG.json`.
-- Local-only overrides live in `notes/LOCAL_CONFIG.json` (not committed).
+- Profiles live in `operator/profiles/` (for example `operator/profiles/hvlien.profile.yaml`).
+- Packs live in `operator/packs/` and can be attached to a profile.
+- Active selection is stored in `operator/notes/WUB_CONFIG.json`.
+- Local-only overrides live in `operator/notes/LOCAL_CONFIG.json` (not committed).
 
 ## Repo layout (current)
 
-- `tools/automation/` — Creative OS kernel entrypoint (`wub`) and automation tooling
-- `profiles/` — kernel-validated identity + policy
-- `packs/` — optional operator payloads
-- `specs/` — kernel contracts, schemas, and runbooks
+- `kernel/cli/` — Creative OS kernel entrypoint (`wub`)
+- `kernel/tools/` — kernel-owned tooling (validation, checksums, hooks)
+- `operator/profiles/` — kernel-validated identity + policy
+- `operator/packs/` — optional operator payloads
+- `shared/specs/` — kernel contracts, schemas, and runbooks
+- `shared/contracts/` — cross-domain contracts (materials, manufacturing, evidence)
 - `docs/` — Creative OS + Studio Operator docs
-- `notes/` — operational notes and checklists
+- `operator/notes/` — operational notes and checklists
 
 ## Maintainer workflow
 
-- CLI reference: `docs/automation/cli_reference.md`
-- First machine checklist: `docs/release/fresh_machine_smoke_checklist.md`
-- Versioning rules: `profiles/hvlien/notes/VERSIONING_RULES.md`
-- After changing specs/docs, regenerate checksums:
-  - `bash tools/checksum_generate.sh`
+- CLI reference: `docs/creative-os/automation/cli_reference.md`
+- First machine checklist: `docs/shared/release/fresh_machine_smoke_checklist.md`
+- Versioning rules: `operator/profiles/hvlien/notes/versioning-rules.md`
+- After changing shared/specs/docs, regenerate checksums:
+  - `bash kernel/tools/checksum_generate.sh`
 - Schema validation:
-  - `tools/schema_validate.py`
+  - `kernel/tools/schema_validate.py`
 - CI workflows:
   - `.github/workflows/governance.yml`
   - `.github/workflows/swift-tests.yml`
 
 ## Roadmap (Creative OS)
 
-The canonical roadmap lives in `docs/ROADMAP.md`.
+The canonical roadmap lives in `docs/creative-os/ROADMAP.md`.

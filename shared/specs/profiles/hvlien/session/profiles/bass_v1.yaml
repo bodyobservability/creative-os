@@ -1,0 +1,21 @@
+schema_version: 1
+id: bass_v1
+name: HVLIEN Bass Session v1
+
+voice:
+  script: shared/specs/profiles/hvlien/voice/scripts/bass_template_build.v1.yaml
+  abi: shared/specs/profiles/hvlien/voice/abi/hvlien_macro_abi.v1.yaml
+  macro_ocr: true
+  macro_region: rack.macros
+
+racks:
+  manifest: shared/specs/profiles/hvlien/library/racks/rack_pack_manifest.v1.json
+  macro_region: rack.macros
+
+automation:
+  anchors_pack: shared/specs/automation/anchors/<pack_id>
+  regions: kernel/cli/config/regions.v1.json
+  watchdog_ms: 30000
+
+notes:
+  - Replace <pack_id> in anchors_pack with your actual anchor pack directory.

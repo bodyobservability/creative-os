@@ -5,7 +5,7 @@ Version: current
 Goal: ingest AI outputs without adding drag or new UI dependencies.
 
 ## 1) Bundle inbox (Mac)
-- `/profiles/hvlien/ai/inbox/<TrackID>/`
+- `/operator/profiles/hvlien/ai/inbox/<TrackID>/`
 Bundles must arrive atomically (stage then rename).
 
 ## 2) Engineer-only action model

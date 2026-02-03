@@ -1,0 +1,30 @@
+schema_version: 2
+id: bass_v1
+name: HVLIEN Bass Station v1 (turnkey)
+
+session:
+  profile: shared/specs/profiles/hvlien/session/profiles/bass_v1.yaml
+  # optional anchors pack override for session compile
+  anchors_pack: shared/specs/automation/anchors/<pack_id>
+
+sonic:
+  macro: Width
+  rack_id: hvlien_basslead_rack_v1
+  profile_id: bass_lead_v1
+  baseline: shared/specs/profiles/hvlien/sonic/baselines/hvlien_basslead_rack_v1/Width.baseline.v1.json
+
+  auto_sweep:
+    enabled: true
+    positions: "0,0.25,0.5,0.75,1"
+    export_dir: "/tmp/hvlien_exports"
+    base_name: "BassLead"
+    midi_dest: "IAC"
+    cc: 21
+    channel: 1
+    export_chord: "CMD+SHIFT+R"
+    wait_seconds: 8.0
+    thresholds: "shared/specs/profiles/hvlien/sonic/thresholds/bass_music_sweep_defaults.v1.json"
+
+notes:
+  - Replace <pack_id> with your anchors pack directory or pass --anchors-pack to station certify.
+  - auto_sweep requires Ableton macro mapped to MIDI CC on the chosen MIDI input (IAC recommended).

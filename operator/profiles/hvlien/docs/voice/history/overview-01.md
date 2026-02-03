@@ -1,0 +1,15 @@
+# Operator Shell Anchor Auto-Detect
+
+Version: current
+
+
+This bundle updates the operator shell to auto-detect the newest anchor pack folder in the repo,
+and persist it to `operator/notes/LOCAL_CONFIG.json`.
+
+Files:
+- OperatorShellCommand.swift
+- LocalConfig.swift
+- operator/profiles/hvlien/docs/voice/operator-shell.md
+
+Wiring:
+- Ensure `UI.self` is wired in your CLI entrypoint.
