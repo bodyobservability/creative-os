@@ -56,6 +56,9 @@ struct UI: AsyncParsableCommand {
     var lastRunDir: String? = nil
     var lastFailuresDir: String? = nil
     var toast = ToastManager()
+    var showLogs = false
+    var logScroll = 0
+    var logBuffer = LogBuffer()
 
     let stdinRaw = StdinRawMode()
     try stdinRaw.enable()
@@ -78,6 +81,7 @@ struct UI: AsyncParsableCommand {
         sweepStaleSeconds: 60 * 30,
         readyStaleSeconds: 60 * 30
       ))
+      let logLines = logBuffer.window(count: 20, scroll: logScroll)
       let rec = RecommendedAction(
         summary: snapshot.recommended.summary,
         action: snapshot.recommended.command.map {
@@ -98,6 +102,8 @@ struct UI: AsyncParsableCommand {
                   failuresDir: lastFailuresDir,
                   snapshot: snapshot,
                   toastLine: toast.currentText,
+                  showLogs: showLogs,
+                  logLines: logLines,
                   items: items,
                   selected: selected,
                   lastExit: lastCommandExit,
@@ -128,15 +134,42 @@ struct UI: AsyncParsableCommand {
         selected = 0
         toast.info(showAll ? "All actions visible" : "Guided mode — essential actions only", key: "view_toggle")
         continue
+      case .toggleLogs:
+        showLogs.toggle()
+        logScroll = 0
+        toast.info(showLogs ? "Logs opened" : "Logs hidden", key: "logs_toggle")
+        continue
+      case .escape:
+        if showLogs {
+          showLogs = false
+          toast.info("Back to actions", key: "logs_back")
+          continue
+        }
+        continue
+      case .bottom:
+        if showLogs {
+          logScroll = 0
+          toast.info("Jumped to bottom", key: "logs_bottom", ttl: 1.0)
+          continue
+        }
+        continue
 
       case .refresh:
         continue
 
       case .up:
-        selected = max(0, selected - 1)
+        if showLogs {
+          logScroll = min(logScroll + 1, max(0, logBuffer.lines.count - 1))
+        } else {
+          selected = max(0, selected - 1)
+        }
 
       case .down:
-        selected = min(items.count - 1, selected + 1)
+        if showLogs {
+          logScroll = max(0, logScroll - 1)
+        } else {
+          selected = min(items.count - 1, selected + 1)
+        }
 
       case .previewDriftPlan:
         stdinRaw.disable()
@@ -186,6 +219,12 @@ struct UI: AsyncParsableCommand {
           try await runAction(action, stdinRaw: stdinRaw, dryRun: dryRun,
                               lastExit: &lastCommandExit, lastReceipt: &lastReceiptPath,
                               lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
+          appendRunSummary(action: action,
+                           logBuffer: &logBuffer,
+                           lastExit: lastCommandExit,
+                           lastRunDir: lastRunDir,
+                           lastReceipt: lastReceiptPath)
+          showLogs = true
           if let code = lastCommandExit, code == 0 {
             toast.success("Completed successfully", key: "action_ok")
           } else if let _ = lastCommandExit {
@@ -203,6 +242,12 @@ struct UI: AsyncParsableCommand {
                             stdinRaw: stdinRaw, dryRun: dryRun,
                             lastExit: &lastCommandExit, lastReceipt: &lastReceiptPath,
                             lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
+        appendRunSummary(action: .init(command: item.command, danger: item.danger, label: item.title),
+                         logBuffer: &logBuffer,
+                         lastExit: lastCommandExit,
+                         lastRunDir: lastRunDir,
+                         lastReceipt: lastReceiptPath)
+        showLogs = true
         if let code = lastCommandExit, code == 0 {
           toast.success("Completed successfully", key: "action_ok")
         } else if let _ = lastCommandExit {
@@ -211,13 +256,26 @@ struct UI: AsyncParsableCommand {
         }
 
       case .openReceipt:
-        if let rp = lastReceiptPath { _ = try? await OperatorShellService.openPath(rp) }
+        if let rp = lastReceiptPath {
+          _ = try? await OperatorShellService.openPath(rp)
+          toast.success("Opened receipt", key: "open_receipt_ok")
+        } else {
+          toast.blocked("No receipt recorded yet", key: "open_receipt_missing")
+        }
       case .openRun:
-        if let rd = lastRunDir { _ = try? await OperatorShellService.openPath(rd) }
-      case .openReport:
-        if let rp = latestReportPath() { _ = try? await OperatorShellService.openPath(rp) }
+        if let rd = lastRunDir {
+          _ = try? await OperatorShellService.openPath(rd)
+          toast.success("Opened run folder", key: "open_run_ok")
+        } else {
+          toast.blocked("No run folder yet", key: "open_run_missing")
+        }
       case .openFailures:
-        if let fd = lastFailuresDir { _ = try? await OperatorShellService.openPath(fd) }
+        if let fd = lastFailuresDir {
+          _ = try? await OperatorShellService.openPath(fd)
+          toast.success("Opened failures folder", key: "open_fail_ok")
+        } else {
+          toast.blocked("No failures folder for last run", key: "open_fail_missing")
+        }
 
       case .selectNumber(let n):
         // Voice Mode: allow direct numeric selection ("press 3")
@@ -228,6 +286,12 @@ struct UI: AsyncParsableCommand {
                               stdinRaw: stdinRaw, dryRun: dryRun,
                               lastExit: &lastCommandExit, lastReceipt: &lastReceiptPath,
                               lastRunDir: &lastRunDir, lastFailuresDir: &lastFailuresDir)
+          appendRunSummary(action: .init(command: item.command, danger: item.danger, label: item.title),
+                           logBuffer: &logBuffer,
+                           lastExit: lastCommandExit,
+                           lastRunDir: lastRunDir,
+                           lastReceipt: lastReceiptPath)
+          showLogs = true
           if let code = lastCommandExit, code == 0 {
             toast.success("Completed successfully", key: "action_ok")
           } else if let _ = lastCommandExit {
@@ -412,6 +476,17 @@ struct UI: AsyncParsableCommand {
     try stdinRaw.enable()
   }
 
+  func appendRunSummary(action: RecommendedAction.Action,
+                        logBuffer: inout LogBuffer,
+                        lastExit: Int32?,
+                        lastRunDir: String?,
+                        lastReceipt: String?) {
+    logBuffer.append("> " + action.command.joined(separator: " "))
+    if let exit = lastExit { logBuffer.append("exit: \(exit)") }
+    if let rd = lastRunDir { logBuffer.append("run: \(rd)") }
+    if let rp = lastReceipt { logBuffer.append("receipt: \(rp)") }
+  }
+
   // MARK: render
 
   func printScreen(repoRoot: String,
@@ -426,6 +501,8 @@ struct UI: AsyncParsableCommand {
                    failuresDir: String?,
                    snapshot: StudioStateSnapshot,
                    toastLine: String?,
+                   showLogs: Bool,
+                   logLines: [String],
                    items: [MenuItem],
                    selected: Int,
                    lastExit: Int32?,
@@ -458,18 +535,27 @@ struct UI: AsyncParsableCommand {
     if voiceMode { print("voice hint: Say \"press 3\" (then Enter) or use number keys 1-9.") }
     print(String(repeating: "-", count: 88))
 
-    // In voice mode, show explicit numeric guidance
-    for (i, it) in items.enumerated() {
-      let num = i + 1
-      let flag = it.danger ? " *" : ""
-      let cursor = (i == selected) ? "➜" : " "
-      if voiceMode {
-        print("\(cursor) [\(num)] \(it.title)\(flag)   (Say: \"press \(num)\")")
-      } else {
-        print("\(cursor) \(String(format: "%2d", num)) \(it.title)\(flag)")
+    if showLogs {
+      print("LOG  (last run)")
+      for line in logLines { print(line) }
+      if let tl = toastLine { print(tl) }
+      print("keys: ↑/↓ scroll • 0 bottom • ESC back • o run • f fail • r receipt • q quit")
+    } else {
+      // In voice mode, show explicit numeric guidance
+      for (i, it) in items.enumerated() {
+        let num = i + 1
+        let flag = it.danger ? " *" : ""
+        let cursor = (i == selected) ? "➜" : " "
+        if voiceMode {
+          print("\(cursor) [\(num)] \(it.title)\(flag)   (Say: \"press \(num)\")")
+        } else {
+          print("\(cursor) \(String(format: "%2d", num)) \(it.title)\(flag)")
+        }
       }
+      print("\n(*) risky (hidden in Studio Mode)")
+      if let tl = toastLine { print(tl) }
+      print("keys: ↑/↓ j/k • Enter run • Space recommended • l logs • o run • f fail • r receipt • q quit")
     }
-    print("\n(*) risky (hidden in Studio Mode)")
   }
 
   func allItemsCount(anchorsPack: String, hv: String) -> Int {
@@ -550,9 +636,9 @@ struct UI: AsyncParsableCommand {
 
   enum Key {
     case up, down, enter, quit
-    case openReceipt, openRun, openReport, openFailures
+    case openReceipt, openRun, openFailures
     case toggleAll, refresh, runRecommended, previewDriftPlan, readyVerify, repairRun
-    case toggleVoiceMode, toggleStudioMode
+    case toggleVoiceMode, toggleStudioMode, toggleLogs, escape, bottom
     case selectNumber(Int)
     case none
   }
@@ -566,6 +652,7 @@ struct UI: AsyncParsableCommand {
       if buf[2] == 0x42 { return .down }
       return .none
     }
+    if buf[0] == 0x1B { return .escape }
     let c = buf[0]
 
     // number keys 1-9 -> select
@@ -579,12 +666,13 @@ struct UI: AsyncParsableCommand {
     if c == asciiByte("g") { return .repairRun }
     if c == asciiByte("v") { return .toggleVoiceMode }
     if c == asciiByte("s") { return .toggleStudioMode }
+    if c == asciiByte("l") { return .toggleLogs }
+    if c == asciiByte("0") { return .bottom }
     if c == 0x0D || c == 0x0A { return .enter }
     if c == asciiByte("q") { return .quit }
     if c == asciiByte("r") { return .openReceipt }
-    if c == asciiByte("f") { return .openRun }
-    if c == asciiByte("o") { return .openReport }
-    if c == asciiByte("x") { return .openFailures }
+    if c == asciiByte("f") { return .openFailures }
+    if c == asciiByte("o") { return .openRun }
     if c == asciiByte("a") { return .toggleAll }
     if c == asciiByte("R") { return .refresh }
     if c == asciiByte("k") { return .up }
