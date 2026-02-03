@@ -1,6 +1,7 @@
 # Creative OS
 
-Creative OS for studio workflows. The CLI is `wub`, and identity lives in profiles.
+Creative OS is a safety-first execution kernel for studio stations: allowlisted actions, gated execution, deterministic receipts, and governance.
+Studio Operator is the operator persona and shell (TUI/voice/workflows) that drives Creative OS via `wub`.
 
 ## First Run
 
@@ -10,7 +11,7 @@ make onboard
 
 See `docs/first_run.md`.
 
-## Operator Shell
+## Studio Operator Shell
 
 ```bash
 make studio
@@ -51,18 +52,18 @@ Check station state:
 tools/automation/swift-cli/.build/release/wub station status --format json --no-write-report
 ```
 
-## Safety model (read before `setup`)
+## Creative OS safety model (read before `setup`)
 
 - `wub setup` and `wub state-setup` default to dry-run and only execute allowlisted actions.
 - Mutating actions are gated by `StationGate` and emit receipts under `runs/<run_id>/`.
 - If an action is not in the allowlist, it will be visible in plans but not executed.
 
-## Operator Shell
+## Studio Operator Shell
 
 - Launch the Operator Shell (TUI): `wub ui`
 - See `profiles/hvlien/docs/voice/operator-shell.md`
 
-## Profiles and packs
+## Profiles and packs (kernel + operator)
 
 - Profiles live in `profiles/` (for example `profiles/hvlien.profile.yaml`).
 - Packs live in `packs/` and can be attached to a profile.
@@ -71,11 +72,11 @@ tools/automation/swift-cli/.build/release/wub station status --format json --no-
 
 ## Repo layout (current)
 
-- `tools/automation/` — Swift CLI and automation tooling
-- `profiles/` — identity and policy
-- `packs/` — optional creative artifacts
-- `specs/` — specs, schemas, and runbooks
-- `docs/` — system docs and runbooks
+- `tools/automation/` — Creative OS kernel entrypoint (`wub`) and automation tooling
+- `profiles/` — kernel-validated identity + policy
+- `packs/` — optional operator payloads
+- `specs/` — kernel contracts, schemas, and runbooks
+- `docs/` — Creative OS + Studio Operator docs
 - `notes/` — operational notes and checklists
 
 ## Maintainer workflow

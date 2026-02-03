@@ -7,7 +7,7 @@ Creative OS refactor plan.
 ## Scope
 
 - Creative OS kernel: safety, execution model, governance
-- Creative OS roadmap: releases, milestones, and operator examples
+- Studio Operator: persona, shell/voice, workflows, and operator affordances
 
 ## Creative OS kernel (safety-first refactor)
 
@@ -30,7 +30,7 @@ Status: PR 0–10 complete as of February 3, 2026. Follow-up hardening (PR7 chec
   - a fresh-machine smoke checklist entry
   - a short release note in `docs/release/`
 
-## Milestones (Intelligence + Guarantees)
+## Creative OS milestones (Intelligence + Guarantees)
 
 ### Cross-Rack Intelligence (bass-focused)
 
@@ -68,7 +68,13 @@ Status: PR 0–10 complete as of February 3, 2026. Follow-up hardening (PR7 chec
 - Deliverables:
   - `wub certify performance` (receipt + pass/fail)
 
-## Voice-as-Operator (Examples)
+## Studio Operator roadmap (persona + shell)
+
+- Operator shell: clearer state, safer affordances, faster recovery paths
+- Voice layer: prompt clarity, error recovery, and high-signal guidance
+- Workflows/packs: operator affordances that stay within kernel gating
+
+## Studio Operator voice examples
 
 - “export everything”
 - “check drift”
