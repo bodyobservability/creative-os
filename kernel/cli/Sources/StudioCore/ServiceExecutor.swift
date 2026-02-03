@@ -10,13 +10,13 @@ struct ServiceExecutor {
                                          requiredControllers: bag.stringArray("required_controllers"),
                                          allowOcrFallback: bag.bool("allow_ocr_fallback") ?? false,
                                          fix: bag.bool("fix") ?? false,
-                                         regionsConfig: bag.string("regions_config") ?? "kernel/cli/config/regions.v1.json",
-                                         runsDir: bag.string("runs_dir") ?? "runs")
+                                         regionsConfig: bag.string("regions_config") ?? RepoPaths.defaultRegionsConfigPath(),
+                                         runsDir: bag.string("runs_dir") ?? RepoPaths.defaultRunsDir())
       _ = try await SweeperService.run(config: config)
       return 0
     })
     registry.register(ActionHandler(id: "ready.check") { bag, _ in
-      let hint = bag.string("anchors_pack_hint") ?? "shared/specs/automation/anchors/<pack_id>"
+      let hint = bag.string("anchors_pack_hint") ?? RepoPaths.defaultAnchorsPackHint()
       let config = ReadyService.Config(anchorsPackHint: hint,
                                        artifactIndex: bag.string("artifact_index") ?? "checksums/index/artifact_index.v1.json",
                                        runDir: bag.string("run_dir"),
@@ -39,11 +39,11 @@ struct ServiceExecutor {
       let config = DriftFixService.Config(force: bag.bool("force") ?? false,
                                           artifactIndex: bag.string("artifact_index") ?? "checksums/index/artifact_index.v1.json",
                                           receiptIndex: bag.string("receipt_index") ?? "checksums/index/receipt_index.v1.json",
-                                          anchorsPackHint: bag.string("anchors_pack_hint") ?? "shared/specs/automation/anchors/<pack_id>",
+                                          anchorsPackHint: bag.string("anchors_pack_hint") ?? RepoPaths.defaultAnchorsPackHint(),
                                           yes: bag.bool("yes") ?? false,
                                           dryRun: bag.bool("dry_run") ?? false,
                                           out: nil,
-                                          runsDir: bag.string("runs_dir") ?? "runs")
+                                          runsDir: bag.string("runs_dir") ?? RepoPaths.defaultRunsDir())
       let receipt = try await DriftFixService.run(config: config)
       return receipt.status == "fail" ? 1 : 0
     })
@@ -52,8 +52,8 @@ struct ServiceExecutor {
                                                  overwrite: bag.bool("overwrite") ?? false,
                                                  nonInteractive: bag.bool("non_interactive") ?? false,
                                                  preflight: bag.bool("preflight") ?? true,
-                                                 runsDir: bag.string("runs_dir") ?? "runs",
-                                                 regionsConfig: bag.string("regions_config") ?? "kernel/cli/config/regions.v1.json",
+                                                 runsDir: bag.string("runs_dir") ?? RepoPaths.defaultRunsDir(),
+                                                 regionsConfig: bag.string("regions_config") ?? RepoPaths.defaultRegionsConfigPath(),
                                                  racksOut: bag.string("racks_out") ?? WubDefaults.packPath("ableton/racks/BASS_RACKS"),
                                                  performanceOut: bag.string("performance_out") ?? WubDefaults.packPath("ableton/performance-sets/BASS_PERFORMANCE_SET_v1.0.als"),
                                                  baysSpec: bag.string("bays_spec") ?? WubDefaults.profileSpecPath("assets/export/finishing_bays_export.v1.yaml"),
@@ -91,7 +91,7 @@ struct ServiceExecutor {
                                           macroOcr: macroOcr ?? true,
                                           macroRegion: macroRegion ?? "rack.macros",
                                           fix: bag.bool("fix") ?? false,
-                                          runsDir: bag.string("runs_dir") ?? "runs")
+                                          runsDir: bag.string("runs_dir") ?? RepoPaths.defaultRunsDir())
       let receipt = try await VoiceService.run(config: config)
       return receipt.status == "fail" ? 1 : 0
     })
@@ -109,7 +109,7 @@ struct ServiceExecutor {
                                              macroRegion: macroRegion ?? "rack.macros",
                                              anchorsPack: anchorsPack,
                                              allowCgevent: bag.bool("allow_cgevent") ?? false,
-                                             runsDir: bag.string("runs_dir") ?? "runs")
+                                             runsDir: bag.string("runs_dir") ?? RepoPaths.defaultRunsDir())
       let receipt = try await RackInstallService.install(config: config)
       return receipt.status == "fail" ? 1 : 0
     })
@@ -127,7 +127,7 @@ struct ServiceExecutor {
                                             macroRegion: macroRegion ?? "rack.macros",
                                             runApply: bag.bool("run_apply") ?? true,
                                             anchorsPack: anchorsPack,
-                                            runsDir: bag.string("runs_dir") ?? "runs")
+                                            runsDir: bag.string("runs_dir") ?? RepoPaths.defaultRunsDir())
       let receipt = try await RackVerifyService.verify(config: config)
       return receipt.status == "fail" ? 1 : 0
     })
@@ -137,14 +137,14 @@ struct ServiceExecutor {
                                          profilePath: bag.string("profile_path"),
                                          anchorsPack: bag.string("anchors_pack"),
                                          fix: bag.bool("fix") ?? false,
-                                         runsDir: bag.string("runs_dir") ?? "runs")
+                                         runsDir: bag.string("runs_dir") ?? RepoPaths.defaultRunsDir())
       let receipt = try await SessionService.compile(config: config)
       return receipt.status == "fail" ? 1 : 0
     })
     registry.register(ActionHandler(id: "index.build") { bag, _ in
       let config = IndexService.BuildConfig(repoVersion: bag.string("repo_version") ?? "current",
                                             outDir: bag.string("out_dir") ?? "checksums/index",
-                                            runsDir: bag.string("runs_dir") ?? "runs")
+                                            runsDir: bag.string("runs_dir") ?? RepoPaths.defaultRunsDir())
       _ = try IndexService.build(config: config)
       return 0
     })
@@ -161,7 +161,7 @@ struct ServiceExecutor {
                                                 baseline: baseline,
                                                 currentSweep: currentSweep,
                                                 rackManifest: bag.string("rack_manifest") ?? WubDefaults.profileSpecPath("library/racks/rack_pack_manifest.v1.json"),
-                                                runsDir: bag.string("runs_dir") ?? "runs")
+                                                runsDir: bag.string("runs_dir") ?? RepoPaths.defaultRunsDir())
       let receipt = try await ReleaseService.promoteProfile(config: config)
       return receipt.status == "fail" ? 1 : 0
     })
@@ -172,10 +172,10 @@ struct ServiceExecutor {
     })
     registry.register(ActionHandler(id: "repair.run") { bag, _ in
       let config = RepairService.Config(force: bag.bool("force") ?? false,
-                                        anchorsPackHint: bag.string("anchors_pack_hint") ?? "shared/specs/automation/anchors/<pack_id>",
+                                        anchorsPackHint: bag.string("anchors_pack_hint") ?? RepoPaths.defaultAnchorsPackHint(),
                                         yes: bag.bool("yes") ?? false,
                                         overwrite: bag.bool("overwrite") ?? true,
-                                        runsDir: bag.string("runs_dir") ?? "runs")
+                                        runsDir: bag.string("runs_dir") ?? RepoPaths.defaultRunsDir())
       let receipt = try await RepairService.run(config: config)
       if let receipt, receipt.status == "fail" { return 1 }
       return 0
@@ -184,8 +184,8 @@ struct ServiceExecutor {
       let config = StationStatusService.Config(format: bag.string("format") ?? "human",
                                                out: bag.string("out"),
                                                noWriteReport: bag.bool("no_write_report") ?? false,
-                                               anchorsPackHint: bag.string("anchors_pack_hint") ?? "shared/specs/automation/anchors/<pack_id>",
-                                               runsDir: bag.string("runs_dir") ?? "runs")
+                                               anchorsPackHint: bag.string("anchors_pack_hint") ?? RepoPaths.defaultAnchorsPackHint(),
+                                               runsDir: bag.string("runs_dir") ?? RepoPaths.defaultRunsDir())
       _ = try await StationStatusService.run(config: config)
       return 0
     })

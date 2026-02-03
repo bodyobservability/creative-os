@@ -75,7 +75,7 @@ struct Voice: ParsableCommand {
     var anchorsPack: String
 
     @Option(name: .long, help: "Regions config path.")
-    var regions: String = "kernel/cli/config/regions.v1.json"
+    var regions: String = RepoPaths.defaultRegionsConfigPath()
 
     @Option(name: .long, help: "Enable macro-name OCR checks (requires regions 'rack.macros').")
     var macroOcr: Bool = false
@@ -94,7 +94,7 @@ struct Voice: ParsableCommand {
                                                              macroOcr: macroOcr,
                                                              macroRegion: macroRegion,
                                                              fix: fix,
-                                                             runsDir: "runs"))
+                                                             runsDir: RepoPaths.defaultRunsDir()))
       print("\nvoice_receipt: runs/\(receipt.runId)/voice_receipt.v1.json")
       if receipt.status != "pass" { throw ExitCode(1) }
     }

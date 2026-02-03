@@ -11,7 +11,7 @@ struct Repair: AsyncParsableCommand {
   var force: Bool = false
 
   @Option(name: .long, help: "Anchors pack hint for exports and drift.")
-  var anchorsPackHint: String = "shared/specs/automation/anchors/<pack_id>"
+  var anchorsPackHint: String = RepoPaths.defaultAnchorsPackHint()
 
   @Flag(name: .long, help: "Skip confirmation prompt.")
   var yes: Bool = false
@@ -24,7 +24,7 @@ struct Repair: AsyncParsableCommand {
                                                                   anchorsPackHint: anchorsPackHint,
                                                                   yes: yes,
                                                                   overwrite: overwrite,
-                                                                  runsDir: "runs")) else {
+                                                                  runsDir: RepoPaths.defaultRunsDir())) else {
       return
     }
     if receipt.status == "fail" { throw ExitCode(1) }

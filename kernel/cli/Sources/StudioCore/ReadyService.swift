@@ -47,7 +47,7 @@ struct ReadyService {
                         status: anchorsOk ? "pass" : "warn",
                         details: ["path": config.anchorsPackHint]))
     if !anchorsOk {
-      cmds.append("wub validate-anchors --regions-config kernel/cli/config/regions.v1.json --pack \(config.anchorsPackHint)")
+      cmds.append("wub validate-anchors --regions-config \(RepoPaths.defaultRegionsConfigPath()) --pack \(config.anchorsPackHint)")
       notes.append("Anchors pack path does not exist; update anchorsPackHint or capture/validate anchors.")
     }
 
@@ -86,7 +86,7 @@ struct ReadyService {
                                notes: notes)
 
     if config.writeReport {
-      let outDir = URL(fileURLWithPath: "runs").appendingPathComponent(runId, isDirectory: true)
+      let outDir = URL(fileURLWithPath: RepoPaths.defaultRunsDir()).appendingPathComponent(runId, isDirectory: true)
       try FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
       try JSONIO.save(report, to: outDir.appendingPathComponent("ready_report.v1.json"))
     }
@@ -110,7 +110,7 @@ struct ReadyService {
   }
 
   private static func latestRunDirPath() -> String? {
-    let runs = URL(fileURLWithPath: "runs", isDirectory: true)
+    let runs = URL(fileURLWithPath: RepoPaths.defaultRunsDir(), isDirectory: true)
     guard FileManager.default.fileExists(atPath: runs.path) else { return nil }
     guard let items = try? FileManager.default.contentsOfDirectory(at: runs, includingPropertiesForKeys: [.contentModificationDateKey], options: [.skipsHiddenFiles]) else { return nil }
     let dirs = items.filter { $0.hasDirectoryPath }

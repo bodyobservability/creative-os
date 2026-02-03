@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "creative-os.local/contracts/operator-persona/persona.manifest.schema.json",
+  "title": "Operator Persona Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "display_name",
+    "version",
+    "description",
+    "asset_roots",
+    "docs",
+    "required_receipts",
+    "capabilities"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "Stable persona identifier (kebab-case). Example: studio-operator, atelier-operator."
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(current|\\d+\\.\\d+\\.\\d+)$",
+      "description": "Manifest version label. Prefer 'current' for docs-first evolution."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "asset_roots": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profiles", "packs", "notes"],
+      "properties": {
+        "profiles": {
+          "type": "string",
+          "pattern": "^operator\\/profiles\\/.+",
+          "description": "Root directory for persona-relevant profiles."
+        },
+        "packs": {
+          "type": "string",
+          "pattern": "^operator\\/packs\\/.+",
+          "description": "Root directory for persona-relevant packs."
+        },
+        "notes": {
+          "type": "string",
+          "pattern": "^operator\\/notes\\/.+",
+          "description": "Root directory for persona-relevant operational notes."
+        }
+      }
+    },
+    "docs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entrypoints"],
+      "properties": {
+        "entrypoints": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["title", "path"],
+            "properties": {
+              "title": { "type": "string", "minLength": 1 },
+              "path": {
+                "type": "string",
+                "pattern": "^docs\\/[a-z0-9\\/-]+\\.md$",
+                "description": "Repo-root-relative doc path."
+              }
+            }
+          }
+        }
+      }
+    },
+    "required_receipts": {
+      "type": "array",
+      "description": "Evidence expectations for mutating workflows. Strings only (no logic).",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "description": "Declared persona capabilities as strings (not logic).",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:\\.[a-z0-9]+)*$",
+        "description": "Dot-delimited capability name. Example: audio.export, textiles.pattern.generate."
+      }
+    },
+    "links": {
+      "type": "object",
+      "description": "Optional external links (non-authoritative).",
+      "additionalProperties": {
+        "type": "string",
+        "format": "uri"
+      }
+    }
+  }
+}

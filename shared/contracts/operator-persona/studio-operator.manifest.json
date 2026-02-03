@@ -1,0 +1,31 @@
+{
+  "id": "studio-operator",
+  "display_name": "Studio Operator",
+  "version": "current",
+  "description": "Operator persona for studio workflows: planning, safety-gated execution, and receipted iteration across studio stations.",
+  "asset_roots": {
+    "profiles": "operator/profiles/studio",
+    "packs": "operator/packs/studio",
+    "notes": "operator/notes/studio"
+  },
+  "docs": {
+    "entrypoints": [
+      { "title": "First Run", "path": "docs/studio-operator/first-run.md" },
+      { "title": "Modes", "path": "docs/studio-operator/modes.md" },
+      { "title": "Capabilities", "path": "docs/studio-operator/capabilities.md" }
+    ]
+  },
+  "required_receipts": [
+    "runs/<run_id>/plan.json",
+    "runs/<run_id>/receipts/**",
+    "runs/<run_id>/station_state.json"
+  ],
+  "capabilities": [
+    "audio.sweep",
+    "audio.plan",
+    "audio.setup",
+    "station.status",
+    "station.certify",
+    "ui.operator.shell"
+  ]
+}

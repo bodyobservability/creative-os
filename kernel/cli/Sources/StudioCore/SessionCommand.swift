@@ -31,7 +31,7 @@ struct Session: AsyncParsableCommand {
                                                                    profilePath: profilePath,
                                                                    anchorsPack: anchorsPack,
                                                                    fix: fix,
-                                                                   runsDir: "runs"))
+                                                                   runsDir: RepoPaths.defaultRunsDir()))
       print("\nsession_receipt: runs/\(receipt.runId)/session_receipt.v1.json")
       if receipt.status != "pass" { throw ExitCode(1) }
     }

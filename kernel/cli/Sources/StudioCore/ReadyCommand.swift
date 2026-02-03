@@ -8,7 +8,7 @@ struct Ready: AsyncParsableCommand {
   )
 
   @Option(name: .long, help: "Anchors pack hint used only for suggested commands.")
-  var anchorsPackHint: String = "shared/specs/automation/anchors/<pack_id>"
+  var anchorsPackHint: String = RepoPaths.defaultAnchorsPackHint()
 
   @Option(name: .long, help: "Artifact index path.")
   var artifactIndex: String = "checksums/index/artifact_index.v1.json"

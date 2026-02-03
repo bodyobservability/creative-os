@@ -25,7 +25,7 @@ struct SubMonoCommand: ParsableCommand {
                                                       out: out,
                                                       rackId: rackId,
                                                       profileId: profileId,
-                                                      runsDir: "runs"))
+                                                      runsDir: RepoPaths.defaultRunsDir()))
     print("status: \(result.receipt.status)")
     if !result.receipt.reasons.isEmpty { print("reasons:"); for r in result.receipt.reasons { print(" - \(r)") } }
     print("receipt: \(result.outPath)")

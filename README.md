@@ -9,7 +9,7 @@ Studio Operator is the operator persona and shell (TUI/voice/workflows) that dri
 make onboard
 ```
 
-See `docs/studio-operator/first_run.md`.
+See `docs/studio-operator/first-run.md`.
 
 ## Studio Operator Shell
 

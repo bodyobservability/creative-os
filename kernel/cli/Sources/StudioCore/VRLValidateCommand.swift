@@ -21,7 +21,7 @@ struct VRL: AsyncParsableCommand {
     var mapping: String = WubDefaults.profileSpecPath("voice/runtime/vrl_mapping.v1.yaml")
 
     @Option(name: .long, help: "Regions config path (must include tracks.list, device.chain, rack.macros).")
-    var regions: String = "kernel/cli/config/regions.v1.json"
+    var regions: String = RepoPaths.defaultRegionsConfigPath()
 
     @Option(name: .long, help: "Output receipt path (default: runs/<run_id>/vrl_mapping_receipt.v1.json).")
     var out: String?

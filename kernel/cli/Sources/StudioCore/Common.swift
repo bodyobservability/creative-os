@@ -3,30 +3,31 @@ import ArgumentParser
 
 struct CommonOptions: ParsableArguments {
   @Flag(name: .long) var interactive: Bool = false
-  @Option(name: .long) var runsDir: String = "runs"
+  @Option(name: .long) var runsDir: String = RepoPaths.defaultRunsDir()
   @Option(name: .long) var ableton: String = "12.3"
   @Option(name: .long) var serum: String = "2"
   @Option(name: .long) var preferredFormats: String = "au,vst3"
-  @Option(name: .long) var regionsConfig: String = "kernel/cli/config/regions.v1.json"
+  @Option(name: .long) var regionsConfig: String = RepoPaths.defaultRegionsConfigPath()
   @Option(name: .long, help: "Evidence capture: none | fail | all (default: fail).")
   var evidence: String = "fail"
-  @Option(name: .long) var substitutions: String = "shared/specs/automation/substitutions/substitutions.v1.json"
-  @Option(name: .long) var recommendations: String = "shared/specs/automation/recommendations/recommendations.v1.json"
-  @Option(name: .long) var packSignatures: String = "shared/specs/automation/recommendations/pack_signatures.v1.json"
+  @Option(name: .long) var substitutions: String = RepoPaths.defaultSubstitutionsPath()
+  @Option(name: .long) var recommendations: String = RepoPaths.defaultRecommendationsPath()
+  @Option(name: .long) var packSignatures: String = RepoPaths.defaultPackSignaturesPath()
 }
 
 enum WubPaths {
-  static let operatorRoot = "operator"
-
   static func operatorPath(_ components: [String]) -> String {
-    ([operatorRoot] + components).joined(separator: "/")
+    let root = RepoPaths.rootURL()
+    let base = RepoPaths.operatorDir(root: root)
+    let full = components.reduce(base) { $0.appendingPathComponent($1) }
+    return RepoPaths.relPath(root: root, url: full)
   }
 
-  static let operatorProfilesDir = operatorPath(["profiles"])
-  static let operatorPacksDir = operatorPath(["packs"])
-  static let operatorNotesDir = operatorPath(["notes"])
-  static let operatorConfigPath = operatorPath(["notes", "WUB_CONFIG.json"])
-  static let operatorLocalConfigPath = operatorPath(["notes", "LOCAL_CONFIG.json"])
+  static var operatorProfilesDir: String { operatorPath(["profiles"]) }
+  static var operatorPacksDir: String { operatorPath(["packs"]) }
+  static var operatorNotesDir: String { operatorPath(["notes"]) }
+  static var operatorConfigPath: String { operatorPath(["notes", "WUB_CONFIG.json"]) }
+  static var operatorLocalConfigPath: String { operatorPath(["notes", "LOCAL_CONFIG.json"]) }
 }
 
 
@@ -62,17 +63,23 @@ enum WubDefaults {
   }
 
   static func profileSpecPath(_ relative: String) -> String {
+    let root = RepoPaths.rootURL()
     if let id = activeProfileId() {
-      return "shared/specs/profiles/\(id)/\(relative)"
+      let path = RepoPaths.sharedProfileSpecsDir(root: root, profileId: id).appendingPathComponent(relative)
+      return RepoPaths.relPath(root: root, url: path)
     }
-    return "shared/specs/profiles/NO_PROFILE/\(relative)"
+    let fallback = RepoPaths.sharedProfileSpecsDir(root: root, profileId: "NO_PROFILE").appendingPathComponent(relative)
+    return RepoPaths.relPath(root: root, url: fallback)
   }
 
   static func packPath(_ relative: String) -> String {
+    let root = RepoPaths.rootURL()
     if let id = activePackId() {
-      return WubPaths.operatorPath(["packs", id, relative])
+      let path = RepoPaths.packsDir(root: root).appendingPathComponent(id, isDirectory: true).appendingPathComponent(relative)
+      return RepoPaths.relPath(root: root, url: path)
     }
-    return WubPaths.operatorPath(["packs", "NO_PACK", relative])
+    let fallback = RepoPaths.packsDir(root: root).appendingPathComponent("NO_PACK", isDirectory: true).appendingPathComponent(relative)
+    return RepoPaths.relPath(root: root, url: fallback)
   }
 }
 

@@ -29,15 +29,16 @@ struct AnchorsSelect: ParsableCommand {
 
   static func collectAnchors(repoRoot: String) -> [String] {
     let fm = FileManager.default
+    let rootURL = URL(fileURLWithPath: repoRoot, isDirectory: true)
     let roots = [
-      "shared/specs/automation/anchors",
-      "kernel/tools/automation/anchors",
-      "anchors",
-      "shared/specs/anchors"
+      RepoPaths.sharedSpecsDir(root: rootURL).appendingPathComponent("automation/anchors", isDirectory: true).path,
+      RepoPaths.kernelDir(root: rootURL).appendingPathComponent("tools/automation/anchors", isDirectory: true).path,
+      rootURL.appendingPathComponent("anchors", isDirectory: true).path,
+      RepoPaths.sharedSpecsDir(root: rootURL).appendingPathComponent("anchors", isDirectory: true).path
     ]
     var found: [String] = []
     for root in roots {
-      let dir = URL(fileURLWithPath: repoRoot).appendingPathComponent(root, isDirectory: true)
+      let dir = URL(fileURLWithPath: root, isDirectory: true)
       guard fm.fileExists(atPath: dir.path) else { continue }
       let items = (try? fm.contentsOfDirectory(atPath: dir.path)) ?? []
       for name in items {

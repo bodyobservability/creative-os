@@ -63,7 +63,7 @@ struct RepairService {
                                                                     nonInteractive: true,
                                                                     preflight: true,
                                                                     runsDir: config.runsDir,
-                                                                    regionsConfig: "kernel/cli/config/regions.v1.json",
+                                                                    regionsConfig: RepoPaths.defaultRegionsConfigPath(),
                                                                     racksOut: WubDefaults.packPath("ableton/racks/BASS_RACKS"),
                                                                     performanceOut: WubDefaults.packPath("ableton/performance-sets/BASS_PERFORMANCE_SET_v1.0.als"),
                                                                     baysSpec: WubDefaults.profileSpecPath("assets/export/finishing_bays_export.v1.yaml"),

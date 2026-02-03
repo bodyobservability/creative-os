@@ -67,7 +67,7 @@ struct Pipeline: AsyncParsableCommand {
                                                                         baseline: baseline,
                                                                         releaseOut: releaseOut,
                                                                         thresholds: thresholds,
-                                                                        runsDir: "runs"))
+                                                                        runsDir: RepoPaths.defaultRunsDir()))
       print("receipt: runs/\(receipt.runId)/release_cut_receipt.v1.json")
       if receipt.status != "pass" { throw ExitCode(1) }
     }

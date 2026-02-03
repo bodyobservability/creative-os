@@ -18,14 +18,14 @@ extension Station {
     var noWriteReport: Bool = false
 
     @Option(name: .long, help: "Anchors pack hint (used only for evidence/reasons).")
-    var anchorsPackHint: String = "shared/specs/automation/anchors/<pack_id>"
+    var anchorsPackHint: String = RepoPaths.defaultAnchorsPackHint()
 
     func run() async throws {
       _ = try await StationStatusService.run(config: .init(format: format,
                                                           out: out,
                                                           noWriteReport: noWriteReport,
                                                           anchorsPackHint: anchorsPackHint,
-                                                          runsDir: "runs"))
+                                                          runsDir: RepoPaths.defaultRunsDir()))
     }
   }
 }

@@ -214,7 +214,7 @@ struct SonicSweepRunService {
                                                    allowCgevent: true,
                                                    force: false,
                                                    runsDir: config.runsDir,
-                                                   regionsConfig: "kernel/cli/config/regions.v1.json",
+                                                   regionsConfig: RepoPaths.defaultRegionsConfigPath(),
                                                    evidence: "fail",
                                                    watchdogMs: 30000))
 
@@ -296,7 +296,7 @@ struct SonicSweepCompileService {
                                                             allowCgevent: true,
                                                             force: false,
                                                             runsDir: config.runsDir,
-                                                            regionsConfig: "kernel/cli/config/regions.v1.json",
+                                                            regionsConfig: RepoPaths.defaultRegionsConfigPath(),
                                                             evidence: "fail",
                                                             watchdogMs: 30000))
       let exitCode = (result.status == "success") ? 0 : 1

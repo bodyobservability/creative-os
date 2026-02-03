@@ -1,0 +1,28 @@
+{
+  "id": "atelier-operator",
+  "display_name": "Atelier Operator",
+  "version": "current",
+  "description": "Operator persona for textiles and fashion workflows: materials-aware iteration, pattern and fabrication planning, and receipted prototyping without embedding domain semantics into the kernel.",
+  "asset_roots": {
+    "profiles": "operator/profiles/atelier",
+    "packs": "operator/packs/atelier",
+    "notes": "operator/notes/atelier"
+  },
+  "docs": {
+    "entrypoints": [
+      { "title": "Atelier Overview", "path": "docs/shared/atelier-overview.md" },
+      { "title": "Polymath Doctrine", "path": "docs/shared/philosophy/polymath.md" }
+    ]
+  },
+  "required_receipts": [
+    "runs/<run_id>/plan.json",
+    "runs/<run_id>/receipts/**",
+    "runs/<run_id>/artifacts/**"
+  ],
+  "capabilities": [
+    "materials.library",
+    "textiles.pattern.plan",
+    "textiles.fabrication.plan",
+    "artifacts.export"
+  ]
+}

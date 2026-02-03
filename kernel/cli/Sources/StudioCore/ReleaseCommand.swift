@@ -43,7 +43,7 @@ struct Release: AsyncParsableCommand {
                                                                            baseline: baseline,
                                                                            currentSweep: currentSweep,
                                                                            rackManifest: rackManifest,
-                                                                           runsDir: "runs"))
+                                                                           runsDir: RepoPaths.defaultRunsDir()))
       print("receipt: runs/\(receipt.runId)/profile_promotion_receipt.v1.json")
       if receipt.status != "pass" { throw ExitCode(1) }
     }

@@ -79,7 +79,7 @@ enum CapturePhase {
   // - Browser results list is visible at the configured rect.
   //
   // Configuration:
-  // - If a JSON file exists at `kernel/cli/config/regions.v1.json`, we use:
+  // - If a JSON file exists at the default regions config path, we use:
   //     regions.ableton.browser.results_list {x,y,w,h}
   // - Otherwise we fall back to a conservative default rect for a left-side browser list.
   //
@@ -159,7 +159,7 @@ enum CapturePhase {
   /// Returns a rect in *top-left* display coordinates.
   private static func loadResultsRegionRect() throws -> CGRect {
     let fm = FileManager.default
-    let path = "kernel/cli/config/regions.v1.json"
+    let path = RepoPaths.defaultRegionsConfigPath()
     if fm.fileExists(atPath: path) {
       let cfg = try JSONDecoder().decode(RegionsConfig.self, from: Data(contentsOf: URL(fileURLWithPath: path)))
       if let r = cfg.regions["ableton.browser.results"] ?? cfg.regions["ableton.browser.results_list"] {

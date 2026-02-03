@@ -25,6 +25,7 @@ final class WubSnapshotTests: XCTestCase {
     let fm = FileManager.default
     try fm.createDirectory(at: dir.appendingPathComponent(WubPaths.operatorProfilesDir, isDirectory: true), withIntermediateDirectories: true)
     try fm.createDirectory(at: dir.appendingPathComponent(WubPaths.operatorNotesDir, isDirectory: true), withIntermediateDirectories: true)
+    try fm.createDirectory(at: dir.appendingPathComponent("shared/specs", isDirectory: true), withIntermediateDirectories: true)
     try fm.createDirectory(at: dir.appendingPathComponent("runs", isDirectory: true), withIntermediateDirectories: true)
 
     let profilePath = dir.appendingPathComponent(WubPaths.operatorProfilesDir).appendingPathComponent("hvlien.profile.yaml")
@@ -42,8 +43,15 @@ final class WubSnapshotTests: XCTestCase {
     let fm = FileManager.default
     let originalCwd = fm.currentDirectoryPath
     let tempDir = try makeTempWorkspace()
+    let prevRoot = getenv("CREATIVE_OS_ROOT")
+    setenv("CREATIVE_OS_ROOT", tempDir.path, 1)
     defer {
       fm.changeCurrentDirectoryPath(originalCwd)
+      if let prevRoot {
+        setenv("CREATIVE_OS_ROOT", String(cString: prevRoot), 1)
+      } else {
+        unsetenv("CREATIVE_OS_ROOT")
+      }
       try? fm.removeItem(at: tempDir)
     }
 
@@ -80,8 +88,15 @@ final class WubSnapshotTests: XCTestCase {
     let fm = FileManager.default
     let originalCwd = fm.currentDirectoryPath
     let tempDir = try makeTempWorkspace()
+    let prevRoot = getenv("CREATIVE_OS_ROOT")
+    setenv("CREATIVE_OS_ROOT", tempDir.path, 1)
     defer {
       fm.changeCurrentDirectoryPath(originalCwd)
+      if let prevRoot {
+        setenv("CREATIVE_OS_ROOT", String(cString: prevRoot), 1)
+      } else {
+        unsetenv("CREATIVE_OS_ROOT")
+      }
       try? fm.removeItem(at: tempDir)
     }
 

@@ -110,7 +110,7 @@ struct WubStore {
   let configPath: String
   let packsDir: String
 
-  init(root: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath),
+  init(root: URL = RepoPaths.rootURL(),
        profilesDir: String = WubPaths.operatorProfilesDir,
        configPath: String = WubPaths.operatorConfigPath,
        packsDir: String = WubPaths.operatorPacksDir) {

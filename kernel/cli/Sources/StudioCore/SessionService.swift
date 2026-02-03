@@ -163,7 +163,7 @@ struct SessionService {
     let rackMacroRegion = get(["racks", "macro_region"]) as? String ?? "rack.macros"
 
     let anchorsPack = get(["automation", "anchors_pack"]) as? String ?? ""
-    let regionsPath = get(["automation", "regions"]) as? String ?? "kernel/cli/config/regions.v1.json"
+    let regionsPath = get(["automation", "regions"]) as? String ?? RepoPaths.defaultRegionsConfigPath()
 
     return SessionProfileConfig(voiceScript: voiceScript,
                                 voiceAbi: voiceAbi,

@@ -3,7 +3,7 @@ import ArgumentParser
 struct RegionsSelect: ParsableCommand {
   static let configuration = CommandConfiguration(commandName: "regions-select", abstract: "Activate regions profile as regions.v1.json")
   @Option(name: .long) var display: String
-  @Option(name: .long) var configDir: String = "kernel/cli/config"
+  @Option(name: .long) var configDir: String = RepoPaths.defaultRegionsConfigDir()
   func run() throws {
     let dir = URL(fileURLWithPath: configDir, isDirectory: true)
     let srcName: String

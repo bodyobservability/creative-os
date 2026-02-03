@@ -6,7 +6,8 @@ struct LocalConfig: Codable {
   var artifactExportsCompleted: Bool?
 
   static func path(atRepoRoot root: String) -> String {
-    return URL(fileURLWithPath: root).appendingPathComponent(WubPaths.operatorLocalConfigPath).path
+    let rootURL = URL(fileURLWithPath: root, isDirectory: true)
+    return RepoPaths.operatorLocalConfigPath(root: rootURL).path
   }
 
   static func loadOrCreate(atRepoRoot root: String) throws -> LocalConfig {
@@ -35,13 +36,14 @@ struct LocalConfig: Codable {
   static func autoDetectAnchorsPack(repoRoot: String) -> String? {
     let fm = FileManager.default
 
+    let rootURL = URL(fileURLWithPath: repoRoot, isDirectory: true)
     // Candidate parent directories in priority order
     let candidates = [
-      "shared/specs/automation/anchors",
-      "kernel/tools/automation/anchors",
-      "anchors",
-      "shared/specs/anchors"
-    ].map { URL(fileURLWithPath: repoRoot).appendingPathComponent($0, isDirectory: true) }
+      RepoPaths.sharedSpecsDir(root: rootURL).appendingPathComponent("automation/anchors", isDirectory: true),
+      RepoPaths.kernelDir(root: rootURL).appendingPathComponent("tools/automation/anchors", isDirectory: true),
+      rootURL.appendingPathComponent("anchors", isDirectory: true),
+      RepoPaths.sharedSpecsDir(root: rootURL).appendingPathComponent("anchors", isDirectory: true)
+    ]
 
     var bestURL: URL? = nil
     var bestDate: Date = .distantPast

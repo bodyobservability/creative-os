@@ -7,7 +7,7 @@ struct FixCatalog {
     // Prefer a single actionable command.
     // If it's in known export paths, suggest targeted export; otherwise suggest export-all.
     let p = a.path
-    let ap = anchorsPackHint ?? "shared/specs/automation/anchors/<pack_id>"
+    let ap = anchorsPackHint ?? RepoPaths.defaultAnchorsPackHint()
 
     if p.contains("/ableton/racks/") {
       return "service: assets.export_racks anchors_pack=\(ap) overwrite=true"

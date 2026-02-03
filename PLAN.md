@@ -108,7 +108,7 @@
           - docs/agents_contract.md
           - Any remaining docs/** files that describe execution, safety, governance, determinism, or kernel architecture
       - Operator docs → docs/studio-operator/ (explicit list only):
-          - docs/first_run.md
+          - docs/first-run.md
           - docs/modes.md
           - docs/capabilities.md
           - Any remaining docs/** files that describe operator workflows, personas, UI affordances, or creative practice

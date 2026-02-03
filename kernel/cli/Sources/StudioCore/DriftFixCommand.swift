@@ -13,7 +13,7 @@ extension Drift {
 
     @Option(name: .long) var artifactIndex: String = "checksums/index/artifact_index.v1.json"
     @Option(name: .long) var receiptIndex: String = "checksums/index/receipt_index.v1.json"
-    @Option(name: .long) var anchorsPackHint: String = "shared/specs/automation/anchors/<pack_id>"
+    @Option(name: .long) var anchorsPackHint: String = RepoPaths.defaultAnchorsPackHint()
 
     @Flag(name: .long, help: "Skip per-command prompts; still requires one final confirmation.")
     var yes: Bool = false
@@ -32,7 +32,7 @@ extension Drift {
                                                                 yes: yes,
                                                                 dryRun: dryRun,
                                                                 out: out,
-                                                                runsDir: "runs"))
+                                                                runsDir: RepoPaths.defaultRunsDir()))
       if receipt.status == "fail" { throw ExitCode(1) }
     }
   }

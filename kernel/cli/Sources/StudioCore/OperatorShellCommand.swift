@@ -30,7 +30,7 @@ struct UI: AsyncParsableCommand {
       }
     }
 
-    let ap = cfg.anchorsPack ?? "shared/specs/automation/anchors/<pack_id>"
+    let ap = cfg.anchorsPack ?? RepoPaths.defaultAnchorsPackHint()
     let wubBin = resolveWubBinary(repoRoot: repoRoot) ?? "wub"
 
     let allItems: [MenuItem] = buildMenu(wubBin: wubBin, anchorsPack: ap, showPreflight: (cfg.firstRunCompleted ?? false) == false)
@@ -58,7 +58,7 @@ struct UI: AsyncParsableCommand {
 
       let snapshot = StudioStateEvaluator.evaluate(config: .init(
         repoRoot: repoRoot,
-        runsDir: "runs",
+        runsDir: RepoPaths.defaultRunsDir(),
         anchorsPack: cfg.anchorsPack,
         now: Date(),
         sweepStaleSeconds: 60 * 10,
@@ -587,7 +587,7 @@ struct UI: AsyncParsableCommand {
     case "Select Anchors Pack…":
       return [
         "When: anchors pack is missing or stale.",
-        "Prereqs: packs present under shared/specs/automation/anchors.",
+        "Prereqs: packs present under \(RepoPaths.defaultAnchorsDir()).",
         "Outputs: saves anchors pack to local config.",
         "Recovery: re-run if UI automation fails."
       ]
@@ -978,7 +978,7 @@ struct UI: AsyncParsableCommand {
   // MARK: FS helpers
 
   func latestRunDir() -> String? {
-    OperatorShellService.latestRunDirPath(runsDir: "runs")
+    OperatorShellService.latestRunDirPath(runsDir: RepoPaths.defaultRunsDir())
   }
 
   func latestFailuresDir(inRunDir runDir: String?) -> String? {

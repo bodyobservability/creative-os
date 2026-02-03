@@ -24,7 +24,18 @@ final class WubRuntimePlanTests: XCTestCase {
     let fm = FileManager.default
     let tempDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
     try fm.createDirectory(at: tempDir, withIntermediateDirectories: true)
-    defer { try? fm.removeItem(at: tempDir) }
+    let prevRoot = getenv("CREATIVE_OS_ROOT")
+    setenv("CREATIVE_OS_ROOT", tempDir.path, 1)
+    defer {
+      if let prevRoot {
+        setenv("CREATIVE_OS_ROOT", String(cString: prevRoot), 1)
+      } else {
+        unsetenv("CREATIVE_OS_ROOT")
+      }
+      try? fm.removeItem(at: tempDir)
+    }
+
+    try fm.createDirectory(at: tempDir.appendingPathComponent("shared/specs", isDirectory: true), withIntermediateDirectories: true)
 
     try writeFixture(name: "hvlien.profile", ext: "yaml", subdir: ["workspace", WubPaths.operatorProfilesDir].joined(separator: "/"),
                      to: tempDir.appendingPathComponent(WubPaths.operatorProfilesDir).appendingPathComponent("hvlien.profile.yaml"))
@@ -38,7 +49,7 @@ final class WubRuntimePlanTests: XCTestCase {
                                                                   requiredControllers: [],
                                                                   allowOcrFallback: false,
                                                                   fix: false,
-                                                                  regionsConfig: "kernel/cli/config/regions.v1.json",
+                                                                  regionsConfig: RepoPaths.defaultRegionsConfigPath(),
                                                                   runsDir: "runs"),
                              driftCheckConfig: DriftService.Config(artifactIndex: "checksums/index/artifact_index.v1.json",
                                                                    receiptIndex: "checksums/index/receipt_index.v1.json",
@@ -50,12 +61,12 @@ final class WubRuntimePlanTests: XCTestCase {
                              driftFixConfig: DriftFixService.Config(force: false,
                                                                     artifactIndex: "checksums/index/artifact_index.v1.json",
                                                                     receiptIndex: "checksums/index/receipt_index.v1.json",
-                                                                    anchorsPackHint: "shared/specs/automation/anchors/<pack_id>",
+                                                                    anchorsPackHint: RepoPaths.defaultAnchorsPackHint(),
                                                                     yes: false,
                                                                     dryRun: true,
                                                                     out: nil,
                                                                     runsDir: "runs"),
-                             readyConfig: ReadyService.Config(anchorsPackHint: "shared/specs/automation/anchors/<pack_id>",
+                             readyConfig: ReadyService.Config(anchorsPackHint: RepoPaths.defaultAnchorsPackHint(),
                                                               artifactIndex: "checksums/index/artifact_index.v1.json",
                                                               runDir: nil,
                                                               writeReport: true),

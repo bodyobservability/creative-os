@@ -44,7 +44,7 @@ struct SonicCertifyCommand: AsyncParsableCommand {
                                                                   rackId: rackId,
                                                                   profileId: profileId,
                                                                   macro: macro,
-                                                                  runsDir: "runs"))
+                                                                  runsDir: RepoPaths.defaultRunsDir()))
     print("cert_receipt: runs/\(receipt.runId)/sonic_cert_receipt.v1.json")
     if receipt.status != "pass" { throw ExitCode(1) }
   }

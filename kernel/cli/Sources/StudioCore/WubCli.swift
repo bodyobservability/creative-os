@@ -63,7 +63,7 @@ struct WubStateSweep: AsyncParsableCommand {
   var runDir: String? = nil
 
   @Option(name: .long, help: "Runs directory (default: runs).")
-  var runsDir: String = "runs"
+  var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Flag(name: .long, help: "Output JSON.")
   var json: Bool = false
@@ -97,7 +97,7 @@ struct WubSweep: AsyncParsableCommand {
   var runDir: String? = nil
 
   @Option(name: .long, help: "Runs directory (default: runs).")
-  var runsDir: String = "runs"
+  var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Flag(name: .long, help: "Output JSON.")
   var json: Bool = false
@@ -123,7 +123,7 @@ struct WubSweep: AsyncParsableCommand {
                                        requiredControllers: requireController,
                                        allowOcrFallback: allowOcrFallback,
                                        fix: fix,
-                                       regionsConfig: "kernel/cli/config/regions.v1.json",
+                                       regionsConfig: RepoPaths.defaultRegionsConfigPath(),
                                        runsDir: runsDir)
     let context = WubContext(runDir: runDir,
                              runsDir: runsDir,
@@ -153,7 +153,7 @@ struct WubStatePlan: AsyncParsableCommand {
   var runDir: String? = nil
 
   @Option(name: .long, help: "Runs directory (default: runs).")
-  var runsDir: String = "runs"
+  var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Flag(name: .long, help: "Output JSON.")
   var json: Bool = false
@@ -187,7 +187,7 @@ struct WubPlan: AsyncParsableCommand {
   var runDir: String? = nil
 
   @Option(name: .long, help: "Runs directory (default: runs).")
-  var runsDir: String = "runs"
+  var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Flag(name: .long, help: "Output JSON.")
   var json: Bool = false
@@ -211,7 +211,7 @@ struct WubPlan: AsyncParsableCommand {
   var anchorsPackHint: String? = nil
 
   @Option(name: .long, help: "Anchors pack hint for ready agent.")
-  var readyAnchorsPackHint: String = "shared/specs/automation/anchors/<pack_id>"
+  var readyAnchorsPackHint: String = RepoPaths.defaultAnchorsPackHint()
 
   @Option(name: .long, help: "Station status format for station agent: human|json.")
   var stationStatusFormat: String = "json"
@@ -220,7 +220,7 @@ struct WubPlan: AsyncParsableCommand {
   var stationNoWriteReport: Bool = true
 
   @Option(name: .long, help: "Anchors pack for assets export-all agent.")
-  var assetsAnchorsPack: String = "shared/specs/automation/anchors/<pack_id>"
+  var assetsAnchorsPack: String = RepoPaths.defaultAnchorsPackHint()
 
   @Flag(name: .long, help: "Assets export-all agent overwrite existing outputs.")
   var assetsOverwrite: Bool = false
@@ -256,7 +256,7 @@ struct WubPlan: AsyncParsableCommand {
   var indexRunsDir: String = "runs"
 
   @Option(name: .long, help: "Release candidate profile path.")
-  var releaseProfilePath: String = "shared/specs/profiles/hvlien/library/profiles/dev/bass_lead.v1.yaml"
+  var releaseProfilePath: String = RepoPaths.defaultReleaseProfilePath(profileId: "hvlien", relative: "library/profiles/dev/bass_lead.v1.yaml")
 
   @Option(name: .long, help: "Release rack id for certification.")
   var releaseRackId: String = "bass"
@@ -274,7 +274,7 @@ struct WubPlan: AsyncParsableCommand {
   var reportRunDir: String = "runs/<run_id>"
 
   @Option(name: .long, help: "Repair anchors pack hint.")
-  var repairAnchorsPackHint: String = "shared/specs/automation/anchors/<pack_id>"
+  var repairAnchorsPackHint: String = RepoPaths.defaultAnchorsPackHint()
 
   @Flag(name: .long, help: "Repair overwrite during export-all.")
   var repairOverwrite: Bool = true
@@ -285,7 +285,7 @@ struct WubPlan: AsyncParsableCommand {
                                               requiredControllers: requireController,
                                               allowOcrFallback: allowOcrFallback,
                                               fix: fix,
-                                              regionsConfig: "kernel/cli/config/regions.v1.json",
+                                              regionsConfig: RepoPaths.defaultRegionsConfigPath(),
                                               runsDir: runsDir)
     let driftCheckConfig = DriftService.Config(artifactIndex: "checksums/index/artifact_index.v1.json",
                                                receiptIndex: "checksums/index/receipt_index.v1.json",
@@ -297,7 +297,7 @@ struct WubPlan: AsyncParsableCommand {
     let driftFixConfig = DriftFixService.Config(force: false,
                                                 artifactIndex: "checksums/index/artifact_index.v1.json",
                                                 receiptIndex: "checksums/index/receipt_index.v1.json",
-                                                anchorsPackHint: anchorsPackHint ?? "shared/specs/automation/anchors/<pack_id>",
+                                                anchorsPackHint: anchorsPackHint ?? RepoPaths.defaultAnchorsPackHint(),
                                                 yes: false,
                                                 dryRun: true,
                                                 out: nil,
@@ -309,14 +309,14 @@ struct WubPlan: AsyncParsableCommand {
     let stationConfig = StationStatusService.Config(format: stationStatusFormat,
                                                     out: nil,
                                                     noWriteReport: stationNoWriteReport,
-                                                    anchorsPackHint: "shared/specs/automation/anchors/<pack_id>",
+                                                    anchorsPackHint: RepoPaths.defaultAnchorsPackHint(),
                                                     runsDir: runsDir)
     let assetsConfig = AssetsService.ExportAllConfig(anchorsPack: assetsAnchorsPack,
                                                      overwrite: assetsOverwrite,
                                                      nonInteractive: assetsNonInteractive,
                                                      preflight: assetsPreflight,
                                                      runsDir: runsDir,
-                                                     regionsConfig: "kernel/cli/config/regions.v1.json",
+                                                     regionsConfig: RepoPaths.defaultRegionsConfigPath(),
                                                      racksOut: WubDefaults.packPath("ableton/racks/BASS_RACKS"),
                                                      performanceOut: WubDefaults.packPath("ableton/performance-sets/BASS_PERFORMANCE_SET_v1.0.als"),
                                                      baysSpec: WubDefaults.profileSpecPath("assets/export/finishing_bays_export.v1.yaml"),
@@ -395,7 +395,7 @@ struct WubStateSetup: AsyncParsableCommand {
   var runDir: String? = nil
 
   @Option(name: .long, help: "Runs directory (default: runs).")
-  var runsDir: String = "runs"
+  var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Flag(name: .long, help: "Print manual steps after setup.")
   var showManual: Bool = false
@@ -511,7 +511,7 @@ struct WubSetup: AsyncParsableCommand {
   var runDir: String? = nil
 
   @Option(name: .long, help: "Runs directory (default: runs).")
-  var runsDir: String = "runs"
+  var runsDir: String = RepoPaths.defaultRunsDir()
 
   @Flag(name: .long, help: "Print manual steps after setup.")
   var showManual: Bool = false
@@ -654,7 +654,7 @@ struct WubStationStatus: AsyncParsableCommand {
   var noWriteReport: Bool = false
 
   @Option(name: .long, help: "Anchors pack hint (used only for evidence/reasons).")
-  var anchorsPackHint: String = "shared/specs/automation/anchors/<pack_id>"
+  var anchorsPackHint: String = RepoPaths.defaultAnchorsPackHint()
 
   func run() async throws {
     var cmd = Station.Status()
@@ -791,7 +791,7 @@ private func executeStep(_ step: CreativeOS.PlanStep, failures: inout [String]) 
     print("Running: \(step.agent)/\(step.id) → \(actionRef.id)")
     if let spec = CreativeOSActionCatalog.spec(for: actionRef.id), spec.requiresStationGate {
       try StationGate.enforceOrThrow(force: false,
-                                     anchorsPackHint: actionRef.kind == .setup ? "shared/specs/automation/anchors/<pack_id>" : nil,
+                                     anchorsPackHint: actionRef.kind == .setup ? RepoPaths.defaultAnchorsPackHint() : nil,
                                      commandName: actionRef.id)
     }
     if let code = try await ServiceExecutor.execute(step: step) {

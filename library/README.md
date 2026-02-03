@@ -4,7 +4,7 @@ Repo placeholder describing how to organize the existing catalog for backfill (n
 
 Recommended on-disk structure:
 
-/operator/profiles/hvlien/library/
+/shared/specs/profiles/hvlien/library/
   RAW_UPLOADS/        # Voloco WAV exports (canonical)
   MASTERS/            # finished masters (WAV preferred)
   LOSSY_REFERENCES/   # mp3/m4a (reference only)
