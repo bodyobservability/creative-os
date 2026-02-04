@@ -1,0 +1,48 @@
+{
+  "id": "accounting-operator",
+  "display_name": "Accounting Operator",
+  "version": "current",
+  "description": "Episodic operator persona for closing accounting epochs: evidence capture, ownership classification (personal vs sole prop vs C-corp), and audit-ready exports. Not a bookkeeping system.",
+  "asset_roots": {
+    "profiles": "operator/profiles/accounting",
+    "packs": "operator/packs/accounting",
+    "notes": "operator/notes/accounting"
+  },
+  "docs": {
+    "entrypoints": [
+      {
+        "title": "Profile README",
+        "path": "operator/profiles/accounting/README.md"
+      },
+      {
+        "title": "Readiness",
+        "path": "operator/profiles/accounting/docs/readiness/README.md"
+      },
+      {
+        "title": "Lifecycle",
+        "path": "operator/profiles/accounting/docs/lifecycle/README.md"
+      },
+      {
+        "title": "Repo Launcher",
+        "path": "docs/LAUNCHER.md"
+      },
+      {
+        "title": "Accounting TUI Quick Guide",
+        "path": "docs/accounting/TUI_QUICK_GUIDE.md"
+      }
+    ]
+  },
+  "required_receipts": [
+    "receipt_bundle",
+    "decision_record",
+    "export_manifest"
+  ],
+  "capabilities": [
+    "plan",
+    "gate",
+    "execute",
+    "receipt",
+    "export_csv",
+    "backup_sync"
+  ]
+}

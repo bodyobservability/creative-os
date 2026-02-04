@@ -1,0 +1,6 @@
+id: accounting
+intents: []
+policies: {}
+requirements: {}
+packs:
+  - accounting-defaults

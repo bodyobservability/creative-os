@@ -1,0 +1,5 @@
+id: accounting-defaults
+applies_to:
+  - accounting
+contents: {}
+requires_explicit_apply: false

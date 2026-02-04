@@ -73,6 +73,7 @@ Current personas:
 - **Studio Operator** -- studio workflows, automation, voice/TUI
 - **Atelier Operator** -- textiles, materials, fabrication planning
 - **Robotics Operator** -- robots, sensors, telemetry, gated actuation
+- **Accounting Operator** -- evidence capture, classification, export
 
 Personas are parallel and non-authoritative.
 They express **intent and constraints**, not execution power.
