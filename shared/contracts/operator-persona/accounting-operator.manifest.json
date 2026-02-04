@@ -43,6 +43,6 @@
     "execute",
     "receipt",
     "export_csv",
-    "backup_sync"
+    "backup.sync"
   ]
 }
