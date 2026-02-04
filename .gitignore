@@ -35,3 +35,17 @@ tools/automation/swift-cli/notes/WUB_CONFIG.json
 # Runtime outputs
 runs/
 checksums/index/
+
+# Accounting local state
+accounting/data/
+accounting/.local/
+accounting/**/bundles/
+accounting/**/exports/
+accounting/**/archives/
+
+# Local config
+CONFIG/corp_payment_fingerprints.json
+
+# Python
+.venv/
+__pycache__/

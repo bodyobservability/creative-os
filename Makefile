@@ -34,3 +34,20 @@ check: build
 
 preflight: build
 	$(WUB) preflight
+
+# --- Launcher / Shell (Python) ---
+# Prefer venv python if present
+PYRUN ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
+
+.PHONY: shell-install tui launcher
+
+shell-install:
+	python3 -m venv .venv
+	.venv/bin/pip install --upgrade pip
+	.venv/bin/pip install -r requirements-shell.txt
+
+tui:
+	$(PYRUN) -m creative_os.shell accounting
+
+launcher:
+	$(PYRUN) -m creative_os.launcher
