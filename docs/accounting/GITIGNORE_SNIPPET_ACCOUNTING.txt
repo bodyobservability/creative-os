@@ -1,0 +1,37 @@
+# Accounting .gitignore snippet (recommended)
+
+# ---- Accounting local-only evidence/data (DO NOT COMMIT) ----
+accounting/**/intake/
+accounting/**/source_messages/
+accounting/**/originals/
+accounting/**/bundles/
+accounting/**/review_queue/
+accounting/**/exports/
+accounting/**/archives/
+accounting/data/
+
+# Common generated exports
+schedule_c_expenses_*.csv
+corp_reimbursable_expenses_*.csv
+sole_prop_assets_retained_*.csv
+sole_prop_assets_for_sale_*.csv
+corp_asset_intake_*.csv
+evidence_*.zip
+
+# ---- Secrets / local configs ----
+CONFIG/corp_payment_fingerprints.json
+.env
+.env.*
+
+# OS noise
+.DS_Store
+
+# Local UI state (TUI markers)
+accounting/.local/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local seal marker
+accounting/epochs/**/SEALED.marker

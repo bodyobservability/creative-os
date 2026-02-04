@@ -29,6 +29,28 @@ It is an execution substrate.
 
 ---
 
+## Accounting & launcher
+
+This repo also ships a **Textual launcher** and an **Accounting TUI**:
+
+```bash
+make shell-install
+make launcher
+```
+
+Run the accounting flow directly:
+
+```bash
+make tui
+```
+
+Accounting specs and docs live here:
+
+* `shared/specs/accounting/`
+* `docs/accounting/CREATIVE_OS_ACCOUNTING_QUICKSTART.md`
+
+---
+
 ## Core concepts
 
 ### Kernel
@@ -94,7 +116,11 @@ shared/
 docs/
   creative-os/         # kernel docs (execution, safety, governance)
   studio-operator/     # Studio Operator docs
+  accounting/          # accounting QuickStart + TUI docs
   shared/              # system-wide docs (philosophy, release, compliance)
+
+accounting/
+  scripts/             # accounting helpers (autofill, exports, CI)
 
 runs/
   <run_id>/            # plans, receipts, evidence, telemetry

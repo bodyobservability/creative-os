@@ -1,0 +1,24 @@
+{
+  "corp_cards": [
+    {
+      "label": "PRIMARY_CORP_CARD",
+      "last4": "1234",
+      "brand": "visa",
+      "billing_zip": "00000",
+      "billing_name_contains": [
+        "YOUR CORP, INC",
+        "YOURCORP"
+      ]
+    }
+  ],
+  "corp_billing_address_contains": [
+    "YOUR CORP, INC",
+    "123 MAIN ST",
+    "CITY, STATE ZIP"
+  ],
+  "match_policy": {
+    "last4_only_is_strong_match": true,
+    "require_brand_if_present": false,
+    "require_billing_zip_if_present": false
+  }
+}
