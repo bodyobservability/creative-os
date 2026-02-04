@@ -65,3 +65,6 @@ CONFIG/corp_payment_fingerprints.json
 .venv/
 __pycache__/
 *.pyc
+
+# Local bundles
+*.zip
