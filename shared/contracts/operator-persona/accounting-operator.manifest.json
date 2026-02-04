@@ -42,7 +42,7 @@
     "gate",
     "execute",
     "receipt",
-    "export_csv",
+    "export.csv",
     "backup.sync"
   ]
 }
