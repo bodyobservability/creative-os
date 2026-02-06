@@ -78,7 +78,7 @@ Name files clearly:
 ## 5) Build your intake folder
 Recommended structure:
 ```
-accounting/2025/intake/
+accounting/data/2025/intake/
   gmail/<account>/...
   icloud/<account>/...   (optional if you export separately)
 ```
@@ -97,7 +97,7 @@ Offline only:
 
 Create bundles:
 ```
-accounting/2025/bundles/<bundle_id>/...
+accounting/data/2025/bundles/<bundle_id>/...
 ```
 
 ---
@@ -149,11 +149,11 @@ python3 accounting/scripts/export_2025.py
 ```
 
 Outputs:
-- `schedule_c_expenses_2025.csv`
-- `corp_reimbursable_expenses_2025.csv`
-- `sole_prop_assets_retained_2025.csv`
-- `sole_prop_assets_for_sale_2026.csv`
-- `corp_asset_intake_2026.csv`
+- `accounting/data/2025/exports/schedule_c_expenses_2025.csv`
+- `accounting/data/2025/exports/corp_reimbursable_expenses_2025.csv`
+- `accounting/data/2025/exports/sole_prop_assets_retained_2025.csv`
+- `accounting/data/2025/exports/sole_prop_assets_for_sale_2026.csv`
+- `accounting/data/2025/exports/corp_asset_intake_2026.csv`
 
 ---
 

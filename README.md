@@ -1,200 +1,130 @@
 # Creative OS
 
-**Creative OS** is a **domain-agnostic execution kernel** for building, operating, and evolving creative and physical systems safely.
+**Creative OS** is a personal, polymath operating system for building, operating, and closing complex creative and real-world workflows safely, reproducibly, and with evidence.
 
-It provides a single execution grammar:
+It is not a single app.
+It is not a framework.
+It is an execution substrate.
+
+Creative OS exists to support a life that spans:
+- music and studio work (Ableton, instruments, automation)
+- textiles, fabrication, and physical artifacts
+- robotics (Jetson, Raspberry Pi, ESP32 sensors/actuators)
+- accounting and tax close-out (evidence, classification, exports)
+- future domains that mix software, matter, and consequence
+
+Core grammar:
 
 > **plan -> gate -> execute -> receipt**
 
-...and applies it consistently across:
-- music and studio automation
-- textiles and fabrication
-- robotics (Jetson, Raspberry Pi, ESP32)
-- future material- and body-coupled systems
+## What problem this solves
 
-Creative OS is designed so new domains add **contracts and personas**, not kernel rewrites.
+Most tools are built for one domain at a time. Real life is not.
 
----
-
-## What this repository is
-
-This repository contains the **Creative OS kernel**, its **operator personas**, and the **shared contracts** that allow polymath expansion without architectural drift.
-
-It is intentionally **not**:
-- a single application
-- a domain-specific framework
-- a collection of scripts
-
-It is an execution substrate.
-
----
-
-## Accounting & launcher
-
-This repo also ships a **Textual launcher** and an **Accounting TUI**:
-
-```bash
-make shell-install
-make launcher
-```
-
-Run the accounting flow directly:
-
-```bash
-make tui
-```
-
-Accounting specs and docs live here:
-
-* `shared/specs/accounting/`
-* `docs/accounting/CREATIVE_OS_ACCOUNTING_QUICKSTART.md`
-
----
+Creative OS provides:
+- deterministic execution
+- safety gates
+- immutable receipts
+- epochal workflows for high-consequence close-outs
 
 ## Core concepts
 
-### Kernel
-The kernel defines **how things happen**, not **what things are**.
+### 1) The kernel
+The kernel defines how actions happen, not what actions mean.
 
-- deterministic planning
-- safety gating
+It provides:
+- planning (preview before acting)
+- gating (SAFE / GUIDED / ALL)
 - allowlisted execution
-- immutable receipts
+- receipts and evidence
 - governance and validation
 
-The kernel never embeds domain semantics.
+### 2) Operator personas
+Operator personas describe how a human works in a domain.
 
----
-
-### Operator personas
-Operator personas define **how humans think and work**, not how execution works.
+They:
+- express intent and constraints
+- bundle workflows/scripts/UI
+- never execute directly
+- are not authoritative
 
 Current personas:
-- **Studio Operator** -- studio workflows, automation, voice/TUI
-- **Atelier Operator** -- textiles, materials, fabrication planning
-- **Robotics Operator** -- robots, sensors, telemetry, gated actuation
-- **Accounting Operator** -- evidence capture, classification, export
+- Studio Operator
+- Atelier Operator
+- Robotics Operator
+- Accounting Operator
 
-Personas are parallel and non-authoritative.
-They express **intent and constraints**, not execution power.
+### 3) Shared contracts
+Shared contracts define truth across domains.
 
----
-
-### Shared contracts
-Shared contracts define **truth across domains**.
-
-They are:
-- declarative
-- schema-validated
-- enforced by the kernel
-- free of execution logic
-
-Contracts currently include:
-- operator persona manifests
-- materials
-- robotics (devices, telemetry, actuation, safety)
-
-This is where new domains integrate.
-
----
+They are declarative, schema-validated, kernel-enforced, and execution-free.
 
 ## Repository layout
 
 ```text
 kernel/
   cli/                 # Creative OS kernel entrypoint (wub)
-  tools/               # kernel-owned tooling (validation, checksums, hooks)
+  tools/               # validation, checksums, governance
 
 operator/
-  profiles/            # persona-specific intent & policy
-  packs/               # reusable, non-authoritative artifact bundles
-  notes/               # operator workflows & runbooks
+  profiles/            # persona intent and policy (non-authoritative)
+  packs/               # reusable artifact bundles
+  notes/               # operator runbooks and workflows
 
 shared/
-  specs/               # authoritative schemas and specs
-  contracts/           # cross-domain contracts (materials, robotics, etc.)
+  specs/               # authoritative schemas
+  contracts/           # cross-domain contracts (materials, robotics, personas)
 
-docs/
-  creative-os/         # kernel docs (execution, safety, governance)
-  studio-operator/     # Studio Operator docs
-  accounting/          # accounting QuickStart + TUI docs
-  shared/              # system-wide docs (philosophy, release, compliance)
+creative_os/
+  launcher/            # repo-root TUI launcher
+  shell/               # persona TUIs (Textual)
 
 accounting/
-  scripts/             # accounting helpers (autofill, exports, CI)
+  scripts/             # accounting logic (classification, exports, CI gates)
+
+accounting/data/
+  2025/
+    intake/
+    bundles/
+    exports/
+  _snapshots/
 
 runs/
-  <run_id>/            # plans, receipts, evidence, telemetry
+  <run_id>/            # plans, receipts, telemetry, evidence
 ```
 
----
+Important: evidence lives under `accounting/data/` and is intentionally not committed.
 
-## First run
+## Getting started
+
+Launcher (recommended):
 
 ```bash
-make onboard
+make launcher
 ```
 
-This performs a gated preflight and produces receipts under `runs/`.
-
-See:
-
-* `docs/studio-operator/first-run.md`
-
----
-
-## Build the CLI
+Accounting TUI:
 
 ```bash
-cd kernel/cli
-swift build -c release
+make tui
 ```
 
-Run core commands:
+Studio:
 
 ```bash
-kernel/cli/.build/release/wub sweep
-kernel/cli/.build/release/wub plan --json
-kernel/cli/.build/release/wub setup --show-manual
+make studio
 ```
 
----
+## Safety model
 
-## Safety model (read before execution)
+Modes:
+- SAFE: non-destructive actions only
+- GUIDED: recommended actions, limited risk
+- ALL: full power with explicit confirmation
 
-* All mutating actions are **planned** and **gated**
-* Only allowlisted actions execute
-* Every execution emits **receipts**
-* Evidence and telemetry are captured under `runs/<run_id>/`
+If something moves money, machines, or matter, it must leave evidence.
 
-If something moves, changes, or actuates, it must leave evidence.
-
----
-
-## Robotics posture
-
-Robotics is treated as a **first-class domain**, not a special case.
-
-* Jetson, Raspberry Pi, and ESP32 devices are modeled as **nodes**
-* Sensors emit schema-validated telemetry
-* Actuation is bounded, allowlisted, and receipted
-* Safety gates and interlocks are declarative contracts
-
-See:
-
-* `shared/contracts/robotics/`
-* `docs/shared/robotics-overview.md`
-
----
-
-## Governance and validation
-
-Creative OS enforces its invariants automatically:
-
-* kernel must not reference operator paths
-* checksums are deterministic
-* schemas and contracts are validated
-* operator persona manifests are enforced
+## Governance and integrity
 
 Key tools:
 
@@ -202,55 +132,15 @@ Key tools:
 bash kernel/tools/checksum_generate.sh
 bash kernel/tools/checksum_verify.sh
 python kernel/tools/schema_validate.py
-bash kernel/tools/validate_persona_manifests.sh
 ```
-
----
 
 ## Philosophy
 
-Creative OS is a **polymath operating system**.
-
-It is designed so that:
-
-* adding a new domain is a content decision
-* not an architectural refactor
+Creative OS is a polymath operating system designed so adding domains is a content decision, not an architectural rewrite.
 
 Read:
-
-* `docs/shared/philosophy/polymath.md`
-
----
-
-## Contributing
-
-Before contributing, read:
-
-* `CONTRIBUTING.md`
-
-Invariants are non-negotiable:
-
-* kernel neutrality
-* persona non-authority
-* contract-first integration
-* no hidden execution paths
-
----
-
-## Roadmap
-
-The canonical roadmap lives at:
-
-* `docs/creative-os/ROADMAP.md`
-
-Operator-specific roadmaps live alongside their personas.
-
----
+- `docs/shared/philosophy/polymath.md`
 
 ## Status
 
-Creative OS is under active development.
-The architecture is intentionally conservative so it can support long-lived, high-consequence systems.
-
-Exploration is encouraged.
-Entropy is not.
+Creative OS is actively used. The architecture is intentionally conservative so it can support long-lived, high-consequence workflows.

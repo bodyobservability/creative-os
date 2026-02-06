@@ -25,9 +25,19 @@ find ai -type f -print0 | LC_ALL=C sort -z | xargs -0 shasum -a 256 > checksums/
 # Controllers
 find controllers -type f -print0 | LC_ALL=C sort -z | xargs -0 shasum -a 256 > checksums/controllers_sha256.txt
 
+# Repo logic (executable + behavior-defining files)
+# Intentionally excludes local-only evidence and secrets.
+(
+  printf "%s\0" Makefile requirements-shell.txt;
+  find accounting/scripts -type f -print0;
+  find creative_os -type f -print0;
+  find CONFIG -type f -name "*.template.json" -print0
+) | LC_ALL=C sort -z | xargs -0 shasum -a 256 > checksums/logic_sha256.txt
+
 echo "Wrote:"
 echo "  checksums/specs_sha256.txt"
 echo "  checksums/docs_sha256.txt"
 echo "  checksums/ableton_sha256.txt"
 echo "  checksums/ai_sha256.txt"
 echo "  checksums/controllers_sha256.txt"
+echo "  checksums/logic_sha256.txt"

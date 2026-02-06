@@ -62,7 +62,8 @@ def extracted_mail_present() -> bool:
     return False
 
 def bundles_present() -> bool:
-    return Path("accounting/2025/bundles").exists() and any(Path("accounting/2025/bundles").iterdir())
+    p = Path("accounting/data/2025/bundles")
+    return p.exists() and any(p.iterdir())
 
 def intake_folder() -> Path:
     # Prefer local-only root if exists, else default
@@ -70,7 +71,7 @@ def intake_folder() -> Path:
     return p if p.exists() else Path("accounting/2025/intake")
 
 def bundles_folder() -> Path:
-    return Path("accounting/2025/bundles")
+    return Path("accounting/data/2025/bundles")
 
 def open_folder(path: Path) -> str:
     # Best-effort opener; returns status text.
@@ -98,7 +99,7 @@ def repo_status_lines() -> list[str]:
     lines.append("")
     lines.append("[bold]Accounting readiness[/]")
     lines.append(f"{status_badge(cfg.exists())} CONFIG/corp_payment_fingerprints.json (local)")
-    lines.append(f"{status_badge(bundles_present())} accounting/2025/bundles/")
+    lines.append(f"{status_badge(bundles_present())} accounting/data/2025/bundles/")
 
     lines.append("")
     lines.append("[bold]Accounting ingestion[/]")

@@ -9,15 +9,16 @@ from ..runner import CommandRunner
 from ..types import Action, Check, Mode, Plan, Receipt, StateSummary
 
 CONFIG_LIVE = Path("CONFIG/corp_payment_fingerprints.json")
-BUNDLES_DIR = Path("accounting/2025/bundles")
-DRY_RUN_MARKER = Path("accounting/.local/ui_state/dry_run_done_2025")
+BUNDLES_DIR = Path("accounting/data/2025/bundles")
+DRY_RUN_MARKER = Path("accounting/data/.local/ui_state/dry_run_done_2025")
+EXPORT_DIR = Path("accounting/data/2025/exports")
 
 EXPORT_FILES = [
-    Path("schedule_c_expenses_2025.csv"),
-    Path("corp_reimbursable_expenses_2025.csv"),
-    Path("sole_prop_assets_retained_2025.csv"),
-    Path("sole_prop_assets_for_sale_2026.csv"),
-    Path("corp_asset_intake_2026.csv"),
+    EXPORT_DIR / "schedule_c_expenses_2025.csv",
+    EXPORT_DIR / "corp_reimbursable_expenses_2025.csv",
+    EXPORT_DIR / "sole_prop_assets_retained_2025.csv",
+    EXPORT_DIR / "sole_prop_assets_for_sale_2026.csv",
+    EXPORT_DIR / "corp_asset_intake_2026.csv",
 ]
 
 def _newest_mtime_under(root: Path, patterns: tuple[str, ...]) -> float:
@@ -67,7 +68,7 @@ def _mark_dry_run_done() -> None:
     DRY_RUN_MARKER.write_text("ok\n")
 
 def _backup_snapshot_exists_recently(max_age_hours: int = 48) -> bool:
-    snap_dir = Path("accounting/_snapshots")
+    snap_dir = Path("accounting/data/_snapshots")
     if not snap_dir.exists():
         return False
     newest = _newest_mtime_under(snap_dir, ("*.zip",))

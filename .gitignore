@@ -39,13 +39,6 @@ checksums/index/
 # Accounting local state
 accounting/data/
 accounting/.local/
-accounting/**/intake/
-accounting/**/source_messages/
-accounting/**/originals/
-accounting/**/bundles/
-accounting/**/review_queue/
-accounting/**/exports/
-accounting/**/archives/
 accounting/epochs/**/SEALED.marker
 
 # Common generated exports

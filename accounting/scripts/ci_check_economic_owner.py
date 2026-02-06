@@ -15,7 +15,7 @@ import pathlib
 import sys
 from typing import Any, Dict
 
-BUNDLES_DIR = pathlib.Path("accounting/2025/bundles")
+BUNDLES_DIR = pathlib.Path("accounting/data/2025/bundles")
 ALLOWED = {"personal", "sole_proprietor", "sole_prop", "c_corp", "corp"}
 BAD = {"", "tbd", "unknown", "unset", "none"}
 

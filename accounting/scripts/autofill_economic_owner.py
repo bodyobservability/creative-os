@@ -36,7 +36,7 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 YEAR = "2025"
-BUNDLES_DIR = pathlib.Path("accounting/2025/bundles")
+BUNDLES_DIR = pathlib.Path("accounting/data/2025/bundles")
 CONFIG_PATH = pathlib.Path("CONFIG/corp_payment_fingerprints.json")
 DECISION_FILENAME = "auto_owner_from_payment.json"
 

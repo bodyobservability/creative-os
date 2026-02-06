@@ -2,15 +2,15 @@
 """Creative-OS Accounting: One-command export generator (2025)
 
 Generates:
-- schedule_c_expenses_2025.csv
-- corp_reimbursable_expenses_2025.csv
-- sole_prop_assets_retained_2025.csv
-- sole_prop_assets_for_sale_2026.csv
-- corp_asset_intake_2026.csv (draft intake list; used when corp acquires assets)
+- accounting/data/2025/exports/schedule_c_expenses_2025.csv
+- accounting/data/2025/exports/corp_reimbursable_expenses_2025.csv
+- accounting/data/2025/exports/sole_prop_assets_retained_2025.csv
+- accounting/data/2025/exports/sole_prop_assets_for_sale_2026.csv
+- accounting/data/2025/exports/corp_asset_intake_2026.csv (draft intake list; used when corp acquires assets)
 
 Assumptions:
 - Bundle layout per specs:
-  accounting/2025/bundles/<bundle_id>/extracted/extracted_metadata.json
+  accounting/data/2025/bundles/<bundle_id>/extracted/extracted_metadata.json
 
 Key classification axes (must exist in extracted_metadata.json):
 - economic_owner: personal | sole_proprietor | c_corp
@@ -32,7 +32,8 @@ import sys
 from typing import Any, Dict, List
 
 YEAR = "2025"
-BASE = pathlib.Path("accounting/2025/bundles")  # run from repo root or update
+BASE = pathlib.Path("accounting/data/2025/bundles")  # run from repo root or update
+EXPORT_DIR = pathlib.Path("accounting/data/2025/exports")
 
 REQ = [
     "economic_owner",
@@ -93,7 +94,9 @@ def amount(x: Any) -> float:
     return round(float(x), 2)
 
 def write_csv(path: str, rows: List[Dict[str, Any]], fieldnames: List[str]) -> None:
-    with open(path, "w", newline="", encoding="utf-8") as f:
+    out_path = pathlib.Path(path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
         for r in rows:
@@ -204,27 +207,27 @@ def main() -> None:
         # If you want a corp-side 2025 asset register export, generate it from corp accounting, not this repo.
 
     # Write outputs (even if empty, write headers to be predictable)
-    write_csv(f"schedule_c_expenses_{YEAR}.csv", schedule_c_rows,
+    write_csv(str(EXPORT_DIR / f"schedule_c_expenses_{YEAR}.csv"), schedule_c_rows,
               ["date","vendor","amount","category","description","evidence_path"])
 
-    write_csv(f"corp_reimbursable_expenses_{YEAR}.csv", corp_reimb_rows,
+    write_csv(str(EXPORT_DIR / f"corp_reimbursable_expenses_{YEAR}.csv"), corp_reimb_rows,
               ["date","vendor","amount","category","description","evidence_path","reimbursement_status"])
 
-    write_csv(f"sole_prop_assets_retained_{YEAR}.csv", sole_assets_keep,
+    write_csv(str(EXPORT_DIR / f"sole_prop_assets_retained_{YEAR}.csv"), sole_assets_keep,
               ["asset_id","description","purchase_date","original_cost","category","evidence_path","serial","location"])
 
-    write_csv("sole_prop_assets_for_sale_2026.csv", sole_assets_sale,
+    write_csv(str(EXPORT_DIR / "sole_prop_assets_for_sale_2026.csv"), sole_assets_sale,
               ["asset_id","description","purchase_date","original_cost","adjusted_basis_2025","proposed_fmv_2026","category","evidence_path","serial","location"])
 
-    write_csv("corp_asset_intake_2026.csv", corp_asset_intake_2026,
+    write_csv(str(EXPORT_DIR / "corp_asset_intake_2026.csv"), corp_asset_intake_2026,
               ["corp_asset_id","source_asset_id","acquisition_type","acquisition_date","vendor_or_source","description","purchase_price_2026","original_purchase_date","category","serial","location","evidence_path"])
 
     print("✅ Exports generated:")
-    print(f"- schedule_c_expenses_{YEAR}.csv ({len(schedule_c_rows)} rows)")
-    print(f"- corp_reimbursable_expenses_{YEAR}.csv ({len(corp_reimb_rows)} rows)")
-    print(f"- sole_prop_assets_retained_{YEAR}.csv ({len(sole_assets_keep)} rows)")
-    print(f"- sole_prop_assets_for_sale_2026.csv ({len(sole_assets_sale)} rows)")
-    print(f"- corp_asset_intake_2026.csv ({len(corp_asset_intake_2026)} rows)")
+    print(f"- accounting/data/2025/exports/schedule_c_expenses_{YEAR}.csv ({len(schedule_c_rows)} rows)")
+    print(f"- accounting/data/2025/exports/corp_reimbursable_expenses_{YEAR}.csv ({len(corp_reimb_rows)} rows)")
+    print(f"- accounting/data/2025/exports/sole_prop_assets_retained_{YEAR}.csv ({len(sole_assets_keep)} rows)")
+    print(f"- accounting/data/2025/exports/sole_prop_assets_for_sale_2026.csv ({len(sole_assets_sale)} rows)")
+    print(f"- accounting/data/2025/exports/corp_asset_intake_2026.csv ({len(corp_asset_intake_2026)} rows)")
 
 if __name__ == "__main__":
     main()

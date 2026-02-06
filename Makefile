@@ -88,8 +88,8 @@ backup:
 	$(RCLONE) sync $(BACKUP_LOCAL) $(BACKUP_REMOTE) $(BACKUP_EXCLUDES)
 
 backup-zip:
-	@mkdir -p accounting/_snapshots
-	@SNAP=accounting/_snapshots/accounting_data_$$(date +%Y%m%d_%H%M%S).zip; \
+	@mkdir -p accounting/data/_snapshots
+	@SNAP=accounting/data/_snapshots/accounting_data_$$(date +%Y%m%d_%H%M%S).zip; \
 	zip -r $$SNAP $(BACKUP_LOCAL) >/dev/null; \
 	echo "Created $$SNAP"; \
 	$(RCLONE) copy $$SNAP $(BACKUP_REMOTE)/_snapshots/

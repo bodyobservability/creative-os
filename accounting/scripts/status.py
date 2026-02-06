@@ -5,14 +5,14 @@ Usage:
   python3 accounting/scripts/status.py
 
 Reads:
-  accounting/2025/bundles/<id>/extracted/extracted_metadata.json
+  accounting/data/2025/bundles/<id>/extracted/extracted_metadata.json
 """
 
 import json
 import pathlib
 from collections import Counter, defaultdict
 
-BUNDLES_DIR = pathlib.Path("accounting/2025/bundles")
+BUNDLES_DIR = pathlib.Path("accounting/data/2025/bundles")
 
 def norm(v):
     return str(v or "").strip().lower()
