@@ -1,0 +1,144 @@
+{
+  "apply": {
+    "arguments": [
+      {
+        "description": "Target creative-os repo root",
+        "name": "--target",
+        "required": true
+      },
+      {
+        "description": "Overwrite existing files",
+        "name": "--force",
+        "required": false
+      }
+    ],
+    "default_entrypoint": "apply.sh",
+    "entrypoints": [
+      {
+        "description": "Overlay into target and run verify.sh",
+        "kind": "script",
+        "path": "apply.sh"
+      }
+    ],
+    "expected_side_effects": [
+      "Writes files under target repo.",
+      "Adds bundle CLI modules.",
+      "Adds verify.sh and apply.sh at repo root."
+    ],
+    "verification": {
+      "kind": "script",
+      "path": "verify.sh",
+      "success_criteria": "Exit code 0"
+    }
+  },
+  "bundle_id": "cos_bundle_creative-os_bundle-support_0.1.0_ship0",
+  "bundle_kind": "ship",
+  "bundle_name": "creative-os bundle support v0.1 \u2014 Ship Bundle 0",
+  "bundle_version": "0.1.0",
+  "compatibility": {
+    "os": [
+      "macos",
+      "linux"
+    ],
+    "requires": [
+      {
+        "kind": "runtime",
+        "min_version": "3.10",
+        "name": "python3"
+      },
+      {
+        "kind": "runtime",
+        "min_version": "3.2",
+        "name": "bash"
+      },
+      {
+        "kind": "runtime",
+        "min_version": "",
+        "name": "unzip"
+      }
+    ]
+  },
+  "contents": {
+    "archive": {
+      "bytes": 7806,
+      "filename": "creative-os_bundle-support_0.1.0_ship0.zip",
+      "sha256": "dfb0469c09f5084328aa71f7daff836886cc434fd838e9b0974455cf09ce593f"
+    },
+    "files": [
+      {
+        "bytes": 487,
+        "path": "VERIFY.md",
+        "sha256": "da41353d3a963ca30b91072c26584d87f9fc0db68e53f0f6047e1da9b523d42d"
+      },
+      {
+        "bytes": 1769,
+        "path": "apply.sh",
+        "sha256": "52fa9ceb2635d75e92a1db2a30284e2d6b129c3cb855113ce4d5f100aca695d9"
+      },
+      {
+        "bytes": 2317,
+        "path": "bundle_manifest.v1.json",
+        "sha256": "42807f26bde34d57f5343189788bc29a28cf1690a1bbba45b7955a7b13950bb2"
+      },
+      {
+        "bytes": 25,
+        "path": "creative_os/bundles/__init__.py",
+        "sha256": "fb86adb2f6318d86c1c3a14e8a2b88c4e3404a8031ced11024661f2c8d2667c7"
+      },
+      {
+        "bytes": 10790,
+        "path": "creative_os/bundles/engine.py",
+        "sha256": "b18d4b988d5c795a4dbc6945f7416b6805450848fc08cae923f98f1579ac9d33"
+      },
+      {
+        "bytes": 39,
+        "path": "creative_os/cli/__init__.py",
+        "sha256": "63b44ef0702adcff518f0673465c979bb3083ad0ec1ae01fadd6ed6af2b6967b"
+      },
+      {
+        "bytes": 3325,
+        "path": "creative_os/cli/__main__.py",
+        "sha256": "a3700069e58ba49257c758ce57e85803b1f5f13b1f4afc702759d2d45b6c8ad3"
+      },
+      {
+        "bytes": 309,
+        "path": "verify.sh",
+        "sha256": "c235bd4732b7b5ead10e0443bcd06f1262bd13eea95e5dfdcbaad2602fc39f8d"
+      }
+    ],
+    "notes": "Overlay bundle: adds creative_os/cli and creative_os/bundles. Includes apply.sh and verify.sh at repo root."
+  },
+  "created_at": "2026-02-06T08:16:18Z",
+  "lineage": {
+    "parents": [],
+    "superseded_by": [],
+    "supersedes": []
+  },
+  "schema_version": 1,
+  "security": {
+    "contains_private_data": false,
+    "sensitivity": "public",
+    "signing": {
+      "signature_ref": null,
+      "signature_type": "none",
+      "signed": false
+    }
+  },
+  "source": {
+    "origin": {
+      "id": "creative-os_bundle_support_increment1",
+      "type": "increment"
+    },
+    "producer": "manual"
+  },
+  "targets": [
+    {
+      "apply_mode": "overlay",
+      "repo_name": "creative-os",
+      "root_expected_files": [
+        "creative_os"
+      ],
+      "target_type": "repo"
+    }
+  ]
+}

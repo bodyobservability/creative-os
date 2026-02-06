@@ -115,6 +115,41 @@ Studio:
 make studio
 ```
 
+Bundle CLI (v0.1):
+
+```bash
+python3 -m creative_os.cli bundle --help
+```
+
+## Bundle support (v0.1)
+
+Creative OS includes a local `cos bundle` workflow for importing and applying ship bundles.
+
+Commands:
+
+```bash
+# import a bundle zip into the vault
+python3 -m creative_os.cli bundle import /path/to/bundle.zip
+
+# list and inspect imported bundles
+python3 -m creative_os.cli bundle list
+python3 -m creative_os.cli bundle show <bundle_id>
+
+# plan then apply to a target repo
+python3 -m creative_os.cli bundle plan <bundle_id> --target /path/to/target-repo
+python3 -m creative_os.cli bundle apply <bundle_id> --target /path/to/target-repo --mode GUIDED --force
+```
+
+Vault location:
+- default: `~/CreativeOSVault`
+- override: `CREATIVE_OS_VAULT=/path/to/vault` or `--vault /path/to/vault`
+
+Artifacts:
+- imported bundles: `<vault>/memory/bundles/<YYYY>/<MM>/<bundle_id>/`
+- import receipts: `<vault>/runs/<run_id>/bundle_import_receipt.v1.json`
+- apply receipts: `<vault>/runs/<run_id>/bundle_apply_receipt.v1.json`
+- apply/verify logs: `<vault>/runs/<run_id>/logs/`
+
 ## Safety model
 
 Modes:
