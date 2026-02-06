@@ -12,23 +12,23 @@
     "entrypoints": [
       {
         "title": "Profile README",
-        "path": "operator/profiles/accounting/README.md"
+        "path": "docs/accounting/profile.md"
       },
       {
         "title": "Readiness",
-        "path": "operator/profiles/accounting/docs/readiness/README.md"
+        "path": "docs/accounting/readiness.md"
       },
       {
         "title": "Lifecycle",
-        "path": "operator/profiles/accounting/docs/lifecycle/README.md"
+        "path": "docs/accounting/lifecycle.md"
       },
       {
         "title": "Repo Launcher",
-        "path": "docs/LAUNCHER.md"
+        "path": "docs/launcher.md"
       },
       {
         "title": "Accounting TUI Quick Guide",
-        "path": "docs/accounting/TUI_QUICK_GUIDE.md"
+        "path": "docs/accounting/tui-quick-guide.md"
       }
     ]
   },
